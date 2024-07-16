@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique @db.VarChar(255)
+  password          String             @db.VarChar(255)
+  firstName         String             @map("first_name") @db.VarChar(255)
+  lastName          String             @map("last_name") @db.VarChar(255)
+  userTypeId        Int                @map("user_type_id")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  userOrganizations UserOrganization[]
+  oauthAccounts     UserOauthAccount[]
+  magicLinks        MagicLink[]
+  userSessions      UserSession[]
+  UserType          UserType           @relation(fields: [userTypeId], references: [id])
+
+  @@map("users")
+}
+
+model Organization {
+  id                String             @id @default(uuid())
+  name              String             @db.VarChar(255)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  userOrganizations UserOrganization[]
+  magicLinks        MagicLink[]
+  userSessions      UserSession[]
+  roles             Role[]
+
+  @@map("organizations")
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(50)
+  organizationId  String           @map("organization_id")
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@unique([name, organizationId])
+  @@map("roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(200)
+  description     String?
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserType {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("user_types")
+}
+
+model UserOrganization {
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@id([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("user_organizations")
+}
+
+model OAuthProvider {
+  id            String             @id @default(uuid())
+  name          String             @unique @db.VarChar(50)
+  oauthAccounts UserOauthAccount[]
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@map("oauth_providers")
+}
+
+model UserOauthAccount {
+  id                    String        @id @default(uuid())
+  userId                String        @map("user_id")
+  providerId            String        @map("provider_id")
+  providerUserId        String        @map("provider_user_id") @db.VarChar(255)
+  accessToken           String?       @map("access_token")
+  refreshToken          String?       @map("refresh_token")
+  refreshTokenExpiresAt DateTime?     @map("refresh_token_expires_at")
+  tokenCreatedAt        DateTime?     @map("token_created_at")
+  tokenUpdatedAt        DateTime?     @map("token_updated_at")
+  user                  User          @relation(fields: [userId], references: [id])
+  provider              OAuthProvider @relation(fields: [providerId], references: [id])
+
+  @@unique([providerId, providerUserId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("user_oauth_accounts")
+}
+
+model MagicLink {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  organizationId String       @map("organization_id")
+  token          String       @unique @db.VarChar(255)
+  expiresAt      DateTime     @map("expires_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("magic_links")
+}
+
+model UserSession {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  organizationId String       @map("organization_id")
+  token          String       @unique @db.VarChar(255)
+  expiresAt      DateTime     @map("expires_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("user_sessions")
+}
