@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,50 +7,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Admin model
+model Admin {
+  id                 String              @id @default(cuid())
+  email              String              @unique @db.VarChar(255)
+  password           String              @db.VarChar(255)
+  firstName          String              @map("first_name") @db.VarChar(255)
+  lastName           String              @map("last_name") @db.VarChar(255)
+  isSuperAdmin       Boolean             @default(false) @map("is_super_admin")
+  isVerified         Boolean             @default(false)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  projects           Project[] // New relation
+  otps               OTP[]
+  accessTokens       AccessToken[]
+  refreshTokens      RefreshToken[]
+  adminNotifications AdminNotification[]
+
+  @@map("admins")
+}
+
+// Project model
+model Project {
+  id           String        @id @default(cuid())
+  name         String        @db.VarChar(255)
+  apiKey       String        @unique @db.VarChar(64)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  adminId      String        @map("admin_id") // New field
+  admin        Admin         @relation(fields: [adminId], references: [id]) // New relation
+  users        User[] // New relation
+  userProjects UserProject[]
+  magicLinks   MagicLink[]
+  roles        Role[]
+
+  @@map("projects")
+}
+
+// User model
 model User {
-  id                String             @id @default(uuid())
-  email             String             @unique @db.VarChar(255)
-  password          String             @db.VarChar(255)
-  firstName         String             @map("first_name") @db.VarChar(255)
-  lastName          String             @map("last_name") @db.VarChar(255)
-  userTypeId        Int                @map("user_type_id")
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @updatedAt @map("updated_at")
-  userOrganizations UserOrganization[]
-  oauthAccounts     UserOauthAccount[]
-  magicLinks        MagicLink[]
-  userSessions      UserSession[]
-  UserType          UserType           @relation(fields: [userTypeId], references: [id])
+  id            String             @id @default(cuid())
+  email         String             @unique @db.VarChar(255)
+  password      String             @db.VarChar(255)
+  firstName     String             @map("first_name") @db.VarChar(255)
+  lastName      String             @map("last_name") @db.VarChar(255)
+  isVerified    Boolean            @default(false)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  projects      Project[] // New relation
+  userProjects  UserProject[]
+  oauthAccounts UserOauthAccount[]
+  magicLinks    MagicLink[]
+  otps          OTP[]
+  accessTokens  AccessToken[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
 
-model Organization {
-  id                String             @id @default(uuid())
-  name              String             @db.VarChar(255)
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @updatedAt @map("updated_at")
-  userOrganizations UserOrganization[]
-  magicLinks        MagicLink[]
-  userSessions      UserSession[]
-  roles             Role[]
-
-  @@map("organizations")
-}
-
+// Role model
 model Role {
   id              Int              @id @default(autoincrement())
   name            String           @db.VarChar(50)
-  organizationId  String           @map("organization_id")
-  organization    Organization     @relation(fields: [organizationId], references: [id])
+  projectId       String           @map("project_id")
+  project         Project          @relation(fields: [projectId], references: [id])
   rolePermissions RolePermission[]
+  userProjects    UserProject[]
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  @@unique([name, organizationId])
+  @@unique([name, projectId])
   @@map("roles")
 }
 
+// Permission model
 model Permission {
   id              Int              @id @default(autoincrement())
   name            String           @db.VarChar(200)
@@ -65,6 +92,7 @@ model Permission {
   @@map("permissions")
 }
 
+// RolePermission model
 model RolePermission {
   roleId       Int
   permissionId Int
@@ -75,31 +103,25 @@ model RolePermission {
   @@map("role_permissions")
 }
 
-model UserType {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(200)
-  description String?
-  users       User[]
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+// UserProject model
+model UserProject {
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id])
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+  roleId    Int     @map("role_id")
+  role      Role    @relation(fields: [roleId], references: [id])
 
-  @@map("user_types")
-}
-
-model UserOrganization {
-  userId         String       @map("user_id")
-  user           User         @relation(fields: [userId], references: [id])
-  organizationId String       @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  @@id([userId, organizationId])
+  @@id([userId, projectId])
   @@index([userId])
-  @@index([organizationId])
-  @@map("user_organizations")
+  @@index([projectId])
+  @@index([roleId])
+  @@map("user_projects")
 }
 
+// OAuthProvider model
 model OAuthProvider {
-  id            String             @id @default(uuid())
+  id            String             @id @default(cuid())
   name          String             @unique @db.VarChar(50)
   oauthAccounts UserOauthAccount[]
   createdAt     DateTime           @default(now()) @map("created_at")
@@ -108,8 +130,9 @@ model OAuthProvider {
   @@map("oauth_providers")
 }
 
+// UserOauthAccount model
 model UserOauthAccount {
-  id                    String        @id @default(uuid())
+  id                    String        @id @default(cuid())
   userId                String        @map("user_id")
   providerId            String        @map("provider_id")
   providerUserId        String        @map("provider_user_id") @db.VarChar(255)
@@ -127,30 +150,103 @@ model UserOauthAccount {
   @@map("user_oauth_accounts")
 }
 
+// MagicLink model
 model MagicLink {
-  id             String       @id @default(uuid())
-  userId         String       @map("user_id")
-  organizationId String       @map("organization_id")
-  token          String       @unique @db.VarChar(255)
-  expiresAt      DateTime     @map("expires_at")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  user           User         @relation(fields: [userId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  projectId String   @map("project_id")
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
 
   @@map("magic_links")
 }
 
-model UserSession {
-  id             String       @id @default(uuid())
-  userId         String       @map("user_id")
-  organizationId String       @map("organization_id")
-  token          String       @unique @db.VarChar(255)
-  expiresAt      DateTime     @map("expires_at")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  user           User         @relation(fields: [userId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
+// OTP model
+model OTP {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  adminId   String?  @map("admin_id")
+  code      String   @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User?    @relation(fields: [userId], references: [id])
+  admin     Admin?   @relation(fields: [adminId], references: [id])
 
-  @@map("user_sessions")
+  @@map("otps")
+}
+
+// AccessToken model
+model AccessToken {
+  id        String     @id @default(cuid())
+  userId    String?    @map("user_id")
+  adminId   String?    @map("admin_id")
+  token     String     @unique
+  expiresAt DateTime   @map("expires_at")
+  state     TokenState @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  user      User?      @relation(fields: [userId], references: [id])
+  admin     Admin?     @relation(fields: [adminId], references: [id])
+
+  @@map("access_tokens")
+}
+
+// RefreshToken model
+model RefreshToken {
+  id        String     @id @default(cuid())
+  userId    String?    @map("user_id")
+  adminId   String?    @map("admin_id")
+  token     String     @unique
+  expiresAt DateTime   @map("expires_at")
+  state     TokenState @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  user      User?      @relation(fields: [userId], references: [id])
+  admin     Admin?     @relation(fields: [adminId], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+// AdminNotification model
+model AdminNotification {
+  id        String                    @id @default(cuid())
+  adminId   String                    @map("admin_id")
+  title     String
+  content   String
+  isRead    Boolean                   @default(false)
+  severity  AdminNotificationSeverity
+  type      AdminNotificationType
+  createdAt DateTime                  @default(now()) @map("created_at")
+  updatedAt DateTime                  @updatedAt @map("updated_at")
+  admin     Admin                     @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@map("admin_notifications")
+}
+
+// Enums
+enum TokenState {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  BLACKLISTED
+}
+
+enum AdminNotificationType {
+  SECURITY_ALERT
+  SYSTEM_STATUS
+  USER_MANAGEMENT
+  PROJECT_MANAGEMENT
+}
+
+enum AdminNotificationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
