@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { ADMIN_ROUTES } from 'src/constants/routes';
+import { ADMIN_ROUTES } from 'src/infra/constants/routes';
 import { RegisterAdminDTO } from './dtos/register-admin-dto';
+import { UpdateAdminDTO } from './dtos/update-admin-dto';
 
 @Controller(ADMIN_ROUTES.BASE)
 export class AdminController {
@@ -15,5 +16,10 @@ export class AdminController {
   @Post(ADMIN_ROUTES.REGISTER)
   async registerAdmin(@Body() registerAdminDTO: RegisterAdminDTO) {
     return this.adminService.registerAdmin(registerAdminDTO);
+  }
+
+  @Put(ADMIN_ROUTES.UPDATE_DETAILS)
+  async updateAdmin(@Body() updateAdminDTO: UpdateAdminDTO) {
+    return this.adminService.updateAdmin(updateAdminDTO);
   }
 }

@@ -1,7 +1,14 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Get } from '@nestjs/common';
 import { OtpService } from './otp.service';
+import { OTP_ROUTES } from 'src/infra/constants/routes';
+import { CreateOtpDto } from './dtos/create-otp-dto';
 
-@Controller('otp')
+@Controller(OTP_ROUTES.BASE)
 export class OtpController {
   constructor(private readonly otpService: OtpService) {}
+
+  @Get(OTP_ROUTES.SEND)
+  async sendOTP(@Body() data: CreateOtpDto) {
+    return this.otpService.sendOTP(data);
+  }
 }
