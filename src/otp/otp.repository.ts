@@ -15,4 +15,17 @@ export class OTPRepository {
       where: { email },
     });
   }
+
+  async updateOTP(email: string, code: number) {
+    return this.prisma.otp.update({
+      where: { email },
+      data: { code: code.toString() },
+    });
+  }
+
+  async deleteOTP(email: string) {
+    return this.prisma.otp.delete({
+      where: { email },
+    });
+  }
 }
