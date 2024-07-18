@@ -9,4 +9,10 @@ export class OTPRepository {
       data,
     });
   }
+
+  async getOTPDetails(email: string) {
+    return this.prisma.otp.findUnique({
+      where: { email },
+    });
+  }
 }

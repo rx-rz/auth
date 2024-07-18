@@ -16,4 +16,6 @@ export class OtpService {
     });
     return otp;
   }
+
+  async verifyOTP(data: )
 }
