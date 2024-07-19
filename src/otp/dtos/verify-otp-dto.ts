@@ -1,10 +1,21 @@
-import { IsEmail, IsNumber, Length } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class VerifyOtpDto {
-  @IsNumber()
+  @IsString()
   @Length(6, 6)
-  code: number;
+  code: string;
 
   @IsEmail()
   email: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isAdmin: boolean;
 }
