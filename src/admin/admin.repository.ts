@@ -10,6 +10,7 @@ export class AdminRepository {
     const createdAdmin = await this.prisma.admin.create({
       data: admin,
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,
@@ -24,6 +25,7 @@ export class AdminRepository {
     const admin = await this.prisma.admin.findUnique({
       where: { email },
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,
@@ -39,6 +41,7 @@ export class AdminRepository {
       where: { email },
       data,
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,
@@ -47,5 +50,10 @@ export class AdminRepository {
       },
     });
     return updatedAdmin;
+  }
+
+  async getAdminPassword(email: string) {
+    const admin = await this.prisma.admin.findUnique({ where: { email } });
+    return admin?.password;
   }
 }

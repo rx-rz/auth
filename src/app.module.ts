@@ -4,10 +4,18 @@ import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { OtpModule } from './otp/otp.module';
 import { DatabaseModule } from './db/database.module';
+import { RefreshTokenModule } from './refresh-token/refresh-token.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   controllers: [AppController],
   providers: [AppService],
-  imports: [AdminModule, OtpModule, DatabaseModule],
+  imports: [
+    AdminModule,
+    OtpModule,
+    DatabaseModule,
+    RefreshTokenModule,
+    EventEmitterModule.forRoot(),
+  ],
 })
 export class AppModule {}

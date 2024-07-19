@@ -19,7 +19,6 @@ model Admin {
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   projects            Project[]
-  accessTokens        AccessToken[]
   refreshTokens       RefreshToken[]
   adminNotifications  AdminNotification[]
   webAuthnCredentials WebAuthnCredential[]
@@ -58,7 +57,6 @@ model User {
   userProjects  UserProject[]
   oauthAccounts UserOauthAccount[]
   magicLinks    MagicLink[]
-  accessTokens  AccessToken[]
   refreshTokens RefreshToken[]
 
   @@map("users")
@@ -176,34 +174,19 @@ model Otp {
   @@map("otps")
 }
 
-// AccessToken model
-model AccessToken {
-  id        String     @id @default(cuid())
-  userId    String?    @map("user_id")
-  adminId   String?    @map("admin_id")
-  token     String     @unique
-  expiresAt DateTime   @map("expires_at")
-  state     TokenState @default(ACTIVE)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  user      User?      @relation(fields: [userId], references: [id])
-  admin     Admin?     @relation(fields: [adminId], references: [id])
-
-  @@map("access_tokens")
-}
-
 // RefreshToken model
 model RefreshToken {
-  id        String     @id @default(cuid())
-  userId    String?    @map("user_id")
-  adminId   String?    @map("admin_id")
-  token     String     @unique
-  expiresAt DateTime   @map("expires_at")
-  state     TokenState @default(ACTIVE)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  user      User?      @relation(fields: [userId], references: [id])
-  admin     Admin?     @relation(fields: [adminId], references: [id])
+  id         String     @id @default(cuid())
+  userId     String?    @map("user_id")
+  adminId    String?    @map("admin_id")
+  token      String     @unique
+  expiresAt  DateTime   @map("expires_at")
+  state      TokenState @default(ACTIVE)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  authMethod AuthMethod @default(EMAIL_AND_PASSWORD_SIGNIN)
+  user       User?      @relation(fields: [userId], references: [id])
+  admin      Admin?     @relation(fields: [adminId], references: [id])
 
   @@map("refresh_tokens")
 }
@@ -226,6 +209,19 @@ model AdminNotification {
   @@map("admin_notifications")
 }
 
+model WebAuthnCredential {
+  id           String   @id @default(cuid())
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id])
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @updatedAt
+
+  @@map("webauthn_credentials")
+}
+
 // Enums
 enum TokenState {
   ACTIVE
@@ -241,22 +237,17 @@ enum AdminNotificationType {
   PROJECT_MANAGEMENT
 }
 
+enum AuthMethod {
+  GOOGLE_OAUTH
+  GITHUB_OAUTH
+  FACEBOOK_OAUTH
+  EMAIL_AND_PASSWORD_SIGNIN
+  MAGICLINK
+}
+
 enum AdminNotificationSeverity {
   LOW
   MEDIUM
   HIGH
   CRITICAL
-}
-
-model WebAuthnCredential {
-  id           String   @id @default(cuid())
-  adminId      String
-  admin        Admin    @relation(fields: [adminId], references: [id])
-  credentialId String   @unique
-  publicKey    Bytes
-  counter      BigInt
-  createdAt    DateTime @default(now())
-  lastUsedAt   DateTime @updatedAt
-
-  @@map("webauthn_credentials")
 }

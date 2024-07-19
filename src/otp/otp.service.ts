@@ -71,7 +71,8 @@ export class OtpService {
       await this.otpRepository.deleteOTP(data.email);
       throw new GoneException('Provided OTP has expired.');
     }
-
+    data.isAdmin &&
+      this.adminRepository.updateAdmin(data.email, { isVerified: true });
     await this.otpRepository.deleteOTP(data.email);
     return { success: true, message: 'OTP verified successfully' };
   }

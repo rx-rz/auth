@@ -26,6 +26,7 @@ export class CentralizedExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       message,
+      success: false,
     });
   }
 }
