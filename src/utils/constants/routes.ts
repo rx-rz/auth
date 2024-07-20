@@ -22,3 +22,13 @@ export const PROJECT_ROUTES = {
   GET_ALL_BY_ADMIN: 'get-all-by-admin',
   DELETE: 'delete',
 };
+
+export const USER_ROUTES = {
+  BASE: 'user',
+  CREATE: 'create',
+  UPDATE: 'update',
+  UPDATE_PASSWORD: 'update-password',
+  UPDATE_EMAIL: 'update-email',
+  GET_DETAILS: 'get-details',
+  DELETE: 'delete',
+};
