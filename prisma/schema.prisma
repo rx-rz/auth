@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin model
+model Admin {
+  id                  String               @id @default(cuid())
+  email               String               @unique @db.VarChar(255)
+  password            String               @db.VarChar(255)
+  firstName           String               @map("first_name") @db.VarChar(255)
+  lastName            String               @map("last_name") @db.VarChar(255)
+  isVerified          Boolean              @default(false)
+  mfaEnabled          Boolean              @default(false)
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  projects            Project[]
+  refreshTokens       RefreshToken[]
+  adminNotifications  AdminNotification[]
+  webAuthnCredentials WebAuthnCredential[]
+
+  @@map("admins")
+}
+
+// Project model
+model Project {
+  id            String         @id @default(cuid())
+  name          String         @db.VarChar(255)
+  apiKey        String         @unique @db.VarChar(64)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  adminId       String         @map("admin_id")
+  admin         Admin          @relation(fields: [adminId], references: [id])
+  users         User[]
+  userProjects  UserProject[]
+  refreshTokens RefreshToken[]
+  magicLinks    MagicLink[]
+  roles         Role[]
+
+  @@map("projects")
+}
+
+// User model
+model User {
+  id            String             @id @default(cuid())
+  email         String             @unique @db.VarChar(255)
+  password      String             @db.VarChar(255)
+  firstName     String             @map("first_name") @db.VarChar(255)
+  lastName      String             @map("last_name") @db.VarChar(255)
+  isVerified    Boolean            @default(false)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  projects      Project[]
+  userProjects  UserProject[]
+  oauthAccounts UserOauthAccount[]
+  magicLinks    MagicLink[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+// Role model
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(50)
+  projectId       String           @map("project_id")
+  project         Project          @relation(fields: [projectId], references: [id])
+  rolePermissions RolePermission[]
+  userProjects    UserProject[]
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@unique([name, projectId])
+  @@map("roles")
+}
+
+// Permission model
+model Permission {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(200)
+  description     String?
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@map("permissions")
+}
+
+// RolePermission model
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// UserProject model
+model UserProject {
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id])
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+  roleId    Int     @map("role_id")
+  role      Role    @relation(fields: [roleId], references: [id])
+
+  @@id([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+  @@index([roleId])
+  @@map("user_projects")
+}
+
+// OAuthProvider model
+model OAuthProvider {
+  id            String             @id @default(cuid())
+  name          String             @unique @db.VarChar(50)
+  oauthAccounts UserOauthAccount[]
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@map("oauth_providers")
+}
+
+// UserOauthAccount model
+model UserOauthAccount {
+  id                    String        @id @default(cuid())
+  userId                String        @map("user_id")
+  providerId            String        @map("provider_id")
+  providerUserId        String        @map("provider_user_id") @db.VarChar(255)
+  accessToken           String?       @map("access_token")
+  refreshToken          String?       @map("refresh_token")
+  refreshTokenExpiresAt DateTime?     @map("refresh_token_expires_at")
+  tokenCreatedAt        DateTime?     @map("token_created_at")
+  tokenUpdatedAt        DateTime?     @map("token_updated_at")
+  user                  User          @relation(fields: [userId], references: [id])
+  provider              OAuthProvider @relation(fields: [providerId], references: [id])
+
+  @@unique([providerId, providerUserId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("user_oauth_accounts")
+}
+
+// MagicLink model
+model MagicLink {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  projectId String   @map("project_id")
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  isValid   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  @@map("magic_links")
+}
+
+// OTP model
+model Otp {
+  id        String   @id @default(cuid())
+  email     String   @unique() @map("email")
+  code      String   @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("otps")
+}
+
+// RefreshToken model
+model RefreshToken {
+  id         String     @id @default(cuid())
+  userId     String?    @map("user_id")
+  adminId    String?    @map("admin_id")
+  projectId  String?    @map("project_id")
+  token      String     @unique
+  expiresAt  DateTime   @map("expires_at")
+  state      TokenState @default(ACTIVE)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  authMethod AuthMethod @default(EMAIL_AND_PASSWORD_SIGNIN)
+  user       User?      @relation(fields: [userId], references: [id])
+  admin      Admin?     @relation(fields: [adminId], references: [id])
+  project    Project?   @relation(fields: [projectId], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+// AdminNotification model
+model AdminNotification {
+  id      String  @id @default(cuid())
+  adminId String  @map("admin_id")
+  title   String
+  content String
+  isRead  Boolean @default(false)
+
+  createdAt DateTime                  @default(now()) @map("created_at")
+  updatedAt DateTime                  @updatedAt @map("updated_at")
+  admin     Admin                     @relation(fields: [adminId], references: [id])
+  severity  AdminNotificationSeverity
+  type      AdminNotificationType
+
+  @@index([adminId])
+  @@map("admin_notifications")
+}
+
+model WebAuthnCredential {
+  id           String   @id @default(cuid())
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id])
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @updatedAt
+
+  @@map("webauthn_credentials")
+}
+
+// Enums
+enum TokenState {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  BLACKLISTED
+}
+
+enum AdminNotificationType {
+  SECURITY_ALERT
+  SYSTEM_STATUS
+  USER_MANAGEMENT
+  PROJECT_MANAGEMENT
+}
+
+enum AuthMethod {
+  GOOGLE_OAUTH
+  GITHUB_OAUTH
+  FACEBOOK_OAUTH
+  EMAIL_AND_PASSWORD_SIGNIN
+  MAGICLINK
+}
+
+enum AdminNotificationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

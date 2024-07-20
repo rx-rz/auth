@@ -7,7 +7,7 @@ import { DatabaseModule } from './infra/db/database.module';
 import { RefreshTokenModule } from './refresh-token/refresh-token.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
-
+import { ProjectModule } from './project/project.module';
 @Module({
   controllers: [AppController],
   providers: [AppService],
@@ -18,6 +18,7 @@ import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
     RefreshTokenModule,
     EventEmitterModule.forRoot(),
     WebauthnMfaModule,
+    ProjectModule,
   ],
 })
 export class AppModule {}
