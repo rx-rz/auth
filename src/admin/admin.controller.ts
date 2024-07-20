@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put, Res } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { ADMIN_ROUTES } from 'src/infra/constants/routes';
+import { ADMIN_ROUTES } from 'src/utils/constants/routes';
 import { RegisterAdminDTO } from './dtos/register-admin-dto';
 import { UpdateAdminDTO } from './dtos/update-admin-dto';
 import { LoginAdminDto } from './dtos/login-admin-dto';

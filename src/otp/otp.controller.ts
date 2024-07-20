@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { OtpService } from './otp.service';
-import { OTP_ROUTES } from 'src/infra/constants/routes';
+import { OTP_ROUTES } from 'src/utils/constants/routes';
 import { CreateOtpDto } from './dtos/create-otp-dto';
 import { VerifyOtpDto } from './dtos/verify-otp-dto';
 

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from './utils/schema-validation/validation.pipe';
-import { CentralizedExceptionFilter } from './infra/exceptions/centralized-exception-filter';
+import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
