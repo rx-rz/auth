@@ -21,6 +21,9 @@ export const PROJECT_ROUTES = {
   GET_REFRESH_TOKENS: 'get-refresh-tokens',
   GET_ALL_BY_ADMIN: 'get-all-by-admin',
   DELETE: 'delete',
+  ADD_USER_TO_PROJECT: 'add-user-to-project',
+  REMOVE_USER_FROM_PROJECT: 'remove-user-from-project',
+  ASSIGN_USER_PROJECT_ROLE: 'assign-user-project-role',
 };
 
 export const USER_ROUTES = {

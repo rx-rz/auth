@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
 import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
+import { AuthMethod } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -36,7 +37,10 @@ export class UserService {
     );
     if (userExists)
       throw new ConflictException('User with provided email already exists.');
-    const user = await this.userRepository.createUser(createUserDto);
+    const user = await this.userRepository.createUser({
+      ...createUserDto,
+      authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
+    });
     return { success: true, user };
   }
 

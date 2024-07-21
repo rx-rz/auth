@@ -123,4 +123,45 @@ export class ProjectRepository {
     const deletedProject = await this.prisma.project.delete({ where: { id } });
     return deletedProject;
   }
+
+  async addUserToProject(userId: string, projectId: string) {
+    const userAddedToProject = await this.prisma.userProject.create({
+      data: { userId, projectId, roleId: 0 },
+    });
+    return userAddedToProject;
+  }
+
+  async removeUserFromProject(userId: string, projectId: string) {
+    const userRemovedFromProject = await this.prisma.userProject.deleteMany({
+      where: {
+        userId,
+        projectId,
+      },
+    });
+    return userRemovedFromProject;
+  }
+
+  async assignUserProjectRole(
+    userId: string,
+    projectId: string,
+    roleId: number,
+  ) {
+    const userAssignedARole = await this.prisma.userProject.upsert({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId,
+        },
+      },
+      update: {
+        roleId,
+      },
+      create: {
+        userId,
+        projectId,
+        roleId,
+      },
+    });
+    return userAssignedARole;
+  }
 }

@@ -11,6 +11,9 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dtos/create-project-dto';
 import { UpdateProjectNameDto } from './dtos/update-project-dto';
 import { PROJECT_ROUTES } from 'src/utils/constants/routes';
+import { AddUserToProjectDto } from './dtos/add-user-to-project-dto';
+import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
+import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 
 @Controller('project')
 export class ProjectController {
@@ -54,5 +57,24 @@ export class ProjectController {
   @Delete(PROJECT_ROUTES.DELETE)
   async deleteProject(@Param('id') id: string) {
     return this.projectService.deleteProject(id);
+  }
+
+  @Post(PROJECT_ROUTES.ADD_USER_TO_PROJECT)
+  async addUserToProject(@Body() addUserToProjectDto: AddUserToProjectDto) {
+    return this.projectService.addUserToProject(addUserToProjectDto);
+  }
+
+  @Delete(PROJECT_ROUTES.REMOVE_USER_FROM_PROJECT)
+  async removeUserFromProject(
+    @Body() removeUserFromProjectDto: RemoveUserFromProjectDto,
+  ) {
+    return this.projectService.removeUserFromProject(removeUserFromProjectDto);
+  }
+
+  @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)
+  async assignUserProjectRole(
+    @Body() assignUserProjectRoleDto: AssignUserProjectRole,
+  ) {
+    return this.projectService.assignUserProjectRole(assignUserProjectRoleDto);
   }
 }
