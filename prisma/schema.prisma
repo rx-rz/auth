@@ -41,6 +41,7 @@ model Project {
   magicLinks    MagicLink[]
   roles         Role[]
 
+  @@unique([name, adminId], name: "project_name_admin_id_unique")
   @@map("projects")
 }
 
