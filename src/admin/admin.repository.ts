@@ -56,4 +56,23 @@ export class AdminRepository {
     const admin = await this.prisma.admin.findUnique({ where: { email } });
     return admin?.password;
   }
+
+  async getAdminProjects(adminId: string) {
+    const adminProjects = await this.prisma.project.findMany({
+      where: { adminId },
+    });
+    return adminProjects;
+  }
+
+  async getAdminProjectByName(adminId: string, name: string) {
+    const adminProject = await this.prisma.project.findUnique({
+      where: {
+        project_name_admin_id_unique: {
+          name,
+          adminId,
+        },
+      },
+    });
+    return adminProject;
+  }
 }

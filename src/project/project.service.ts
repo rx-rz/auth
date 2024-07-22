@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
 import { CreateProjectDto } from './dtos/create-project-dto';
 import { randomBytes } from 'crypto';
@@ -52,6 +56,15 @@ export class ProjectService {
 
   async createProject(createProjectDto: CreateProjectDto) {
     const apiKey = this.generateApiKey();
+    const projectWithGivenNameAlreadyExists =
+      await this.adminRepository.getAdminProjectByName(
+        createProjectDto.adminId,
+        createProjectDto.name,
+      );
+    if (projectWithGivenNameAlreadyExists)
+      throw new ConflictException(
+        'Another project already exists with the same name. Please choose a different name.',
+      );
     const project = await this.projectRepository.createProject({
       name: createProjectDto.name,
       apiKey,
