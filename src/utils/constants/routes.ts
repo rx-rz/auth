@@ -3,6 +3,7 @@ export const ADMIN_ROUTES = {
   REGISTER: 'register',
   UPDATE_DETAILS: 'update-details',
   LOGIN: 'login',
+  GET_PROJECTS: 'get-projects',
 };
 
 export const OTP_ROUTES = {

@@ -30,7 +30,7 @@ export class AdminService {
   }
 
   async registerAdmin(registerAdminDTO: RegisterAdminDTO) {
-    const admin = await this.adminRepository.createAdmin({
+    await this.adminRepository.createAdmin({
       ...registerAdminDTO,
       password: await hashValue(registerAdminDTO.password),
       mfaEnabled: false,
@@ -46,7 +46,7 @@ export class AdminService {
       admin.email,
       data,
     );
-    return { updatedAdmin, success: true };
+    return { success: true, updatedAdmin };
   }
 
   async loginAdmin(loginAdminDTO: LoginAdminDto) {
@@ -58,7 +58,7 @@ export class AdminService {
     );
     if (!adminPassword || !admin)
       throw new NotFoundException(
-        'Admin with the provided detials does not exist.',
+        'Admin with the provided details does not exist.',
       );
 
     const passwordIsCorrect = await checkIfHashedValuesMatch(
@@ -86,5 +86,11 @@ export class AdminService {
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
     return { accessToken, refreshToken };
+  }
+
+  async getAdminProjects(adminId: string) {
+    console.log(adminId);
+    const adminProjects = await this.adminRepository.getAdminProjects(adminId);
+    return { success: true, adminProjects };
   }
 }

@@ -59,7 +59,14 @@ export class AdminRepository {
 
   async getAdminProjects(adminId: string) {
     const adminProjects = await this.prisma.project.findMany({
-      where: { adminId },
+      where: {
+        adminId,
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
     });
     return adminProjects;
   }

@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
 import { RegisterAdminDTO } from './dtos/register-admin-dto';
@@ -35,5 +44,10 @@ export class AdminController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return { success: true, accessToken };
+  }
+
+  @Get(ADMIN_ROUTES.GET_PROJECTS)
+  async getAdminProjects(@Query('id') id: string) {
+    return this.adminService.getAdminProjects(id);
   }
 }
