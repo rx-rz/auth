@@ -29,8 +29,9 @@ export class ProjectService {
 
   private async checkIfProjectExists(projectId: string) {
     const existingProject = await this.projectRepository.getProject(projectId);
-    if (!existingProject)
+    if (!existingProject) {
       throw new NotFoundException('Project with specified ID does not exist.');
+    }
     return existingProject;
   }
 
@@ -52,7 +53,7 @@ export class ProjectService {
   async createProject(createProjectDto: CreateProjectDto) {
     const apiKey = this.generateApiKey();
     const project = await this.projectRepository.createProject({
-      ...createProjectDto,
+      name: createProjectDto.name,
       apiKey,
       admin: {
         connect: { id: createProjectDto.adminId },
@@ -62,13 +63,13 @@ export class ProjectService {
   }
 
   async updateProjectName({ id, name }: UpdateProjectNameDto) {
-    this.checkIfProjectExists(id);
+    await this.checkIfProjectExists(id);
     const project = await this.projectRepository.updateProject(id, { name });
     return { success: true, project };
   }
 
   async updateProjectApiKey(projectId: string) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const apiKey = this.generateApiKey();
     const project = await this.projectRepository.updateProject(projectId, {
       apiKey,
@@ -76,42 +77,48 @@ export class ProjectService {
     return { success: true, project };
   }
 
+  async getProjectApiKey(projectId: string) {
+    await this.checkIfProjectExists(projectId);
+    const apiKey = await this.projectRepository.getProjectApiKey(projectId);
+    return { success: true, apiKey };
+  }
+
   async getProject(projectId: string) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.getProject(projectId);
     return { success: true, project };
   }
 
   async getProjectMagicLinks(projectId: string) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const project =
       await this.projectRepository.getProjectMagicLinks(projectId);
     return { success: true, project };
   }
 
   async getProjectRefreshTokens(projectId: string) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const project =
       await this.projectRepository.getProjectRefreshTokens(projectId);
     return { success: true, project };
   }
 
   async getAllProjectsCreatedByAdmin(adminId: string) {
-    this.checkIfAdminExists(adminId);
+    await this.checkIfAdminExists(adminId);
     const project =
       await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
     return { success: true, project };
   }
 
   async deleteProject(projectId: string) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.deleteProject(projectId);
     return { success: true, project };
   }
 
   async addUserToProject(addUserToProjectDto: AddUserToProjectDto) {
-    this.checkIfUserExists(addUserToProjectDto.userId);
-    this.checkIfProjectExists(addUserToProjectDto.projectId);
+    await this.checkIfUserExists(addUserToProjectDto.userId);
+    await this.checkIfProjectExists(addUserToProjectDto.projectId);
     const userAddedToProject = await this.projectRepository.addUserToProject(
       addUserToProjectDto.userId,
       addUserToProjectDto.projectId,
@@ -122,8 +129,8 @@ export class ProjectService {
   async removeUserFromProject(
     removeUserFromProjectDto: RemoveUserFromProjectDto,
   ) {
-    this.checkIfUserExists(removeUserFromProjectDto.userId);
-    this.checkIfProjectExists(removeUserFromProjectDto.projectId);
+    await this.checkIfUserExists(removeUserFromProjectDto.userId);
+    await this.checkIfProjectExists(removeUserFromProjectDto.projectId);
     const userRemovedFromProject =
       await this.projectRepository.removeUserFromProject(
         removeUserFromProjectDto.userId,
@@ -137,7 +144,7 @@ export class ProjectService {
     roleId,
     userId,
   }: AssignUserProjectRole) {
-    this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     this.checkIfUserExists(userId);
     const userAssignedARole =
       await this.projectRepository.assignUserProjectRole(

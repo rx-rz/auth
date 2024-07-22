@@ -73,6 +73,7 @@ export class AdminService {
         firstName: admin.firstName,
         isVerified: admin.isVerified,
         lastName: admin.lastName,
+        id: admin.id,
         role: 'admin',
         mfaEnabled: admin.mfaEnabled,
       }),
@@ -84,6 +85,6 @@ export class AdminService {
       adminId: admin.id,
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
-    return { success: true, accessToken, refreshToken };
+    return { accessToken, refreshToken };
   }
 }

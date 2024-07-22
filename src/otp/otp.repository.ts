@@ -7,8 +7,16 @@ export class OTPRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOTP(data: Prisma.OtpCreateInput) {
+    console.log(this.prisma);
+    console.log(this.prisma.otp);
     const otp = await this.prisma.otp.create({
       data,
+      select: {
+        code: true,
+        email: true,
+        expiresAt: true,
+        createdAt: true,
+      },
     });
     return otp;
   }
@@ -24,6 +32,12 @@ export class OTPRepository {
     const otp = await this.prisma.otp.update({
       where: { email },
       data: { code: code.toString() },
+      select: {
+        code: true,
+        email: true,
+        expiresAt: true,
+        createdAt: true,
+      },
     });
     return otp;
   }
@@ -31,6 +45,12 @@ export class OTPRepository {
   async deleteOTP(email: string) {
     const otp = await this.prisma.otp.delete({
       where: { email },
+      select: {
+        code: true,
+        email: true,
+        expiresAt: true,
+        createdAt: true,
+      },
     });
     return otp;
   }

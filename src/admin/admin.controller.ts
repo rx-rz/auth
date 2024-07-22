@@ -10,11 +10,6 @@ import { Response } from 'express';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Get('hi')
-  async sayHi() {
-    return 'Hello World';
-  }
-
   @Post(ADMIN_ROUTES.REGISTER)
   async registerAdmin(@Body() registerAdminDTO: RegisterAdminDTO) {
     return this.adminService.registerAdmin(registerAdminDTO);
@@ -30,7 +25,7 @@ export class AdminController {
     @Body() loginAdminDTO: LoginAdminDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { accessToken, success, refreshToken } =
+    const { accessToken, refreshToken } =
       await this.adminService.loginAdmin(loginAdminDTO);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -39,6 +34,6 @@ export class AdminController {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { accessToken, success };
+    return { success: true, accessToken };
   }
 }

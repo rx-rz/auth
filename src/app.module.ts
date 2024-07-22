@@ -9,9 +9,17 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
+import { APP_FILTER } from '@nestjs/core';
+import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
 @Module({
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: CentralizedExceptionFilter,
+    },
+  ],
   imports: [
     AdminModule,
     OtpModule,

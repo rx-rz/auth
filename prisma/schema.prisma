@@ -9,7 +9,7 @@ datasource db {
 
 // Admin model
 model Admin {
-  id                  String               @id @default(cuid())
+  id                  String               @id @unique() @default(cuid())
   email               String               @unique @db.VarChar(255)
   password            String               @db.VarChar(255)
   firstName           String               @map("first_name") @db.VarChar(255)
@@ -28,7 +28,7 @@ model Admin {
 
 // Project model
 model Project {
-  id            String         @id @default(cuid())
+  id            String         @id @unique() @default(cuid())
   name          String         @db.VarChar(255)
   apiKey        String         @unique @db.VarChar(64)
   createdAt     DateTime       @default(now()) @map("created_at")
@@ -46,7 +46,7 @@ model Project {
 
 // User model
 model User {
-  id            String             @id @default(cuid())
+  id            String             @id @unique() @default(cuid())
   email         String             @unique @db.VarChar(255)
   password      String             @db.VarChar(255)
   firstName     String             @map("first_name") @db.VarChar(255)
@@ -66,7 +66,7 @@ model User {
 
 // Role model
 model Role {
-  id              Int              @id @default(autoincrement())
+  id              Int              @id @unique() @default(autoincrement())
   name            String           @db.VarChar(50)
   projectId       String           @map("project_id")
   project         Project          @relation(fields: [projectId], references: [id])
@@ -81,7 +81,7 @@ model Role {
 
 // Permission model
 model Permission {
-  id              Int              @id @default(autoincrement())
+  id              Int              @id @unique() @default(autoincrement())
   name            String           @db.VarChar(200)
   description     String?
   rolePermissions RolePermission[]
@@ -120,7 +120,7 @@ model UserProject {
 
 // OAuthProvider model
 model OAuthProvider {
-  id            String             @id @default(cuid())
+  id            String             @id @unique() @default(cuid())
   name          String             @unique @db.VarChar(50)
   oauthAccounts UserOauthAccount[]
   createdAt     DateTime           @default(now()) @map("created_at")
@@ -131,7 +131,7 @@ model OAuthProvider {
 
 // UserOauthAccount model
 model UserOauthAccount {
-  id                    String        @id @default(cuid())
+  id                    String        @id @unique() @default(cuid())
   userId                String        @map("user_id")
   providerId            String        @map("provider_id")
   providerUserId        String        @map("provider_user_id") @db.VarChar(255)
@@ -151,7 +151,7 @@ model UserOauthAccount {
 
 // MagicLink model
 model MagicLink {
-  id        String   @id @default(cuid())
+  id        String   @id @unique() @default(cuid())
   userId    String   @map("user_id")
   projectId String   @map("project_id")
   token     String   @unique @db.VarChar(255)
@@ -167,7 +167,7 @@ model MagicLink {
 
 // OTP model
 model Otp {
-  id        String   @id @default(cuid())
+  id        String   @id @unique() @default(cuid())
   email     String   @unique() @map("email")
   code      String   @db.VarChar(6)
   expiresAt DateTime @map("expires_at")
@@ -179,7 +179,7 @@ model Otp {
 
 // RefreshToken model
 model RefreshToken {
-  id         String     @id @default(cuid())
+  id         String     @id @unique() @default(cuid())
   userId     String?    @map("user_id")
   adminId    String?    @map("admin_id")
   projectId  String?    @map("project_id")
@@ -198,7 +198,7 @@ model RefreshToken {
 
 // AdminNotification model
 model AdminNotification {
-  id      String  @id @default(cuid())
+  id      String  @id @unique() @default(cuid())
   adminId String  @map("admin_id")
   title   String
   content String
@@ -215,7 +215,7 @@ model AdminNotification {
 }
 
 model WebAuthnCredential {
-  id           String   @id @default(cuid())
+  id           String   @id @unique() @default(cuid())
   adminId      String
   admin        Admin    @relation(fields: [adminId], references: [id])
   credentialId String   @unique

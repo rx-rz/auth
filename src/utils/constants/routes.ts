@@ -7,8 +7,8 @@ export const ADMIN_ROUTES = {
 
 export const OTP_ROUTES = {
   BASE: 'otp',
-  SEND: 'send',
-  VERIFY: 'verify',
+  SEND: 'send-otp',
+  VERIFY: 'verify-otp',
 };
 
 export const PROJECT_ROUTES = {
@@ -16,6 +16,7 @@ export const PROJECT_ROUTES = {
   CREATE: 'create',
   UPDATE_PROJECT_NAME: 'update-project-name',
   UPDATE_API_KEY: 'update-api-key',
+  GET_API_KEY: 'get-api-key',
   GET_PROJECT: 'get-project',
   GET_MAGIC_LINKS: 'get-magic-links',
   GET_REFRESH_TOKENS: 'get-refresh-tokens',

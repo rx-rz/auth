@@ -1,6 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
 
+@Injectable()
 export class ProjectRepository {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -24,6 +26,16 @@ export class ProjectRepository {
     return updatedProject;
   }
 
+  async getProjectApiKey(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      select: {
+        apiKey: true,
+      },
+    });
+    return project?.apiKey || '';
+  }
+
   async getProject(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
@@ -31,14 +43,7 @@ export class ProjectRepository {
         id: true,
         name: true,
         adminId: true,
-        roles: {
-          select: {
-            name: true,
-            id: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
+        createdAt: true,
       },
     });
     return project;
@@ -132,13 +137,34 @@ export class ProjectRepository {
   }
 
   async removeUserFromProject(userId: string, projectId: string) {
-    const userRemovedFromProject = await this.prisma.userProject.deleteMany({
+    const userRemovedFromProject = await this.prisma.userProject.delete({
       where: {
-        userId,
-        projectId,
+        userId_projectId: {
+          userId,
+          projectId,
+        },
       },
     });
     return userRemovedFromProject;
+  }
+
+  async getProjectRoles(projectId: string) {
+    const projectRoles = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        name: true,
+        id: true,
+        createdAt: true,
+        roles: {
+          select: {
+            name: true,
+            id: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    return projectRoles;
   }
 
   async assignUserProjectRole(

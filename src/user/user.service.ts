@@ -11,6 +11,7 @@ import {
 import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
 import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
 import { AuthMethod } from '@prisma/client';
+import { hashValue } from 'src/utils/helper-functions/hash-value';
 
 @Injectable()
 export class UserService {
@@ -71,7 +72,7 @@ export class UserService {
     );
     const user = await this.userRepository.updateUserPassword(
       updatePasswordDto.email,
-      updatePasswordDto.newPassword,
+      await hashValue(updatePasswordDto.newPassword),
     );
     return { success: true, user };
   }

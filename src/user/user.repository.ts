@@ -55,6 +55,7 @@ export class UserRepository {
         email: true,
         updatedAt: true,
         id: true,
+        authMethod: true,
       },
     });
     return user;

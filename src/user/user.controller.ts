@@ -29,10 +29,7 @@ export class UserController {
   }
 
   @Put(USER_ROUTES.UPDATE)
-  async updateUser(
-    @Query('email') email: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async updateUser(@Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUser(updateUserDto);
   }
 
@@ -43,17 +40,13 @@ export class UserController {
 
   @Put(USER_ROUTES.UPDATE_PASSWORD)
   async updateUserPassword(
-    @Query('email') email: string,
     @Body() updateUserPasswordDto: UpdateUserPasswordDto,
   ) {
     return this.userService.updateUserPassword(updateUserPasswordDto);
   }
 
   @Put(USER_ROUTES.UPDATE_EMAIL)
-  async updateUserEmail(
-    @Query('email') email: string,
-    @Body() updateUserEmailDto: UpdateUserEmailDto,
-  ) {
+  async updateUserEmail(@Body() updateUserEmailDto: UpdateUserEmailDto) {
     return this.userService.updateUserEmail(updateUserEmailDto);
   }
 }

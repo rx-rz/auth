@@ -38,7 +38,7 @@ export class OtpService {
     const otpDetails = otpExists
       ? await this.otpRepository.updateOTP(data.email, code)
       : await this.otpRepository.createOTP({
-          ...data,
+          email: data.email,
           code: code.toString(),
           expiresAt: new Date(Date.now() + 10 * 60 * 1000),
         });
