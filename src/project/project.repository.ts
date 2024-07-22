@@ -44,6 +44,7 @@ export class ProjectRepository {
         name: true,
         adminId: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
     return project;
