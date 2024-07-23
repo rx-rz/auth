@@ -9,6 +9,10 @@ import { Request, Response } from 'express';
 
 @Catch()
 export class CentralizedExceptionFilter implements ExceptionFilter {
+  handleError(exception: unknown, host: ArgumentsHost) {
+    this.catch(exception, host);
+  }
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

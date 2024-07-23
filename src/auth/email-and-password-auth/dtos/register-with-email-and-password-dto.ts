@@ -15,4 +15,7 @@ export class RegisterWithEmailAndPasswordDto {
   @IsString()
   @Length(6, 50)
   password: string;
+
+  @IsString()
+  projectId: string;
 }

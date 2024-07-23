@@ -31,9 +31,11 @@ export const PROJECT_ROUTES = {
 export const USER_ROUTES = {
   BASE: 'user',
   CREATE: 'create',
-  UPDATE: 'update',
+  UPDATE_USER_PROJECT_DETAILS: 'update-user-project-details',
   UPDATE_PASSWORD: 'update-password',
   UPDATE_EMAIL: 'update-email',
   GET_DETAILS: 'get-details',
+  GET_USER_PROJECT_DETAILS: 'get-user-project-details',
   DELETE: 'delete',
+  REGISTER_WITH_EMAIL_AND_PASSWORD: 'register-with-email-and-password',
 };

@@ -5,7 +5,10 @@ export class CreateUserDto {
   email: string;
 
   @IsString()
-  password: string;
+  password?: string;
+
+  @IsString()
+  projectId: string;
 
   @IsString()
   @Length(6, 255)

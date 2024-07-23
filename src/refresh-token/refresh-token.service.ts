@@ -10,7 +10,7 @@ export class RefreshTokenService {
   ) {}
 
   @OnEvent('refresh-token.created')
-  async storeRefreshToken(storeRefreshTokenDto: StoreRefreshTokenDto) {
+  async storeOrUpdateRefreshToken(storeRefreshTokenDto: StoreRefreshTokenDto) {
     await this.refreshTokenRepository.storeRefreshToken(storeRefreshTokenDto);
   }
 }

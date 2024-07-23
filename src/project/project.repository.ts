@@ -51,24 +51,22 @@ export class ProjectRepository {
   }
 
   async getProjectUsers(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
+    const projectUsers = await this.prisma.userProject.findMany({
+      where: { projectId: id },
       select: {
-        id: true,
-        name: true,
-        adminId: true,
-        users: {
+        firstName: true,
+        lastName: true,
+        isVerified: true,
+        createdAt: true,
+        role: {
           select: {
-            email: true,
-            firstName: true,
-            lastName: true,
-            createdAt: true,
-            isVerified: true,
+            name: true,
+            id: true,
           },
         },
       },
     });
-    return project;
+    return projectUsers;
   }
 
   async getProjectMagicLinks(id: string) {
@@ -130,23 +128,53 @@ export class ProjectRepository {
     return deletedProject;
   }
 
-  async addUserToProject(userId: string, projectId: string) {
-    const userAddedToProject = await this.prisma.userProject.create({
-      data: { userId, projectId, roleId: 0 },
-    });
-    return userAddedToProject;
-  }
-
-  async removeUserFromProject(userId: string, projectId: string) {
-    const userRemovedFromProject = await this.prisma.userProject.delete({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId,
+  async addUserToProject(
+    firstName: string,
+    lastName: string,
+    userId: string,
+    projectId: string,
+    password?: string,
+  ) {
+    const user = await this.prisma.userProject.create({
+      data: {
+        firstName,
+        lastName,
+        userId,
+        projectId,
+        password,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        user: {
+          select: {
+            email: true,
+          },
         },
       },
     });
-    return userRemovedFromProject;
+    return user;
+  }
+
+  async deleteUserFromProject(userId: string, projectId: string) {
+    const user = await this.prisma.userProject.delete({
+      where: {
+        userId_projectId: {
+          projectId,
+          userId,
+        },
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    return user;
   }
 
   async getProjectRoles(projectId: string) {
@@ -187,6 +215,8 @@ export class ProjectRepository {
         userId,
         projectId,
         roleId,
+        firstName: '',
+        lastName: '',
       },
     });
     return userAssignedARole;

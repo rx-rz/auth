@@ -48,14 +48,6 @@ export class RefreshTokenRepository {
     return userRefreshTokens;
   }
 
-  async updateRefreshToken(id: string, data: Prisma.RefreshTokenUpdateInput) {
-    const updatedRefreshToken = this.prisma.refreshToken.update({
-      data,
-      where: { id },
-    });
-    return updatedRefreshToken;
-  }
-
   async deleteAllRefreshTokensAssociatedToAdmin(email: string) {
     const deletedRefreshTokens = this.prisma.refreshToken.deleteMany({
       where: { admin: { email } },

@@ -12,6 +12,8 @@ import { UserRepository } from 'src/user/user.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
 import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
 import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
+import { hashValue } from 'src/utils/helper-functions/hash-value';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProjectService {
@@ -129,27 +131,38 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  async addUserToProject(addUserToProjectDto: AddUserToProjectDto) {
-    await this.checkIfUserExists(addUserToProjectDto.userId);
-    await this.checkIfProjectExists(addUserToProjectDto.projectId);
-    const userAddedToProject = await this.projectRepository.addUserToProject(
-      addUserToProjectDto.userId,
-      addUserToProjectDto.projectId,
-    );
-    return { success: true, userAddedToProject };
+  @OnEvent('user.add-to-project')
+  async addUserToProject({
+    projectId,
+    userId,
+    firstName,
+    lastName,
+    password,
+  }: AddUserToProjectDto) {
+    try {
+      await this.checkIfUserExists(userId);
+      await this.checkIfProjectExists(projectId);
+      const userAddedToProject = await this.projectRepository.addUserToProject(
+        firstName,
+        lastName,
+        userId,
+        projectId,
+        await hashValue(password || ''),
+      );
+      return { success: true, userAddedToProject };
+    } catch (err) {
+      throw err;
+    }
   }
 
-  async removeUserFromProject(
-    removeUserFromProjectDto: RemoveUserFromProjectDto,
-  ) {
-    await this.checkIfUserExists(removeUserFromProjectDto.userId);
-    await this.checkIfProjectExists(removeUserFromProjectDto.projectId);
-    const userRemovedFromProject =
-      await this.projectRepository.removeUserFromProject(
-        removeUserFromProjectDto.userId,
-        removeUserFromProjectDto.projectId,
-      );
-    return { success: true, userRemovedFromProject };
+  async removeUserFromProject({ projectId, userId }: RemoveUserFromProjectDto) {
+    await this.checkIfUserExists(userId);
+    await this.checkIfProjectExists(projectId);
+    const user = await this.projectRepository.deleteUserFromProject(
+      userId,
+      projectId,
+    );
+    return { success: true, user };
   }
 
   async assignUserProjectRole({
@@ -158,7 +171,7 @@ export class ProjectService {
     userId,
   }: AssignUserProjectRole) {
     await this.checkIfProjectExists(projectId);
-    this.checkIfUserExists(userId);
+    await this.checkIfUserExists(userId);
     const userAssignedARole =
       await this.projectRepository.assignUserProjectRole(
         userId,

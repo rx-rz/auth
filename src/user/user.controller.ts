@@ -13,7 +13,7 @@ import { UpdateUserDto } from './dtos/update-user-dto';
 import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
 import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
 import { USER_ROUTES } from 'src/utils/constants/routes';
-
+import { UserIDProjectIDDto } from './dtos/user-id-project-id-dto';
 @Controller(USER_ROUTES.BASE)
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -24,11 +24,16 @@ export class UserController {
   }
 
   @Get(USER_ROUTES.GET_DETAILS)
-  async getUserDetails(@Query('email') email: string) {
-    return this.userService.getUserDetails(email);
+  async getUserDetails(@Query('userId') userId: string) {
+    return this.userService.getUserDetails(userId);
   }
 
-  @Put(USER_ROUTES.UPDATE)
+  @Get(USER_ROUTES.GET_USER_PROJECT_DETAILS)
+  async getUserProjectDetails(@Body() body: UserIDProjectIDDto) {
+    return this.userService.getUserProjectDetails(body);
+  }
+
+  @Put(USER_ROUTES.UPDATE_USER_PROJECT_DETAILS)
   async updateUser(@Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUser(updateUserDto);
   }

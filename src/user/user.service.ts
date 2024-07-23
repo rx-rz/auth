@@ -4,88 +4,156 @@ import { UpdateUserDto } from './dtos/update-user-dto';
 import { UserRepository } from './user.repository';
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
 import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
-import { AuthMethod } from '@prisma/client';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { GetUserProjectDetailsDto } from './dtos/get-user-project-details-dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
-  private async checkIfUserExists(email: string) {
-    const user = await this.userRepository.getUserDetails(email);
+  private async checkIfUserExists(userId: string) {
+    const user = await this.userRepository.getUserById(userId);
     if (!user)
       throw new NotFoundException('User with provided details does not exist.');
     return user;
   }
 
-  private async checkIfPasswordsMatch(email: string, password: string) {
-    const userPasswordInDB = await this.userRepository.getUserPassword(email);
+  private async checkIfUserWithEmailExists(email: string) {
+    const user = await this.userRepository.getUserByEmail(email);
+    if (!user)
+      throw new NotFoundException('User with provided details does not exist.');
+    return user;
+  }
+
+  private async checkIfUserIsAssignedToProject(
+    email: string,
+    projectId: string,
+  ) {
+    const userProjects = await this.userRepository.getUserProjects(email);
+    if (!userProjects) return false;
+    if (userProjects.find((project) => project.projectId === projectId)) {
+      return true;
+    }
+    return false;
+  }
+
+  private async checkIfPasswordsMatch(
+    userId: string,
+    projectId: string,
+    password: string,
+  ) {
+    const userPasswordInDB = await this.userRepository.getUserPassword(
+      userId,
+      projectId,
+    );
+    if (!userPasswordInDB)
+      throw new BadRequestException('Invalid details provided');
     const passwordsMatch = await compare(password, userPasswordInDB);
     if (!passwordsMatch)
       throw new BadRequestException('Invalid details provided');
     return true;
   }
 
-  async createUser(createUserDto: CreateUserDto) {
-    const userExists = await this.userRepository.getUserDetails(
-      createUserDto.email,
-    );
-    if (userExists)
-      throw new ConflictException('User with provided email already exists.');
-    const user = await this.userRepository.createUser({
-      ...createUserDto,
-      authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
-    });
-    return { success: true, user };
+  @OnEvent('user-create.email-password')
+  async createUser({
+    email,
+    firstName,
+    lastName,
+    password,
+    projectId,
+  }: CreateUserDto) {
+    try {
+      const user = await this.userRepository.createUser({
+        email,
+      });
+      if (!user) {
+        throw new BadRequestException('User creation failed');
+      } else {
+        console.log(user, email);
+      }
+      this.eventEmitter.emit('user.add-to-project', {
+        projectId,
+        userId: user.id,
+        firstName,
+        lastName,
+        password,
+      });
+      return { success: true, user };
+    } catch (err) {
+      throw err;
+    }
   }
 
   async updateUser(updateUserDto: UpdateUserDto) {
-    const { email, ...data } = updateUserDto;
-    this.checkIfUserExists(email);
-    const user = await this.userRepository.updateUser(email, data);
+    const { userId, projectId, ...data } = updateUserDto;
+    await this.checkIfUserExists(updateUserDto.userId);
+    const user = await this.userRepository.updateUserDetails(
+      userId,
+      projectId,
+      data,
+    );
     return { success: true, user };
   }
 
   async deleteUser(email: string) {
-    this.checkIfUserExists(email);
+    await this.checkIfUserWithEmailExists(email);
     const user = await this.userRepository.deleteUser(email);
     return { success: true, user };
   }
 
-  async getUserDetails(email: string) {
-    this.checkIfUserExists(email);
-    const user = await this.userRepository.getUserDetails(email);
+  async getUserDetails(userId: string) {
+    await this.checkIfUserExists(userId);
+    const user = await this.userRepository.getUserDetails(userId);
     return { success: true, user };
   }
 
-  async updateUserPassword(updatePasswordDto: UpdateUserPasswordDto) {
-    this.checkIfUserExists(updatePasswordDto.email);
-    this.checkIfPasswordsMatch(
-      updatePasswordDto.email,
-      updatePasswordDto.currentPassword,
+  async getUserProjectDetails({ userId, projectId }: GetUserProjectDetailsDto) {
+    await this.checkIfUserExists(userId);
+    const user = await this.userRepository.getUserProjectDetails(
+      userId,
+      projectId,
     );
+    return { success: true, user };
+  }
+
+  async updateUserPassword({
+    currentPassword,
+    email,
+    newPassword,
+    projectId,
+    userId,
+  }: UpdateUserPasswordDto) {
+    await this.checkIfUserWithEmailExists(email);
+    await this.checkIfPasswordsMatch(userId, projectId, currentPassword);
     const user = await this.userRepository.updateUserPassword(
-      updatePasswordDto.email,
-      await hashValue(updatePasswordDto.newPassword),
+      userId,
+      projectId,
+      await hashValue(newPassword),
     );
     return { success: true, user };
   }
 
-  async updateUserEmail(updateEmailDto: UpdateUserEmailDto) {
-    this.checkIfUserExists(updateEmailDto.currentEmail);
-    this.checkIfPasswordsMatch(
-      updateEmailDto.currentEmail,
-      updateEmailDto.password,
-    );
+  async updateUserEmail({
+    currentEmail,
+    newEmail,
+    password,
+    projectId,
+    userId,
+  }: UpdateUserEmailDto) {
+    await this.checkIfUserWithEmailExists(currentEmail);
+    await this.checkIfPasswordsMatch(userId, projectId, password);
     const user = await this.userRepository.updateUserEmail(
-      updateEmailDto.currentEmail,
-      updateEmailDto.newEmail,
+      currentEmail,
+      newEmail,
     );
     return { success: true, user };
   }

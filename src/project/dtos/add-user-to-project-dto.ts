@@ -6,4 +6,13 @@ export class AddUserToProjectDto {
 
   @IsString()
   projectId: string;
+
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @IsString()
+  password?: string;
 }

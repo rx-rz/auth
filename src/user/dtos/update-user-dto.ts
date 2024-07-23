@@ -1,15 +1,7 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
+import { UserIDProjectIDDto } from './user-id-project-id-dto';
 
-export class UpdateUserDto {
-  @IsEmail()
-  email: string;
-
+export class UpdateUserDto extends UserIDProjectIDDto {
   @IsOptional()
   @Length(6, 255)
   @IsString()
@@ -23,4 +15,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   isVerified: boolean;
+
+  @IsString()
+  userId: string;
+
+  @IsString()
+  projectId: string;
 }
