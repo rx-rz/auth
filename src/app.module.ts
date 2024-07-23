@@ -11,6 +11,10 @@ import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { APP_FILTER } from '@nestjs/core';
 import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
+import { EmailAndPasswordAuthModule } from './auth/oauth/email-and-password-auth/email-and-password-auth.module';
+import { EmailAndPasswordAuthModule } from './auth/email-and-password-auth/email-and-password-auth.module';
+import { OauthModule } from './auth/oauth/oauth.module';
+import { MagicLinkAuthModule } from './auth/magic-link-auth/magic-link-auth.module';
 @Module({
   controllers: [AppController],
   providers: [
@@ -29,6 +33,9 @@ import { CentralizedExceptionFilter } from './utils/exceptions/centralized-excep
     WebauthnMfaModule,
     ProjectModule,
     UserModule,
+    EmailAndPasswordAuthModule,
+    OauthModule,
+    MagicLinkAuthModule,
   ],
 })
 export class AppModule {}

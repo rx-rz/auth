@@ -40,6 +40,7 @@ model Project {
   refreshTokens RefreshToken[]
   magicLinks    MagicLink[]
   roles         Role[]
+  logins        Login[]
 
   @@unique([name, adminId], name: "project_name_admin_id_unique")
   @@map("projects")
@@ -49,18 +50,18 @@ model Project {
 model User {
   id            String             @id @unique() @default(cuid())
   email         String             @unique @db.VarChar(255)
-  password      String             @db.VarChar(255)
+  password      String?            @db.VarChar(255)
   firstName     String             @map("first_name") @db.VarChar(255)
   lastName      String             @map("last_name") @db.VarChar(255)
   isVerified    Boolean            @default(false)
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
-  authMethod    AuthMethod
   projects      Project[]
   userProjects  UserProject[]
   oauthAccounts UserOauthAccount[]
   magicLinks    MagicLink[]
   refreshTokens RefreshToken[]
+  logins        Login[]
 
   @@map("users")
 }
@@ -228,6 +229,20 @@ model WebAuthnCredential {
   @@map("webauthn_credentials")
 }
 
+model Login {
+  id            String      @id @unique() @default(cuid())
+  userId        String      @map("user_id")
+  projectId     String      @map("project_id")
+  ipAddress     String      @map("ip_address")
+  userAgent     String      @map("user_agent")
+  authMethod    AuthMethod
+  status        LoginStatus
+  failureReason String?     @map("failure_reason")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  user          User        @relation(fields: [userId], references: [id])
+  project       Project     @relation(fields: [projectId], references: [id])
+}
+
 // Enums
 enum TokenState {
   ACTIVE
@@ -256,4 +271,9 @@ enum AdminNotificationSeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILURE
 }
