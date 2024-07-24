@@ -6,55 +6,61 @@ import { Prisma } from '@prisma/client';
 export class AdminRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createAdmin(admin: Prisma.AdminCreateInput) {
-    const createdAdmin = await this.prisma.admin.create({
-      data: admin,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        isVerified: true,
-        mfaEnabled: true,
-      },
+  adminReturnObject = {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    isVerified: true,
+    mfaEnabled: true,
+  };
+
+  async createAdmin(data: Prisma.AdminCreateInput) {
+    const admin = await this.prisma.admin.create({
+      data,
+      select: this.adminReturnObject,
     });
-    return createdAdmin;
+    return admin;
   }
 
   async getAdminByEmail(email: string) {
     const admin = await this.prisma.admin.findUnique({
       where: { email },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        isVerified: true,
-        mfaEnabled: true,
-      },
+      select: this.adminReturnObject,
     });
     return admin;
   }
 
-  async updateAdmin(email: string, data: Prisma.AdminUpdateInput) {
-    const updatedAdmin = await this.prisma.admin.update({
-      where: { email },
-      data,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        isVerified: true,
-        mfaEnabled: true,
-      },
-    });
-    return updatedAdmin;
-  }
-
   async getAdminPassword(email: string) {
     const admin = await this.prisma.admin.findUnique({ where: { email } });
-    return admin?.password;
+    return admin?.password || '';
+  }
+
+  async updateAdmin(email: string, data: Prisma.AdminUpdateInput) {
+    const admin = await this.prisma.admin.update({
+      where: { email },
+      data,
+      select: this.adminReturnObject,
+    });
+    return admin;
+  }
+
+  async updateAdminEmail(currentEmail: string, newEmail: string) {
+    const admin = await this.prisma.admin.update({
+      where: { email: currentEmail },
+      data: { email: newEmail },
+      select: this.adminReturnObject,
+    });
+    return admin;
+  }
+
+  async updateAdminPassword(email: string, newPassword: string) {
+    const admin = await this.prisma.admin.update({
+      where: { email },
+      data: { password: newPassword },
+      select: this.adminReturnObject,
+    });
+    return admin;
   }
 
   async getAdminProjects(adminId: string) {

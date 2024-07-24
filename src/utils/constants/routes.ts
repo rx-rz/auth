@@ -2,8 +2,11 @@ export const ADMIN_ROUTES = {
   BASE: 'admin',
   REGISTER: 'register',
   UPDATE_DETAILS: 'update-details',
+  UPDATE_ADMIN_EMAIL: 'update-email',
+  UPDATE_ADMIN_PASSWORD: 'update-password',
   LOGIN: 'login',
   GET_PROJECTS: 'get-projects',
+  GET_PROJECT_BY_NAME: 'get-project-by-name',
 };
 
 export const OTP_ROUTES = {

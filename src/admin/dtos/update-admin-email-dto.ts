@@ -1,8 +1,17 @@
-import { IsEmail, IsString, Length, Matches, Min } from 'class-validator';
+import { IsEmail, IsString, Length, Matches } from 'class-validator';
 
-export class LoginAdminDto {
+export class UpdateAdminEmailDto {
   @IsEmail()
-  email: string;
+  @Length(2, 255, {
+    message: 'Email length cannot be more than 255 characters',
+  })
+  currentEmail: string;
+
+  @IsEmail()
+  @Length(2, 255, {
+    message: 'Email length cannot be more than 255 characters',
+  })
+  newEmail: string;
 
   @Length(6, 100, {
     message:

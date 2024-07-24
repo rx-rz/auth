@@ -139,20 +139,16 @@ export class ProjectService {
     lastName,
     password,
   }: AddUserToProjectDto) {
-    try {
-      await this.checkIfUserExists(userId);
-      await this.checkIfProjectExists(projectId);
-      const userAddedToProject = await this.projectRepository.addUserToProject(
-        firstName,
-        lastName,
-        userId,
-        projectId,
-        await hashValue(password || ''),
-      );
-      return { success: true, userAddedToProject };
-    } catch (err) {
-      throw err;
-    }
+    await this.checkIfUserExists(userId);
+    await this.checkIfProjectExists(projectId);
+    const userAddedToProject = await this.projectRepository.addUserToProject(
+      firstName,
+      lastName,
+      userId,
+      projectId,
+      await hashValue(password || ''),
+    );
+    return { success: true, userAddedToProject };
   }
 
   async removeUserFromProject({ projectId, userId }: RemoveUserFromProjectDto) {

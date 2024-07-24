@@ -13,6 +13,11 @@ import { generateAccessToken } from 'src/utils/helper-functions/generate-access-
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthMethod } from '@prisma/client';
+import { UpdateAdminEmailDto } from './dtos/update-admin-email-dto';
+import { compare } from 'bcryptjs';
+import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
+import { AdminIdDto } from './dtos/admin-id-dto';
+import { GetAdminProjectDto } from './dtos/get-admin-project';
 
 @Injectable()
 export class AdminService {
@@ -29,40 +34,33 @@ export class AdminService {
     return admin;
   }
 
-  async registerAdmin(registerAdminDTO: RegisterAdminDTO) {
+  private async checkIfPasswordsMatch(email: string, password: string) {
+    const existingPasswordInDB =
+      await this.adminRepository.getAdminPassword(email);
+    const passwordsMatch = await compare(password, existingPasswordInDB);
+    return passwordsMatch;
+  }
+
+  async registerAdmin(data: RegisterAdminDTO) {
     await this.adminRepository.createAdmin({
-      ...registerAdminDTO,
-      password: await hashValue(registerAdminDTO.password),
+      ...data,
+      password: await hashValue(data.password),
       mfaEnabled: false,
       isVerified: false,
     });
     return { success: true, message: 'Admin registered successfully.' };
   }
 
-  async updateAdmin(updateAdminDTO: UpdateAdminDTO) {
-    const { email, ...data } = updateAdminDTO;
-    const admin = await this.checkIfAdminExists(email);
-    const updatedAdmin = await this.adminRepository.updateAdmin(
-      admin.email,
-      data,
-    );
-    return { success: true, updatedAdmin };
-  }
-
-  async loginAdmin(loginAdminDTO: LoginAdminDto) {
-    const adminPassword = await this.adminRepository.getAdminPassword(
-      loginAdminDTO.email,
-    );
-    const admin = await this.adminRepository.getAdminByEmail(
-      loginAdminDTO.email,
-    );
+  async loginAdmin({ email, password }: LoginAdminDto) {
+    const adminPassword = await this.adminRepository.getAdminPassword(email);
+    const admin = await this.adminRepository.getAdminByEmail(email);
     if (!adminPassword || !admin)
       throw new NotFoundException(
         'Admin with the provided details does not exist.',
       );
 
     const passwordIsCorrect = await checkIfHashedValuesMatch(
-      loginAdminDTO.password,
+      password,
       adminPassword,
     );
     if (!passwordIsCorrect)
@@ -85,12 +83,62 @@ export class AdminService {
       adminId: admin.id,
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
-    return { accessToken, refreshToken };
+    return { success: true, accessToken, refreshToken };
   }
 
-  async getAdminProjects(adminId: string) {
-    console.log(adminId);
+  async updateAdmin({ email, ...details }: UpdateAdminDTO) {
+    await this.checkIfAdminExists(email);
+    const admin = await this.adminRepository.updateAdmin(email, details);
+    return { success: true, admin };
+  }
+
+  async updateAdminEmail({
+    currentEmail,
+    newEmail,
+    password,
+  }: UpdateAdminEmailDto) {
+    await this.checkIfAdminExists(currentEmail);
+    const passwordsMatch = await this.checkIfPasswordsMatch(
+      currentEmail,
+      password,
+    );
+    if (!passwordsMatch)
+      throw new BadRequestException('Invalid details provided');
+    const admin = await this.adminRepository.updateAdminEmail(
+      currentEmail,
+      newEmail,
+    );
+    return { success: true, admin };
+  }
+
+  async updateAdminPassword({
+    currentPassword,
+    email,
+    newPassword,
+  }: UpdateAdminPasswordDto) {
+    const passwordsMatch = await this.checkIfPasswordsMatch(
+      email,
+      currentPassword,
+    );
+    if (!passwordsMatch)
+      throw new BadRequestException('Invalid details provided');
+    const admin = await this.adminRepository.updateAdminPassword(
+      email,
+      newPassword,
+    );
+    return { success: true, admin };
+  }
+
+  async getAdminProjects({ adminId }: AdminIdDto) {
     const adminProjects = await this.adminRepository.getAdminProjects(adminId);
     return { success: true, adminProjects };
+  }
+
+  async getAdminProjectByName({ adminId, name }: GetAdminProjectDto) {
+    const adminProject = await this.adminRepository.getAdminProjectByName(
+      adminId,
+      name,
+    );
+    return { success: true, adminProject };
   }
 }

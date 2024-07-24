@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dtos/update-user-dto';
 import { UserRepository } from './user.repository';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { GetUserProjectDetailsDto } from './dtos/get-user-project-details-dto';
+import { EmitError } from 'src/utils/custom-decorators/emit-error.decorator';
 
 @Injectable()
 export class UserService {
@@ -71,26 +73,25 @@ export class UserService {
     password,
     projectId,
   }: CreateUserDto) {
-    try {
-      const user = await this.userRepository.createUser({
-        email,
-      });
-      if (!user) {
-        throw new BadRequestException('User creation failed');
-      } else {
-        console.log(user, email);
-      }
-      this.eventEmitter.emit('user.add-to-project', {
-        projectId,
-        userId: user.id,
-        firstName,
-        lastName,
-        password,
-      });
-      return { success: true, user };
-    } catch (err) {
-      throw err;
-    }
+    // try {
+    const userExists = await this.userRepository.getUserByEmail(email);
+    if (userExists)
+      throw new ConflictException('User with provided email already exists.');
+    const user = await this.userRepository.createUser({
+      email,
+    });
+    this.eventEmitter.emitAsync('user.add-to-project', {
+      projectId,
+      userId: user.id,
+      firstName,
+      lastName,
+      password,
+    });
+    return { success: true, user };
+    // } catch (err) {
+    //   console.log(err);
+    //   throw err;
+    // }
   }
 
   async updateUser(updateUserDto: UpdateUserDto) {

@@ -40,8 +40,7 @@ export class EmailAndPasswordAuthService {
   async registerWithEmailAndPassword(
     registerWithEmailAndPasswordDto: RegisterWithEmailAndPasswordDto,
   ) {
-    console.log('here!');
-    this.eventEmitter.emit(
+    this.eventEmitter.emitAsync(
       'user-create.email-password',
       // this triggers user creation in user table
       registerWithEmailAndPasswordDto,

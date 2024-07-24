@@ -1,7 +1,6 @@
 import {
   IsBoolean,
   IsEmail,
-  IsNumber,
   IsOptional,
   IsString,
   Length,
@@ -13,6 +12,9 @@ export class VerifyOtpDto {
   code: string;
 
   @IsEmail()
+  @Length(2, 255, {
+    message: 'Email length cannot be more than 255 characters',
+  })
   email: string;
 
   @IsOptional()

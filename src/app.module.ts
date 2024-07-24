@@ -9,12 +9,15 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
 import { OauthModule } from './auth/oauth/oauth.module';
 import { MagicLinkAuthModule } from './auth/magic-link-auth/magic-link-auth.module';
 import { EmailAndPasswordAuthModule } from './auth/email-and-password-auth/email-and-password-auth.module';
 import { RoleBasedAccessControlModule } from './rbac/rbac.module';
+import { ErrorEmitterService } from './utils/exceptions/emit-error-service';
+import { EmitErrorInterceptor } from './utils/exceptions/emit-error-interceptor';
+import { ErrorListenerService } from './utils/exceptions/error-listener-service';
 @Module({
   controllers: [AppController],
   providers: [
@@ -23,13 +26,20 @@ import { RoleBasedAccessControlModule } from './rbac/rbac.module';
       provide: APP_FILTER,
       useClass: CentralizedExceptionFilter,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: EmitErrorInterceptor
+    },
+    ErrorListenerService,
+    ErrorEmitterService,
   ],
   imports: [
     AdminModule,
     OtpModule,
     DatabaseModule,
     RefreshTokenModule,
-    EventEmitterModule.forRoot(),
+
+    EventEmitterModule.forRoot({}),
     WebauthnMfaModule,
     ProjectModule,
     UserModule,
