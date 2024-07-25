@@ -18,10 +18,10 @@ import { UserIDProjectIDDto } from './dtos/user-id-project-id-dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post(USER_ROUTES.CREATE)
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
-  }
+  // @Post(USER_ROUTES.CREATE)
+  // async createUser(@Body() createUserDto: CreateUserDto) {
+  //   return this.userService.createUser(createUserDto);
+  // }
 
   @Get(USER_ROUTES.GET_DETAILS)
   async getUserDetails(@Query('userId') userId: string) {

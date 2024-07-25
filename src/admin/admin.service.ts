@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -26,8 +27,13 @@ export class AdminService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  private async checkIfAdminExists(email: string) {
+  private async getAdmin(email: string) {
     const admin = await this.adminRepository.getAdminByEmail(email);
+    return admin;
+  }
+
+  private async checkIfAdminExists(email: string) {
+    const admin = await this.getAdmin(email);
     if (!admin) {
       throw new NotFoundException('Admin not found');
     }
@@ -42,6 +48,8 @@ export class AdminService {
   }
 
   async registerAdmin(data: RegisterAdminDTO) {
+    const admin = await this.getAdmin(data.email);
+    if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
       ...data,
       password: await hashValue(data.password),

@@ -11,15 +11,16 @@ import {
 import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
 import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { OnEvent } from '@nestjs/event-emitter';
 import { GetUserProjectDetailsDto } from './dtos/get-user-project-details-dto';
-import { EmitError } from 'src/utils/custom-decorators/emit-error.decorator';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly emitter: AppEventEmitter,
   ) {}
 
   private async checkIfUserExists(userId: string) {
@@ -66,6 +67,7 @@ export class UserService {
   }
 
   @OnEvent('user-create.email-password')
+  @CatchEmitterErrors()
   async createUser({
     email,
     firstName,
@@ -73,14 +75,13 @@ export class UserService {
     password,
     projectId,
   }: CreateUserDto) {
-    // try {
     const userExists = await this.userRepository.getUserByEmail(email);
     if (userExists)
       throw new ConflictException('User with provided email already exists.');
     const user = await this.userRepository.createUser({
       email,
     });
-    this.eventEmitter.emitAsync('user.add-to-project', {
+    await this.emitter.emit('user.add-to-project', {
       projectId,
       userId: user.id,
       firstName,
@@ -88,10 +89,6 @@ export class UserService {
       password,
     });
     return { success: true, user };
-    // } catch (err) {
-    //   console.log(err);
-    //   throw err;
-    // }
   }
 
   async updateUser(updateUserDto: UpdateUserDto) {

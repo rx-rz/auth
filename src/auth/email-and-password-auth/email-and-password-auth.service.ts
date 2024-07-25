@@ -10,12 +10,14 @@ import { LoginWithEmailAndPasswordDto } from './dtos/login-with-email-and-passwo
 import { compare } from 'bcryptjs';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import { generateAccessToken } from 'src/utils/helper-functions/generate-access-token';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class EmailAndPasswordAuthService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly emitter: AppEventEmitter,
   ) {}
 
   // private async checkIfUserExistsInProject(userId: string, projectId: string) {
@@ -40,12 +42,11 @@ export class EmailAndPasswordAuthService {
   async registerWithEmailAndPassword(
     registerWithEmailAndPasswordDto: RegisterWithEmailAndPasswordDto,
   ) {
-    this.eventEmitter.emitAsync(
+    await this.emitter.emit(
       'user-create.email-password',
-      // this triggers user creation in user table
       registerWithEmailAndPasswordDto,
     );
-    // return { success: true, message: 'User registered successfully.' };
+    return { success: true, message: 'User created successfully' };
   }
 
   // async loginWithEmailAndPassword(

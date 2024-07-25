@@ -14,6 +14,7 @@ import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
 import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { OnEvent } from '@nestjs/event-emitter';
+import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class ProjectService {
@@ -132,6 +133,7 @@ export class ProjectService {
   }
 
   @OnEvent('user.add-to-project')
+  @CatchEmitterErrors()
   async addUserToProject({
     projectId,
     userId,

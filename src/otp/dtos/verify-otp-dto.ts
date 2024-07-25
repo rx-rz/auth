@@ -17,7 +17,11 @@ export class VerifyOtpDto {
   })
   email: string;
 
-  @IsOptional()
-  @IsBoolean()
-  isAdmin: boolean;
+  @IsString()
+  @Length(10, 50)
+  userId: string;
+
+  @IsString()
+  @Length(10, 50)
+  projectId: string;
 }
