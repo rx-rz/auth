@@ -5,13 +5,11 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from 'src/user/user.repository';
 import { RegisterWithEmailAndPasswordDto } from './dtos/register-with-email-and-password-dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LoginWithEmailAndPasswordDto } from './dtos/login-with-email-and-password-dto';
 import { compare } from 'bcryptjs';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import { generateAccessToken } from 'src/utils/helper-functions/generate-access-token';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class EmailAndPasswordAuthService {
@@ -20,24 +18,39 @@ export class EmailAndPasswordAuthService {
     private readonly emitter: AppEventEmitter,
   ) {}
 
-  // private async checkIfUserExistsInProject(userId: string, projectId: string) {
-  //   const user = await this.userRepository.ge;
-  // }
+  private async getUserProjectDetails(email: string, projectId: string) {
+    const userDetails = await this.userRepository.getUserProjectDetailsByEmail(
+      email,
+      projectId,
+    );
+    if (!userDetails)
+      throw new NotFoundException(
+        'User does not have details in this project.',
+      );
+    return userDetails;
+  }
 
-  // private async checkIfUserExists(email: string) {
-  //   const user = await this.userRepository.getUserDetails(email);
-  //   if (!user)
-  //     throw new NotFoundException('User with provided details does not exist.');
-  //   return user;
-  // }
+  private async checkIfUserExists(email: string) {
+    const user = await this.userRepository.getUserByEmail(email);
+    if (!user)
+      throw new NotFoundException('User with provided details does not exist.');
+    return user;
+  }
 
-  // private async checkIfPasswordsMatch(email: string, password: string) {
-  //   const userPasswordInDB = await this.userRepository.getUserPassword();
-  //   const passwordsMatch = await compare(password, userPasswordInDB);
-  //   if (!passwordsMatch)
-  //     throw new BadRequestException('Invalid details provided');
-  //   return true;
-  // }
+  private async checkIfPasswordsMatch(
+    email: string,
+    password: string,
+    projectId: string,
+  ) {
+    const userPasswordInDB = await this.userRepository.getUserPassword(
+      email,
+      projectId,
+    );
+    const passwordsMatch = await compare(password, userPasswordInDB);
+    if (!passwordsMatch)
+      throw new BadRequestException('Invalid details provided');
+    return true;
+  }
 
   async registerWithEmailAndPassword(
     registerWithEmailAndPasswordDto: RegisterWithEmailAndPasswordDto,
@@ -46,39 +59,28 @@ export class EmailAndPasswordAuthService {
       'user-create.email-password',
       registerWithEmailAndPasswordDto,
     );
-    return { success: true, message: 'User created successfully' };
+    return { success: true, message: 'User registered successfully' };
   }
 
-  // async loginWithEmailAndPassword(
-  //   loginWithEmailAndPasswordDto: LoginWithEmailAndPasswordDto,
-  //   projectId: string,
-  // ) {
-  //   const user = await this.checkIfUserExists(
-  //     loginWithEmailAndPasswordDto.email,
-  //   );
-  //   await this.checkIfPasswordsMatch(
-  //     loginWithEmailAndPasswordDto.email,
-  //     loginWithEmailAndPasswordDto.password,
-  //   );
-  //   const userProject = user.userProjects.find(
-  //     (project) => project.projectId === projectId,
-  //   );
-  //   if (!userProject) {
-  //     throw new NotFoundException('User does not have an account.');
-  //   }
-  //   const [accessToken, refreshToken] = [
-  //     generateAccessToken({
-  //       email: user.email,
-  //       firstName: user.firstName,
-  //       isVerified:
-  //         user.userProjects.find((project) => project.projectId === projectId)
-  //           ?.isVerified || false,
-  //       lastName: user.lastName,
-  //       id: user.id,
-  //       role: 'user',
-  //     }),
-  //     await generateHashedRefreshToken(),
-  //   ];
-  //   return { success: true, accessToken, refreshToken };
-  // }
+  async loginWithEmailAndPassword(
+    { email, password }: LoginWithEmailAndPasswordDto,
+    projectId: string,
+  ) {
+    const user = await this.checkIfUserExists(email);
+    await this.checkIfPasswordsMatch(email, password, projectId);
+    const { firstName, lastName, role, isVerified } =
+      await this.getUserProjectDetails(user.id, projectId);
+    const [accessToken, refreshToken] = [
+      generateAccessToken({
+        email,
+        firstName,
+        isVerified,
+        lastName,
+        id: user.id,
+        role: role?.name || '',
+      }),
+      await generateHashedRefreshToken(),
+    ];
+    return { success: true, accessToken, refreshToken };
+  }
 }

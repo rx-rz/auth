@@ -62,24 +62,6 @@ export class UserRepository {
     return user;
   }
 
-  async getUserDetails(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        email: true,
-        updatedAt: true,
-        id: true,
-        userProjects: {
-          select: {
-            projectId: true,
-            isVerified: true,
-          },
-        },
-      },
-    });
-    return user;
-  }
-
   async getUserProjectDetails(userId: string, projectId: string) {
     const user = await this.prisma.userProject.findUnique({
       where: {
@@ -108,6 +90,36 @@ export class UserRepository {
     });
     return user;
   }
+
+  async getUserProjectDetailsByEmail(email: string, projectId: string) {
+    const user = await this.prisma.userProject.findFirst({
+      where: {
+        user: {
+          email,
+        },
+        projectId,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        createdAt: true,
+        isVerified: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+        role: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
+    return user;
+  }
+  
   async getUserById(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -141,13 +153,13 @@ export class UserRepository {
     return user;
   }
 
-  async getUserPassword(userId: string, projectId: string) {
-    const user = await this.prisma.userProject.findUnique({
+  async getUserPassword(email: string, projectId: string) {
+    const user = await this.prisma.userProject.findFirst({
       where: {
-        userId_projectId: {
-          userId,
-          projectId,
+        user: {
+          email,
         },
+        projectId,
       },
     });
     return user?.password || '';

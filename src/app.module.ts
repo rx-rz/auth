@@ -15,6 +15,7 @@ import { MagicLinkAuthModule } from './auth/magic-link-auth/magic-link-auth.modu
 import { EmailAndPasswordAuthModule } from './auth/email-and-password-auth/email-and-password-auth.module';
 import { RoleBasedAccessControlModule } from './rbac/rbac.module';
 import { AppEventEmitterModule } from './infra/emitter/app-event-emitter.module';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   controllers: [AppController],
@@ -38,6 +39,12 @@ import { AppEventEmitterModule } from './infra/emitter/app-event-emitter.module'
     MagicLinkAuthModule,
     RoleBasedAccessControlModule,
     AppEventEmitterModule,
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+      },
+    }),
   ],
 })
 export class AppModule {}

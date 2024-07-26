@@ -15,6 +15,7 @@ import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class ProjectService {
@@ -22,8 +23,9 @@ export class ProjectService {
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
     private readonly adminRepository: AdminRepository,
+    private readonly cls: ClsService,
   ) {}
-
+  userId = this.cls.get('userId');
   generateApiKey() {
     const buffer = randomBytes(32);
     const apiKey = buffer
@@ -50,8 +52,8 @@ export class ProjectService {
     return admin;
   }
 
-  private async checkIfUserExists(email: string) {
-    const user = await this.userRepository.getUserDetails(email);
+  private async checkIfUserExists(userId: string) {
+    const user = await this.userRepository.getUserById(userId);
     if (!user)
       throw new NotFoundException('User with provided details does not exist.');
     return user;
@@ -59,12 +61,12 @@ export class ProjectService {
 
   async createProject(createProjectDto: CreateProjectDto) {
     const apiKey = this.generateApiKey();
-    const projectWithGivenNameAlreadyExists =
+    const projectWithGivenName =
       await this.adminRepository.getAdminProjectByName(
         createProjectDto.adminId,
         createProjectDto.name,
       );
-    if (projectWithGivenNameAlreadyExists)
+    if (projectWithGivenName)
       throw new ConflictException(
         'Another project already exists with the same name. Please choose a different name.',
       );
@@ -141,6 +143,7 @@ export class ProjectService {
     lastName,
     password,
   }: AddUserToProjectDto) {
+    this.cls.set('userId', userId);
     await this.checkIfUserExists(userId);
     await this.checkIfProjectExists(projectId);
     const userAddedToProject = await this.projectRepository.addUserToProject(

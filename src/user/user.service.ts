@@ -41,21 +41,20 @@ export class UserService {
     email: string,
     projectId: string,
   ) {
-    const userProjects = await this.userRepository.getUserProjects(email);
-    if (!userProjects) return false;
-    if (userProjects.find((project) => project.projectId === projectId)) {
-      return true;
-    }
-    return false;
+    const userProject = await this.userRepository.getUserProjectDetailsByEmail(
+      email,
+      projectId,
+    );
+    return userProject ? true : false;
   }
 
   private async checkIfPasswordsMatch(
-    userId: string,
-    projectId: string,
+    email: string,
     password: string,
+    projectId: string,
   ) {
     const userPasswordInDB = await this.userRepository.getUserPassword(
-      userId,
+      email,
       projectId,
     );
     if (!userPasswordInDB)
@@ -75,20 +74,28 @@ export class UserService {
     password,
     projectId,
   }: CreateUserDto) {
-    const userExists = await this.userRepository.getUserByEmail(email);
-    if (userExists)
-      throw new ConflictException('User with provided email already exists.');
-    const user = await this.userRepository.createUser({
+    const existingUser = await this.userRepository.getUserByEmail(email);
+    const userIsAssignedToProject = await this.checkIfUserIsAssignedToProject(
       email,
-    });
+      projectId,
+    );
+    if (existingUser && userIsAssignedToProject) {
+      throw new ConflictException('User is already assigned to this project.');
+    }
+    let user;
+    if (!existingUser) {
+      user = await this.userRepository.createUser({
+        email,
+      });
+    }
+    const userId = existingUser ? existingUser.id : user?.id || '';
     await this.emitter.emit('user.add-to-project', {
       projectId,
-      userId: user.id,
+      userId,
       firstName,
       lastName,
       password,
     });
-    return { success: true, user };
   }
 
   async updateUser(updateUserDto: UpdateUserDto) {
@@ -110,7 +117,7 @@ export class UserService {
 
   async getUserDetails(userId: string) {
     await this.checkIfUserExists(userId);
-    const user = await this.userRepository.getUserDetails(userId);
+    const user = await this.userRepository.getUserById(userId);
     return { success: true, user };
   }
 
@@ -131,7 +138,7 @@ export class UserService {
     userId,
   }: UpdateUserPasswordDto) {
     await this.checkIfUserWithEmailExists(email);
-    await this.checkIfPasswordsMatch(userId, projectId, currentPassword);
+    await this.checkIfPasswordsMatch(email, currentPassword, projectId);
     const user = await this.userRepository.updateUserPassword(
       userId,
       projectId,
@@ -145,10 +152,9 @@ export class UserService {
     newEmail,
     password,
     projectId,
-    userId,
   }: UpdateUserEmailDto) {
     await this.checkIfUserWithEmailExists(currentEmail);
-    await this.checkIfPasswordsMatch(userId, projectId, password);
+    await this.checkIfPasswordsMatch(currentEmail, password, projectId);
     const user = await this.userRepository.updateUserEmail(
       currentEmail,
       newEmail,

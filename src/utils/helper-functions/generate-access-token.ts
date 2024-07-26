@@ -6,7 +6,7 @@ export type User = {
   email: string;
   id: string;
   isVerified: boolean;
-  role: 'admin' | 'user';
+  role: 'admin' | string;
   mfaEnabled?: boolean;
 };
 

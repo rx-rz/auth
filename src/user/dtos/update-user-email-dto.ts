@@ -1,7 +1,7 @@
 import { IsEmail, IsString } from 'class-validator';
 import { UserIDProjectIDDto } from './user-id-project-id-dto';
 
-export class UpdateUserEmailDto extends UserIDProjectIDDto {
+export class UpdateUserEmailDto  {
   @IsEmail()
   currentEmail: string;
 
@@ -10,4 +10,7 @@ export class UpdateUserEmailDto extends UserIDProjectIDDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  projectId: string;
 }
