@@ -6,4 +6,7 @@ export class LoginWithEmailAndPasswordDto {
 
   @IsEmail()
   email: string;
+
+  @IsString()
+  projectId: string;
 }

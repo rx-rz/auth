@@ -40,5 +40,6 @@ export const USER_ROUTES = {
   GET_DETAILS: 'get-details',
   GET_USER_PROJECT_DETAILS: 'get-user-project-details',
   DELETE: 'delete',
-  REGISTER_WITH_EMAIL_AND_PASSWORD: 'register-with-email-and-password',
+  REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
+  SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
 };

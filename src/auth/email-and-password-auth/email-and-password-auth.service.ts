@@ -23,10 +23,7 @@ export class EmailAndPasswordAuthService {
       email,
       projectId,
     );
-    if (!userDetails)
-      throw new NotFoundException(
-        'User does not have details in this project.',
-      );
+    if (!userDetails) throw new NotFoundException('Invalid details provided.');
     return userDetails;
   }
 
@@ -62,10 +59,11 @@ export class EmailAndPasswordAuthService {
     return { success: true, message: 'User registered successfully' };
   }
 
-  async loginWithEmailAndPassword(
-    { email, password }: LoginWithEmailAndPasswordDto,
-    projectId: string,
-  ) {
+  async loginWithEmailAndPassword({
+    email,
+    password,
+    projectId,
+  }: LoginWithEmailAndPasswordDto) {
     const user = await this.checkIfUserExists(email);
     await this.checkIfPasswordsMatch(email, password, projectId);
     const { firstName, lastName, role, isVerified } =
