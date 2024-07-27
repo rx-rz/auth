@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Res } from '@nestjs/common';
 import { EmailAndPasswordAuthService } from './email-and-password-auth.service';
 import { USER_ROUTES } from 'src/utils/constants/routes';
 import { RegisterWithEmailAndPasswordDto } from './dtos/register-with-email-and-password-dto';
 import { LoginWithEmailAndPasswordDto } from './dtos/login-with-email-and-password-dto';
+import { Response } from 'express';
 
 @Controller(USER_ROUTES.BASE)
 export class EmailAndPasswordAuthController {
@@ -18,7 +19,19 @@ export class EmailAndPasswordAuthController {
   }
 
   @Post(USER_ROUTES.SIGNIN_WITH_EMAIL_AND_PASSWORD)
-  async signInWithEmailAndPassword(@Body() body: LoginWithEmailAndPasswordDto) {
-    return this.emailAndPasswordAuthService.loginWithEmailAndPassword(body,);
+  async signInWithEmailAndPassword(
+    @Body() body: LoginWithEmailAndPasswordDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken, success } =
+      await this.emailAndPasswordAuthService.loginWithEmailAndPassword(body);
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return { success: true, accessToken };
   }
 }

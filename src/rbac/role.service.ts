@@ -8,7 +8,7 @@ export class RoleService {
   async createRole(name: string, projectId: string) {
     await this.rbacRepository.createRole({
       name,
-      project: {
+        project: {
         connect: { id: projectId },
       },
     });

@@ -23,6 +23,7 @@ export class EmailAndPasswordAuthService {
       email,
       projectId,
     );
+
     if (!userDetails) throw new NotFoundException('Invalid details provided.');
     return userDetails;
   }
@@ -44,8 +45,9 @@ export class EmailAndPasswordAuthService {
       projectId,
     );
     const passwordsMatch = await compare(password, userPasswordInDB);
-    if (!passwordsMatch)
+    if (passwordsMatch === false) {
       throw new BadRequestException('Invalid details provided');
+    }
     return true;
   }
 
@@ -67,7 +69,7 @@ export class EmailAndPasswordAuthService {
     const user = await this.checkIfUserExists(email);
     await this.checkIfPasswordsMatch(email, password, projectId);
     const { firstName, lastName, role, isVerified } =
-      await this.getUserProjectDetails(user.id, projectId);
+      await this.getUserProjectDetails(email, projectId);
     const [accessToken, refreshToken] = [
       generateAccessToken({
         email,

@@ -89,12 +89,13 @@ export class UserService {
       });
     }
     const userId = existingUser ? existingUser.id : user?.id || '';
+    const hashedPassword = await hashValue(password ?? '');
     await this.emitter.emit('user.add-to-project', {
       projectId,
       userId,
       firstName,
       lastName,
-      password,
+      password: hashedPassword,
     });
   }
 

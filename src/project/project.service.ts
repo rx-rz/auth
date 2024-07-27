@@ -143,7 +143,7 @@ export class ProjectService {
     lastName,
     password,
   }: AddUserToProjectDto) {
-    this.cls.set('userId', userId);
+    //this.cls.set('userId', userId);
     await this.checkIfUserExists(userId);
     await this.checkIfProjectExists(projectId);
     const userAddedToProject = await this.projectRepository.addUserToProject(
@@ -151,8 +151,9 @@ export class ProjectService {
       lastName,
       userId,
       projectId,
-      await hashValue(password || ''),
+      password,
     );
+
     return { success: true, userAddedToProject };
   }
 

@@ -16,6 +16,7 @@ import { EmailAndPasswordAuthModule } from './auth/email-and-password-auth/email
 import { RoleBasedAccessControlModule } from './rbac/rbac.module';
 import { AppEventEmitterModule } from './infra/emitter/app-event-emitter.module';
 import { ClsModule } from 'nestjs-cls';
+import { LoginModule } from './login/login.module';
 
 @Module({
   controllers: [AppController],
@@ -45,6 +46,7 @@ import { ClsModule } from 'nestjs-cls';
         mount: true,
       },
     }),
+    LoginModule,
   ],
 })
 export class AppModule {}

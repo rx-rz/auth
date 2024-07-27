@@ -135,6 +135,7 @@ export class ProjectRepository {
     projectId: string,
     password?: string,
   ) {
+    console.log(password)
     const user = await this.prisma.userProject.create({
       data: {
         firstName,
