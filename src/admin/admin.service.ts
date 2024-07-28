@@ -32,7 +32,7 @@ export class AdminService {
     return admin;
   }
 
-  private async checkIfAdminExists(email: string) {
+  private async ensureAdminExists(email: string) {
     const admin = await this.getAdmin(email);
     if (!admin) {
       throw new NotFoundException('Admin not found');
@@ -40,10 +40,12 @@ export class AdminService {
     return admin;
   }
 
-  private async checkIfPasswordsMatch(email: string, password: string) {
+  private async verifyPassword(email: string, password: string) {
     const existingPasswordInDB =
       await this.adminRepository.getAdminPassword(email);
     const passwordsMatch = await compare(password, existingPasswordInDB);
+    if (!passwordsMatch)
+      throw new BadRequestException('Invalid details provided');
     return passwordsMatch;
   }
 
@@ -62,17 +64,12 @@ export class AdminService {
   async loginAdmin({ email, password }: LoginAdminDto) {
     const adminPassword = await this.adminRepository.getAdminPassword(email);
     const admin = await this.adminRepository.getAdminByEmail(email);
-    if (!adminPassword || !admin)
+    if (!admin) {
       throw new NotFoundException(
         'Admin with the provided details does not exist.',
       );
-
-    const passwordIsCorrect = await checkIfHashedValuesMatch(
-      password,
-      adminPassword,
-    );
-    if (!passwordIsCorrect)
-      throw new BadRequestException('Invalid login credentials.');
+    }
+    await checkIfHashedValuesMatch(password, adminPassword);
     const [accessToken, refreshToken] = [
       generateAccessToken({
         email: admin.email,
@@ -95,7 +92,7 @@ export class AdminService {
   }
 
   async updateAdmin({ email, ...details }: UpdateAdminDTO) {
-    await this.checkIfAdminExists(email);
+    await this.ensureAdminExists(email);
     const admin = await this.adminRepository.updateAdmin(email, details);
     return { success: true, admin };
   }
@@ -105,13 +102,8 @@ export class AdminService {
     newEmail,
     password,
   }: UpdateAdminEmailDto) {
-    await this.checkIfAdminExists(currentEmail);
-    const passwordsMatch = await this.checkIfPasswordsMatch(
-      currentEmail,
-      password,
-    );
-    if (!passwordsMatch)
-      throw new BadRequestException('Invalid details provided');
+    await this.ensureAdminExists(currentEmail);
+    await this.verifyPassword(currentEmail, password);
     const admin = await this.adminRepository.updateAdminEmail(
       currentEmail,
       newEmail,
@@ -124,12 +116,7 @@ export class AdminService {
     email,
     newPassword,
   }: UpdateAdminPasswordDto) {
-    const passwordsMatch = await this.checkIfPasswordsMatch(
-      email,
-      currentPassword,
-    );
-    if (!passwordsMatch)
-      throw new BadRequestException('Invalid details provided');
+    await this.verifyPassword(email, currentPassword);
     const admin = await this.adminRepository.updateAdminPassword(
       email,
       newPassword,

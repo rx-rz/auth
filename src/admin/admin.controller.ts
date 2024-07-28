@@ -31,7 +31,7 @@ export class AdminController {
   async updateAdmin(@Body() data: UpdateAdminDTO) {
     return this.adminService.updateAdmin(data);
   }
-
+  
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(
     @Body() data: LoginAdminDto,
