@@ -17,6 +17,8 @@ import { RoleBasedAccessControlModule } from './rbac/rbac.module';
 import { AppEventEmitterModule } from './infra/emitter/app-event-emitter.module';
 import { ClsModule } from 'nestjs-cls';
 import { LoginModule } from './login/login.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [AppController],
@@ -45,6 +47,15 @@ import { LoginModule } from './login/login.module';
       middleware: {
         mount: true,
       },
+    }),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_ACCESS_SECRET,
+      signOptions: { expiresIn: '10m' },
+    }),
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development', '.env'],
+      isGlobal: true,
     }),
     LoginModule,
   ],

@@ -6,6 +6,7 @@ import {
   Put,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
@@ -17,6 +18,7 @@ import { UpdateAdminEmailDto } from './dtos/update-admin-email-dto';
 import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
 import { AdminIdDto } from './dtos/admin-id-dto';
 import { GetAdminProjectDto } from './dtos/get-admin-project';
+import { AdminGuard } from 'src/guard/admin.guard';
 
 @Controller(ADMIN_ROUTES.BASE)
 export class AdminController {
@@ -28,10 +30,11 @@ export class AdminController {
   }
 
   @Put(ADMIN_ROUTES.UPDATE_DETAILS)
+  @UseGuards(AdminGuard)
   async updateAdmin(@Body() data: UpdateAdminDTO) {
     return this.adminService.updateAdmin(data);
   }
-  
+
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(
     @Body() data: LoginAdminDto,

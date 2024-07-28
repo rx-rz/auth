@@ -19,12 +19,14 @@ import { compare } from 'bcryptjs';
 import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
 import { AdminIdDto } from './dtos/admin-id-dto';
 import { GetAdminProjectDto } from './dtos/get-admin-project';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly adminRepository: AdminRepository,
     private eventEmitter: EventEmitter2,
+    private jwtService: JwtService,
   ) {}
 
   private async getAdmin(email: string) {
@@ -70,16 +72,17 @@ export class AdminService {
       );
     }
     await checkIfHashedValuesMatch(password, adminPassword);
+    const payload = {
+      email: admin.email,
+      firstName: admin.firstName,
+      isVerified: admin.isVerified,
+      lastName: admin.lastName,
+      id: admin.id,
+      role: 'admin',
+      mfaEnabled: admin.mfaEnabled,
+    };
     const [accessToken, refreshToken] = [
-      generateAccessToken({
-        email: admin.email,
-        firstName: admin.firstName,
-        isVerified: admin.isVerified,
-        lastName: admin.lastName,
-        id: admin.id,
-        role: 'admin',
-        mfaEnabled: admin.mfaEnabled,
-      }),
+      await this.jwtService.signAsync(payload),
       await generateHashedRefreshToken(),
     ];
     this.eventEmitter.emit('refresh-token.created', {
