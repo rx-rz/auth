@@ -12,10 +12,8 @@ import { UserRepository } from 'src/user/user.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
 import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
 import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
-import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
-import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class ProjectService {
@@ -23,9 +21,7 @@ export class ProjectService {
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
     private readonly adminRepository: AdminRepository,
-    private readonly cls: ClsService,
   ) {}
-  userId = this.cls.get('userId');
   generateApiKey() {
     const buffer = randomBytes(32);
     const apiKey = buffer
@@ -36,15 +32,20 @@ export class ProjectService {
     return apiKey;
   }
 
+  private async getProject(projectId: string) {
+    const project = await this.projectRepository.getProject(projectId);
+    return project;
+  }
+
   private async checkIfProjectExists(projectId: string) {
-    const existingProject = await this.projectRepository.getProject(projectId);
+    const existingProject = await this.getProject(projectId);
     if (!existingProject) {
       throw new NotFoundException('Project with specified ID does not exist.');
     }
     return existingProject;
   }
 
-  private async checkIfAdminExists(email: string) {
+  private async ensureAdminExists(email: string) {
     const admin = await this.adminRepository.getAdminByEmail(email);
     if (!admin) {
       throw new NotFoundException('Admin not found');
@@ -59,22 +60,19 @@ export class ProjectService {
     return user;
   }
 
-  async createProject(createProjectDto: CreateProjectDto) {
+  async createProject({ adminId, name }: CreateProjectDto) {
     const apiKey = this.generateApiKey();
     const projectWithGivenName =
-      await this.adminRepository.getAdminProjectByName(
-        createProjectDto.adminId,
-        createProjectDto.name,
-      );
+      await this.adminRepository.getAdminProjectByName(adminId, name);
     if (projectWithGivenName)
       throw new ConflictException(
         'Another project already exists with the same name. Please choose a different name.',
       );
     const project = await this.projectRepository.createProject({
-      name: createProjectDto.name,
+      name,
       apiKey,
       admin: {
-        connect: { id: createProjectDto.adminId },
+        connect: { id: adminId },
       },
     });
     return { success: true, project };
@@ -89,10 +87,10 @@ export class ProjectService {
   async updateProjectApiKey(projectId: string) {
     await this.checkIfProjectExists(projectId);
     const apiKey = this.generateApiKey();
-    const project = await this.projectRepository.updateProject(projectId, {
+    await this.projectRepository.updateProject(projectId, {
       apiKey,
     });
-    return { success: true, project };
+    return { success: true, message: "Project API key updated successfully." };
   }
 
   async getProjectApiKey(projectId: string) {
@@ -101,7 +99,7 @@ export class ProjectService {
     return { success: true, apiKey };
   }
 
-  async getProject(projectId: string) {
+  async getProjectDetails(projectId: string) {
     await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.getProject(projectId);
     return { success: true, project };
@@ -122,7 +120,7 @@ export class ProjectService {
   }
 
   async getAllProjectsCreatedByAdmin(adminId: string) {
-    await this.checkIfAdminExists(adminId);
+    await this.ensureAdminExists(adminId);
     const project =
       await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
     return { success: true, project };
@@ -143,7 +141,6 @@ export class ProjectService {
     lastName,
     password,
   }: AddUserToProjectDto) {
-    //this.cls.set('userId', userId);
     await this.checkIfUserExists(userId);
     await this.checkIfProjectExists(projectId);
     const userAddedToProject = await this.projectRepository.addUserToProject(
@@ -153,7 +150,6 @@ export class ProjectService {
       projectId,
       password,
     );
-
     return { success: true, userAddedToProject };
   }
 

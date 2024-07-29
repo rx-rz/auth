@@ -5,6 +5,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 type User = {
@@ -17,7 +18,10 @@ type User = {
 };
 @Injectable()
 export class AdminGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
@@ -25,7 +29,9 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Invalid token provided.');
     }
     try {
-      const payload: User = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get('JWT_ACCESS_SECRET'),
+      });
       if (payload && payload.role !== 'admin') {
         throw new ForbiddenException('Admin access required.');
       }
@@ -36,7 +42,8 @@ export class AdminGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];    
     return type === 'Bearer' ? token : undefined;
   }
 }

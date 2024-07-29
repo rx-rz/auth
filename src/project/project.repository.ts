@@ -17,11 +17,6 @@ export class ProjectRepository {
     const updatedProject = await this.prisma.project.update({
       data,
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        adminId: true,
-      },
     });
     return updatedProject;
   }
@@ -135,7 +130,6 @@ export class ProjectRepository {
     projectId: string,
     password?: string,
   ) {
-    console.log(password)
     const user = await this.prisma.userProject.create({
       data: {
         firstName,

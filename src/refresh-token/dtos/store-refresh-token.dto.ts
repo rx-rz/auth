@@ -1,13 +1,5 @@
 import { AuthMethod } from '@prisma/client';
-import { IsDateString, IsEmail, IsEnum, IsString } from 'class-validator';
-
-// export enum AuthMethod {
-//   GOOGLE_OAUTH,
-//   GITHUB_OAUTH,
-//   FACEBOOK_OAUTH,
-//   EMAIL_AND_PASSWORD_SIGNIN,
-//   MAGICLINK,
-// }
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class StoreRefreshTokenDto {
   @IsString()
@@ -17,7 +9,12 @@ export class StoreRefreshTokenDto {
   expiresAt: Date;
 
   @IsString()
+  @IsOptional()
   adminId: string;
+
+  @IsString()
+  @IsOptional()
+  userId: string;
 
   @IsEnum(AuthMethod)
   authMethod: AuthMethod;

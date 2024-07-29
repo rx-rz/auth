@@ -53,21 +53,25 @@ export class AdminController {
   }
 
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
+  @UseGuards(AdminGuard)
   async updateAdminEmail(@Body() data: UpdateAdminEmailDto) {
     return this.adminService.updateAdminEmail(data);
   }
 
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
+  @UseGuards(AdminGuard)
   async updateAdminPassword(@Body() data: UpdateAdminPasswordDto) {
     return this.adminService.updateAdminPassword(data);
   }
 
   @Get(ADMIN_ROUTES.GET_PROJECTS)
-  async getAdminProjects(@Query('id') { adminId }: AdminIdDto) {
+  @UseGuards(AdminGuard)
+  async getAdminProjects(@Query() { adminId }: AdminIdDto) {
     return this.adminService.getAdminProjects({ adminId });
   }
 
   @Get(ADMIN_ROUTES.GET_PROJECT_BY_NAME)
+  @UseGuards(AdminGuard)
   async getProjectByName(@Body() data: GetAdminProjectDto) {
     return this.adminService.getAdminProjectByName(data);
   }

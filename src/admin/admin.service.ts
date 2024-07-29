@@ -10,7 +10,6 @@ import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { UpdateAdminDTO } from 'src/admin/dtos/update-admin-dto';
 import { LoginAdminDto } from './dtos/login-admin-dto';
 import { checkIfHashedValuesMatch } from 'src/utils/helper-functions/check-if-hashed-values-match';
-import { generateAccessToken } from 'src/utils/helper-functions/generate-access-token';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthMethod } from '@prisma/client';
@@ -20,13 +19,17 @@ import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
 import { AdminIdDto } from './dtos/admin-id-dto';
 import { GetAdminProjectDto } from './dtos/get-admin-project';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly adminRepository: AdminRepository,
-    private eventEmitter: EventEmitter2,
+    private emitter: AppEventEmitter,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   private async getAdmin(email: string) {
@@ -63,6 +66,7 @@ export class AdminService {
     return { success: true, message: 'Admin registered successfully.' };
   }
 
+  @CatchEmitterErrors()
   async loginAdmin({ email, password }: LoginAdminDto) {
     const adminPassword = await this.adminRepository.getAdminPassword(email);
     const admin = await this.adminRepository.getAdminByEmail(email);
@@ -82,10 +86,14 @@ export class AdminService {
       mfaEnabled: admin.mfaEnabled,
     };
     const [accessToken, refreshToken] = [
-      await this.jwtService.signAsync(payload),
+      await this.jwtService.signAsync(payload, {
+        secret: this.configService.get('JWT_ACCESS_SECRET'),
+        expiresIn: '5h',
+      }),
       await generateHashedRefreshToken(),
     ];
-    this.eventEmitter.emit('refresh-token.created', {
+
+    await this.emitter.emit('refresh-token.created', {
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       adminId: admin.id,
@@ -105,6 +113,11 @@ export class AdminService {
     newEmail,
     password,
   }: UpdateAdminEmailDto) {
+    const existingAdmin = await this.getAdmin(newEmail);
+    if (existingAdmin)
+      throw new ConflictException(
+        'An email with the provided new email already exists. Please choose another.',
+      );
     await this.ensureAdminExists(currentEmail);
     await this.verifyPassword(currentEmail, password);
     const admin = await this.adminRepository.updateAdminEmail(

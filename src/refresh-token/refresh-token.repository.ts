@@ -7,8 +7,11 @@ export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async storeRefreshToken(data: Prisma.RefreshTokenCreateInput) {
+    console.log(data);
     await this.prisma.refreshToken.create({
-      data,
+      data: {
+        ...data,
+      },
     });
   }
 
