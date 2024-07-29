@@ -22,7 +22,7 @@ export class RoleBasedAccessControlRepository {
     await this.prisma.permission.create({ data });
   }
 
-  async assignPermissionToARole(permissionId: number, roleId: number) {
+  async assignPermissionToARole( permissionId: number, roleId: number) {
     await this.prisma.rolePermission.create({
       data: {
         permissionId,

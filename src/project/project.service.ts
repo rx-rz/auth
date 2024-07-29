@@ -14,6 +14,9 @@ import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
 import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import { hashValue } from 'src/utils/helper-functions/hash-value';
+import { compare } from 'bcryptjs';
+import { VerifyProjectIdDto } from './dtos/verify-project-id-dto';
 
 @Injectable()
 export class ProjectService {
@@ -22,14 +25,15 @@ export class ProjectService {
     private readonly userRepository: UserRepository,
     private readonly adminRepository: AdminRepository,
   ) {}
-  generateApiKey() {
+  async generateApiKey() {
     const buffer = randomBytes(32);
     const apiKey = buffer
       .toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=/g, '');
-    return apiKey;
+    const hashedApiKey = await hashValue(apiKey);
+    return { hashedApiKey, apiKey };
   }
 
   private async getProject(projectId: string) {
@@ -61,7 +65,6 @@ export class ProjectService {
   }
 
   async createProject({ adminId, name }: CreateProjectDto) {
-    const apiKey = this.generateApiKey();
     const projectWithGivenName =
       await this.adminRepository.getAdminProjectByName(adminId, name);
     if (projectWithGivenName)
@@ -70,7 +73,6 @@ export class ProjectService {
       );
     const project = await this.projectRepository.createProject({
       name,
-      apiKey,
       admin: {
         connect: { id: adminId },
       },
@@ -84,19 +86,25 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  async updateProjectApiKey(projectId: string) {
-    await this.checkIfProjectExists(projectId);
-    const apiKey = this.generateApiKey();
-    await this.projectRepository.updateProject(projectId, {
-      apiKey,
-    });
-    return { success: true, message: "Project API key updated successfully." };
+  async verifyProjectApiKey({ apiKey, projectId }: VerifyProjectIdDto) {
+    const existingApiKeyInDB =
+      await this.projectRepository.getProjectApiKey(projectId);
+    const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
+    return apiKeyIsValid;
   }
 
   async getProjectApiKey(projectId: string) {
     await this.checkIfProjectExists(projectId);
-    const apiKey = await this.projectRepository.getProjectApiKey(projectId);
+    const { apiKey, hashedApiKey } = await this.generateApiKey();
+    await this.projectRepository.updateProject(projectId, {
+      apiKey: hashedApiKey,
+    });
     return { success: true, apiKey };
+  }
+
+  async getProjectIDByApiKey(apiKey: string) {
+    const projectId = await this.projectRepository.getProjectIDByApiKey(apiKey);
+    return { success: true, projectId };
   }
 
   async getProjectDetails(projectId: string) {

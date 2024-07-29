@@ -17,7 +17,7 @@ export const OTP_ROUTES = {
 
 export const PROJECT_ROUTES = {
   BASE: 'project',
-  CREATE: 'create',
+  CREATE: 'create-project',
   UPDATE_PROJECT_NAME: 'update-project-name',
   UPDATE_API_KEY: 'update-api-key',
   GET_API_KEY: 'get-api-key',
@@ -42,4 +42,13 @@ export const USER_ROUTES = {
   DELETE: 'delete',
   REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
   SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
+};
+
+export const ROLE_ROUTES = {
+  BASE: 'role',
+  CREATE_ROLE: 'create-role',
+  GET_ROLE: 'get-details',
+  GET_ROLE_PERMISSIONS: 'get-role-permissions',
+  UPDATE_ROLE_NAME: 'update-role-name',
+  DELETE_ROLE: 'delete',
 };

@@ -8,7 +8,7 @@ import { RefreshTokenModule } from './refresh-token/refresh-token.module';
 import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
 import { OauthModule } from './auth/oauth/oauth.module';
 import { MagicLinkAuthModule } from './auth/magic-link-auth/magic-link-auth.module';
@@ -19,7 +19,7 @@ import { ClsModule } from 'nestjs-cls';
 import { LoginModule } from './login/login.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-
+import { ProjectIdInterceptorModule } from './utils/interceptors/project-id.module';
 @Module({
   controllers: [AppController],
   providers: [
@@ -41,6 +41,7 @@ import { JwtModule } from '@nestjs/jwt';
     OauthModule,
     MagicLinkAuthModule,
     RoleBasedAccessControlModule,
+    ProjectIdInterceptorModule,
     AppEventEmitterModule,
     ClsModule.forRoot({
       global: true,

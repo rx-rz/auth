@@ -31,6 +31,16 @@ export class ProjectRepository {
     return project?.apiKey || '';
   }
 
+  async getProjectIDByApiKey(apiKey: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { apiKey },
+      select: {
+        id: true,
+      },
+    });
+    return project?.id || '';
+  }
+
   async getProject(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },

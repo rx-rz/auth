@@ -1,19 +1,25 @@
-import { RoleBasedAccessControlRepository } from "./rbac.repository";
+import { Injectable } from '@nestjs/common';
+import { RoleBasedAccessControlRepository } from './rbac.repository';
 
+@Injectable()
 export class PermissionService {
-  constructor(private readonly rbacRepository: RoleBasedAccessControlRepository){}
+  constructor(
+    private readonly rbacRepository: RoleBasedAccessControlRepository,
+  ) {}
 
-  async createPermission(name: string, description: string){
-    const permission = await this.rbacRepository.createPermission({name, description})
-    return {success: true, permission}
-  } 
+  async createPermission(name: string, description: string) {
+    const permission = await this.rbacRepository.createPermission({
+      name,
+      description,
+    });
+    return { success: true, permission };
+  }
 
-  async assignPermissionToRole(){}
+  async assignPermissionToRole() {}
 
-  async getSpecificPermission(){}
+  async getSpecificPermission() {}
 
-  async updatePermission(){}
+  async updatePermission() {}
 
-  async deletePermission(){}
-  
+  async deletePermission() {}
 }

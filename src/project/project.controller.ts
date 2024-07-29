@@ -34,12 +34,6 @@ export class ProjectController {
     return this.projectService.updateProjectName(updateProjectName);
   }
 
-  @Put(PROJECT_ROUTES.UPDATE_API_KEY)
-  @UseGuards(AdminGuard)
-  async updateProjectApiKey(@Query() idDto: IDDto) {
-    return this.projectService.updateProjectApiKey(idDto.id);
-  }
-
   @Get(PROJECT_ROUTES.GET_API_KEY)
   @UseGuards(AdminGuard)
   async getProjectApiKey(@Query() idDto: IDDto) {
