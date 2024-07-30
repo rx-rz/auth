@@ -17,14 +17,14 @@ import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
 import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 import { IDDto } from './dtos/id-dto';
 import { AdminGuard } from 'src/guard/admin.guard';
-import { SkipProjectId } from 'src/utils/interceptors/project-verification.interceptor';
+import { SkipProjectVerification } from 'src/utils/interceptors/project-verification.interceptor';
 
 @Controller(PROJECT_ROUTES.BASE)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post(PROJECT_ROUTES.CREATE)
-  @SkipProjectId()
+  @SkipProjectVerification()
   @UseGuards(AdminGuard)
   async createProject(@Body() data: CreateProjectDto) {
     return this.projectService.createProject(data);
@@ -36,42 +36,41 @@ export class ProjectController {
     return this.projectService.updateProjectName(data);
   }
 
-  @SkipProjectId()
+  @SkipProjectVerification()
   @Get(PROJECT_ROUTES.GET_KEYS)
   @UseGuards(AdminGuard)
-  async getProjectApiKey(@Query() {id}: IDDto) {
-    
-    return this.projectService.getProjectKeys(id);
+  async getProjectApiKey(@Query() { projectId }: IDDto) {
+    return this.projectService.getProjectKeys(projectId);
   }
 
   @Get(PROJECT_ROUTES.GET_PROJECT)
   @UseGuards(AdminGuard)
-  async getProject(@Query() {id}: IDDto) {
-    return this.projectService.getProjectDetails(id);
+  async getProject(@Query() { projectId }: IDDto) {
+    return this.projectService.getProjectDetails(projectId);
   }
 
   @Get(PROJECT_ROUTES.GET_MAGIC_LINKS)
   @UseGuards(AdminGuard)
-  async getProjectMagicLinks(@Query() {id}: IDDto) {
-    return this.projectService.getProjectMagicLinks(id);
+  async getProjectMagicLinks(@Query() { projectId }: IDDto) {
+    return this.projectService.getProjectMagicLinks(projectId);
   }
 
   @Get(PROJECT_ROUTES.GET_REFRESH_TOKENS)
   @UseGuards(AdminGuard)
-  async getProjectRefreshTokens(@Query() {id}: IDDto) {
-    return this.projectService.getProjectRefreshTokens(id);
+  async getProjectRefreshTokens(@Query() { projectId }: IDDto) {
+    return this.projectService.getProjectRefreshTokens(projectId);
   }
 
   @Get(PROJECT_ROUTES.GET_ALL_BY_ADMIN)
   @UseGuards(AdminGuard)
-  async getAllProjectsCreatedByAdmin(@Query() {id}: IDDto) {
-    return this.projectService.getAllProjectsCreatedByAdmin(id);
+  async getAllProjectsCreatedByAdmin(@Query() { projectId }: IDDto) {
+    return this.projectService.getAllProjectsCreatedByAdmin(projectId);
   }
 
   @Delete(PROJECT_ROUTES.DELETE)
   @UseGuards(AdminGuard)
-  async deleteProject(@Query() {id}: IDDto) {
-    return this.projectService.deleteProject(id);
+  async deleteProject(@Query() { projectId }: IDDto) {
+    return this.projectService.deleteProject(projectId);
   }
 
   @Post(PROJECT_ROUTES.ADD_USER_TO_PROJECT)

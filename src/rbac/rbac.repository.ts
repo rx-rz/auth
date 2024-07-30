@@ -19,31 +19,45 @@ export class RoleBasedAccessControlRepository {
   }
 
   async createPermission(data: Prisma.PermissionCreateInput) {
-    await this.prisma.permission.create({ data });
+    const permission = await this.prisma.permission.create({ data });
+    return permission;
   }
 
-  async assignPermissionToARole( permissionId: number, roleId: number) {
-    await this.prisma.rolePermission.create({
+  async assignPermissionToARole(permissionId: number, roleId: number) {
+    const assignedPermission = await this.prisma.rolePermission.create({
       data: {
         permissionId,
         roleId,
       },
+      select: {
+        permission: {
+          select: { name: true, id: true },
+        },
+        role: {
+          select: { name: true, id: true },
+        },
+      },
     });
+    return assignedPermission;
   }
 
   async getRolePermissions(roleId: number) {
-    await this.prisma.rolePermission.findMany({
+    const rolePermissions = await this.prisma.rolePermission.findMany({
       select: {
+        role: {
+          select: { name: true },
+        },
         permission: {
           select: { description: true, name: true, id: true },
         },
       },
       where: { roleId },
     });
+    return rolePermissions;
   }
 
   async getSpecificPermission(permissionId: number) {
-    await this.prisma.permission.findUnique({
+    const permission = await this.prisma.permission.findUnique({
       select: {
         id: true,
         description: true,
@@ -54,13 +68,14 @@ export class RoleBasedAccessControlRepository {
       },
       where: { id: permissionId },
     });
+    return permission;
   }
 
   async updatePermission(
     permissionId: number,
     data: Prisma.PermissionUpdateInput,
   ) {
-    await this.prisma.permission.update({
+    const permission = await this.prisma.permission.update({
       select: {
         id: true,
         description: true,
@@ -72,17 +87,19 @@ export class RoleBasedAccessControlRepository {
       where: { id: permissionId },
       data,
     });
+    return permission;
   }
 
   async updateRoleName(roleId: number, newName: string) {
-    await this.prisma.role.update({
+    const role = await this.prisma.role.update({
       where: { id: roleId },
       data: { name: newName },
     });
+    return role;
   }
 
   async getRoleDetails(roleId: number) {
-    await this.prisma.role.findUnique({
+    const role = await this.prisma.role.findUnique({
       where: { id: roleId },
       select: {
         id: true,
@@ -91,30 +108,46 @@ export class RoleBasedAccessControlRepository {
         rolePermissions: true,
       },
     });
+    return role;
+  }
+
+  async getRoleDetailsByNameAndProjectId(name: string, projectId: string) {
+    const role = await this.prisma.role.findUnique({
+      where: { name_projectId: { name, projectId } },
+    });
+    return role;
   }
 
   async deleteRole(roleId: number) {
-    await this.prisma.$transaction(async (prisma) => {
+    let role;
+    const a = await this.prisma.$transaction(async (prisma) => {
       await this.prisma.rolePermission.deleteMany({
         where: { roleId },
       });
       await this.prisma.permission.delete({
         where: { id: roleId },
       });
+      role = await this.prisma.role.delete({
+        where: { id: roleId },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
     });
-    await this.prisma.role.delete({
-      where: { id: roleId },
-    });
+    return role;
   }
 
   async deletePermission(permissionId: number) {
+    let permission;
     await this.prisma.$transaction(async (prisma) => {
       await prisma.rolePermission.deleteMany({
         where: { permissionId },
       });
-      await prisma.permission.delete({
+      permission = await prisma.permission.delete({
         where: { id: permissionId },
       });
     });
+    return permission;
   }
 }

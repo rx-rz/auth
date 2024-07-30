@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { ProjectService } from 'src/project/project.service';
 
-export const SkipProjectId = Reflector.createDecorator<boolean>();
+export const SkipProjectVerification = Reflector.createDecorator<boolean>();
 
 @Injectable()
 export class ProjectVerificationInterceptor implements NestInterceptor {
@@ -22,11 +22,11 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const skipProjectId = this.reflector.get(
-      SkipProjectId,
+    const skipProjectVerification = this.reflector.get(
+      SkipProjectVerification,
       context.getHandler(),
     );
-    if (skipProjectId) {
+    if (skipProjectVerification) {
       return next.handle();
     }
 
@@ -45,10 +45,9 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     if (!projectApiKeyIsValid || !projectId)
       throw new BadRequestException('Invalid project credentials provided.');
     if (request.method !== 'GET') {
-      request.body = { ...request.body, projectId, id: projectId };
+      request.body = { ...request.body, projectId };
     }
     request.query.projectId = projectId;
-    request.query.id = projectId;
     return next.handle();
   }
 }

@@ -12,10 +12,12 @@ export function CatchEmitterErrors() {
         return await originalMethod.apply(this, args);
       } catch (error) {
         if (error instanceof HttpException) {
-          return error;
+          console.log(error);
+          return new HttpException(error.getResponse(), error.getStatus());
         } else {
+          console.log(error);
           return new HttpException(
-            'An unexpected error occurred',
+            error.message,
             HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }

@@ -4,24 +4,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { RegisterAdminDTO } from './dtos/register-admin-dto';
 import { AdminRepository } from './admin.repository';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import { UpdateAdminDTO } from 'src/admin/dtos/update-admin-dto';
-import { LoginAdminDto } from './dtos/login-admin-dto';
 import { checkIfHashedValuesMatch } from 'src/utils/helper-functions/check-if-hashed-values-match';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  RegisterAdminDto,
+  UpdateAdminDto,
+  AdminIdDto,
+  GetAdminProjectDto,
+  LoginAdminDto,
+  UpdateAdminEmailDto,
+  UpdateAdminPasswordDto,
+} from './schema';
 import { AuthMethod } from '@prisma/client';
-import { UpdateAdminEmailDto } from './dtos/update-admin-email-dto';
 import { compare } from 'bcryptjs';
-import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
-import { AdminIdDto } from './dtos/admin-id-dto';
-import { GetAdminProjectDto } from './dtos/get-admin-project';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdminService {
@@ -54,7 +55,7 @@ export class AdminService {
     return passwordsMatch;
   }
 
-  async registerAdmin(data: RegisterAdminDTO) {
+  async registerAdmin(data: RegisterAdminDto) {
     const admin = await this.getAdmin(data.email);
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
@@ -102,7 +103,7 @@ export class AdminService {
     return { success: true, accessToken, refreshToken };
   }
 
-  async updateAdmin({ email, ...details }: UpdateAdminDTO) {
+  async updateAdmin({ email, ...details }: UpdateAdminDto) {
     await this.ensureAdminExists(email);
     const admin = await this.adminRepository.updateAdmin(email, details);
     return { success: true, admin };

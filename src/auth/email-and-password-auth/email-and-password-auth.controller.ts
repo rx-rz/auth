@@ -32,6 +32,6 @@ export class EmailAndPasswordAuthController {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { success: true, accessToken };
+    return { success, accessToken };
   }
 }
