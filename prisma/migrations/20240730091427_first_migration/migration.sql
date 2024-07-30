@@ -5,7 +5,13 @@ CREATE TYPE "TokenState" AS ENUM ('ACTIVE', 'EXPIRED', 'REVOKED', 'BLACKLISTED')
 CREATE TYPE "AdminNotificationType" AS ENUM ('SECURITY_ALERT', 'SYSTEM_STATUS', 'USER_MANAGEMENT', 'PROJECT_MANAGEMENT');
 
 -- CreateEnum
+CREATE TYPE "AuthMethod" AS ENUM ('GOOGLE_OAUTH', 'GITHUB_OAUTH', 'FACEBOOK_OAUTH', 'EMAIL_AND_PASSWORD_SIGNIN', 'MAGICLINK');
+
+-- CreateEnum
 CREATE TYPE "AdminNotificationSeverity" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+
+-- CreateEnum
+CREATE TYPE "LoginStatus" AS ENUM ('SUCCESS', 'FAILURE');
 
 -- CreateTable
 CREATE TABLE "admins" (
@@ -15,7 +21,7 @@ CREATE TABLE "admins" (
     "first_name" VARCHAR(255) NOT NULL,
     "last_name" VARCHAR(255) NOT NULL,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
-    "mfa_secret" TEXT NOT NULL,
+    "mfaEnabled" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -27,6 +33,7 @@ CREATE TABLE "projects" (
     "id" TEXT NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "apiKey" VARCHAR(64) NOT NULL,
+    "clientKey" VARCHAR(64) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "admin_id" TEXT NOT NULL,
@@ -38,10 +45,6 @@ CREATE TABLE "projects" (
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" VARCHAR(255) NOT NULL,
-    "password" VARCHAR(255) NOT NULL,
-    "first_name" VARCHAR(255) NOT NULL,
-    "last_name" VARCHAR(255) NOT NULL,
-    "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -81,8 +84,14 @@ CREATE TABLE "role_permissions" (
 -- CreateTable
 CREATE TABLE "user_projects" (
     "user_id" TEXT NOT NULL,
+    "password" TEXT,
+    "first_name" VARCHAR(255) NOT NULL,
+    "last_name" VARCHAR(255) NOT NULL,
     "project_id" TEXT NOT NULL,
-    "role_id" INTEGER NOT NULL,
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
+    "role_id" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "user_projects_pkey" PRIMARY KEY ("user_id","project_id")
 );
@@ -119,6 +128,7 @@ CREATE TABLE "magic_links" (
     "project_id" TEXT NOT NULL,
     "token" VARCHAR(255) NOT NULL,
     "expires_at" TIMESTAMP(3) NOT NULL,
+    "isValid" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -128,8 +138,7 @@ CREATE TABLE "magic_links" (
 -- CreateTable
 CREATE TABLE "otps" (
     "id" TEXT NOT NULL,
-    "user_id" TEXT,
-    "admin_id" TEXT,
+    "email" TEXT NOT NULL,
     "code" VARCHAR(6) NOT NULL,
     "expires_at" TIMESTAMP(3) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -139,29 +148,17 @@ CREATE TABLE "otps" (
 );
 
 -- CreateTable
-CREATE TABLE "access_tokens" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT,
-    "admin_id" TEXT,
-    "token" TEXT NOT NULL,
-    "expires_at" TIMESTAMP(3) NOT NULL,
-    "state" "TokenState" NOT NULL DEFAULT 'ACTIVE',
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "access_tokens_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "refresh_tokens" (
     "id" TEXT NOT NULL,
     "user_id" TEXT,
     "admin_id" TEXT,
+    "project_id" TEXT,
     "token" TEXT NOT NULL,
     "expires_at" TIMESTAMP(3) NOT NULL,
     "state" "TokenState" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "authMethod" "AuthMethod" NOT NULL DEFAULT 'EMAIL_AND_PASSWORD_SIGNIN',
 
     CONSTRAINT "refresh_tokens_pkey" PRIMARY KEY ("id")
 );
@@ -195,22 +192,58 @@ CREATE TABLE "webauthn_credentials" (
 );
 
 -- CreateTable
+CREATE TABLE "login" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "project_id" TEXT NOT NULL,
+    "ip_address" TEXT NOT NULL,
+    "user_agent" TEXT NOT NULL,
+    "authMethod" "AuthMethod" NOT NULL,
+    "status" "LoginStatus" NOT NULL,
+    "failure_reason" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "login_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_ProjectToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "admins_id_key" ON "admins"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "projects_id_key" ON "projects"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "projects_apiKey_key" ON "projects"("apiKey");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "projects_clientKey_key" ON "projects"("clientKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "projects_name_admin_id_key" ON "projects"("name", "admin_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_id_key" ON "users"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "roles_id_key" ON "roles"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "roles_name_project_id_key" ON "roles"("name", "project_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "permissions_id_key" ON "permissions"("id");
 
 -- CreateIndex
 CREATE INDEX "user_projects_user_id_idx" ON "user_projects"("user_id");
@@ -222,7 +255,13 @@ CREATE INDEX "user_projects_project_id_idx" ON "user_projects"("project_id");
 CREATE INDEX "user_projects_role_id_idx" ON "user_projects"("role_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "oauth_providers_id_key" ON "oauth_providers"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "oauth_providers_name_key" ON "oauth_providers"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_oauth_accounts_id_key" ON "user_oauth_accounts"("id");
 
 -- CreateIndex
 CREATE INDEX "user_oauth_accounts_user_id_idx" ON "user_oauth_accounts"("user_id");
@@ -234,19 +273,37 @@ CREATE INDEX "user_oauth_accounts_provider_id_idx" ON "user_oauth_accounts"("pro
 CREATE UNIQUE INDEX "user_oauth_accounts_provider_id_provider_user_id_key" ON "user_oauth_accounts"("provider_id", "provider_user_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "magic_links_id_key" ON "magic_links"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "magic_links_token_key" ON "magic_links"("token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "access_tokens_token_key" ON "access_tokens"("token");
+CREATE UNIQUE INDEX "otps_id_key" ON "otps"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "otps_email_key" ON "otps"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "refresh_tokens_id_key" ON "refresh_tokens"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "refresh_tokens_token_key" ON "refresh_tokens"("token");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "admin_notifications_id_key" ON "admin_notifications"("id");
+
+-- CreateIndex
 CREATE INDEX "admin_notifications_admin_id_idx" ON "admin_notifications"("admin_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "webauthn_credentials_id_key" ON "webauthn_credentials"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "webauthn_credentials_credentialId_key" ON "webauthn_credentials"("credentialId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "login_id_key" ON "login"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_ProjectToUser_AB_unique" ON "_ProjectToUser"("A", "B");
@@ -273,7 +330,7 @@ ALTER TABLE "user_projects" ADD CONSTRAINT "user_projects_user_id_fkey" FOREIGN 
 ALTER TABLE "user_projects" ADD CONSTRAINT "user_projects_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_projects" ADD CONSTRAINT "user_projects_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_projects" ADD CONSTRAINT "user_projects_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_oauth_accounts" ADD CONSTRAINT "user_oauth_accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -288,28 +345,25 @@ ALTER TABLE "magic_links" ADD CONSTRAINT "magic_links_user_id_fkey" FOREIGN KEY 
 ALTER TABLE "magic_links" ADD CONSTRAINT "magic_links_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "otps" ADD CONSTRAINT "otps_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "otps" ADD CONSTRAINT "otps_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admins"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "access_tokens" ADD CONSTRAINT "access_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "access_tokens" ADD CONSTRAINT "access_tokens_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admins"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admins"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "admin_notifications" ADD CONSTRAINT "admin_notifications_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "webauthn_credentials" ADD CONSTRAINT "webauthn_credentials_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "admins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "login" ADD CONSTRAINT "login_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "login" ADD CONSTRAINT "login_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ProjectToUser" ADD CONSTRAINT "_ProjectToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;

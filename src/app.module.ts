@@ -19,7 +19,7 @@ import { ClsModule } from 'nestjs-cls';
 import { LoginModule } from './login/login.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { ProjectIdInterceptorModule } from './utils/interceptors/project-id.module';
+import { ProjectVerificationInterceptorModule } from './utils/interceptors/project-verification.module';
 @Module({
   controllers: [AppController],
   providers: [
@@ -41,7 +41,7 @@ import { ProjectIdInterceptorModule } from './utils/interceptors/project-id.modu
     OauthModule,
     MagicLinkAuthModule,
     RoleBasedAccessControlModule,
-    ProjectIdInterceptorModule,
+    ProjectVerificationInterceptorModule,
     AppEventEmitterModule,
     ClsModule.forRoot({
       global: true,

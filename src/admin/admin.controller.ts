@@ -19,22 +19,26 @@ import { UpdateAdminPasswordDto } from './dtos/update-admin-password-dto';
 import { AdminIdDto } from './dtos/admin-id-dto';
 import { GetAdminProjectDto } from './dtos/get-admin-project';
 import { AdminGuard } from 'src/guard/admin.guard';
+import { SkipProjectId } from 'src/utils/interceptors/project-verification.interceptor';
 
 @Controller(ADMIN_ROUTES.BASE)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @SkipProjectId()
   @Post(ADMIN_ROUTES.REGISTER)
   async registerAdmin(@Body() data: RegisterAdminDTO) {
     return this.adminService.registerAdmin(data);
   }
 
+  @SkipProjectId()
   @Put(ADMIN_ROUTES.UPDATE_DETAILS)
   @UseGuards(AdminGuard)
   async updateAdmin(@Body() data: UpdateAdminDTO) {
     return this.adminService.updateAdmin(data);
   }
 
+  @SkipProjectId()
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(
     @Body() data: LoginAdminDto,
@@ -52,18 +56,21 @@ export class AdminController {
     return { success, accessToken };
   }
 
+  @SkipProjectId()
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
   @UseGuards(AdminGuard)
   async updateAdminEmail(@Body() data: UpdateAdminEmailDto) {
     return this.adminService.updateAdminEmail(data);
   }
 
+  @SkipProjectId()
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
   @UseGuards(AdminGuard)
   async updateAdminPassword(@Body() data: UpdateAdminPasswordDto) {
     return this.adminService.updateAdminPassword(data);
   }
 
+  @SkipProjectId()
   @Get(ADMIN_ROUTES.GET_PROJECTS)
   @UseGuards(AdminGuard)
   async getAdminProjects(@Query() { adminId }: AdminIdDto) {

@@ -9,6 +9,12 @@ export class ProjectRepository {
   async createProject(data: Prisma.ProjectCreateInput) {
     const project = await this.prisma.project.create({
       data,
+      select: {
+        adminId: true,
+        name: true,
+        id: true,
+        createdAt: true,
+      },
     });
     return project;
   }
@@ -17,28 +23,48 @@ export class ProjectRepository {
     const updatedProject = await this.prisma.project.update({
       data,
       where: { id },
+      select: {
+        adminId: true,
+        name: true,
+        id: true,
+        createdAt: true,
+      },
     });
     return updatedProject;
   }
 
-  async getProjectApiKey(id: string) {
+  async getProjectApiKeys(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
       select: {
         apiKey: true,
+        clientKey: true,
       },
     });
-    return project?.apiKey || '';
+    return {
+      apiKey: project?.apiKey || '',
+      clientKey: project?.clientKey || '',
+    };
   }
 
-  async getProjectIDByApiKey(apiKey: string) {
+  async getProjectIDByClientKey(clientKey: string) {
     const project = await this.prisma.project.findUnique({
-      where: { apiKey },
+      where: { clientKey },
       select: {
         id: true,
       },
     });
     return project?.id || '';
+  }
+
+  async getProjectApiKeyByClientKey(clientKey: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { clientKey },
+      select: {
+        apiKey: true,
+      },
+    });
+    return project?.apiKey || '';
   }
 
   async getProject(id: string) {

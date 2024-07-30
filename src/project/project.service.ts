@@ -16,7 +16,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
-import { VerifyProjectIdDto } from './dtos/verify-project-id-dto';
 
 @Injectable()
 export class ProjectService {
@@ -25,15 +24,15 @@ export class ProjectService {
     private readonly userRepository: UserRepository,
     private readonly adminRepository: AdminRepository,
   ) {}
-  async generateApiKey() {
+  async generateKey() {
     const buffer = randomBytes(32);
-    const apiKey = buffer
+    const key = buffer
       .toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=/g, '');
-    const hashedApiKey = await hashValue(apiKey);
-    return { hashedApiKey, apiKey };
+    const hashedKey = await hashValue(key);
+    return { hashedKey, key };
   }
 
   private async getProject(projectId: string) {
@@ -67,6 +66,7 @@ export class ProjectService {
   async createProject({ adminId, name }: CreateProjectDto) {
     const projectWithGivenName =
       await this.adminRepository.getAdminProjectByName(adminId, name);
+    const { hashedKey: apiKey, key: clientKey } = await this.generateKey();
     if (projectWithGivenName)
       throw new ConflictException(
         'Another project already exists with the same name. Please choose a different name.',
@@ -76,6 +76,8 @@ export class ProjectService {
       admin: {
         connect: { id: adminId },
       },
+      apiKey,
+      clientKey,
     });
     return { success: true, project };
   }
@@ -86,24 +88,27 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  async verifyProjectApiKey({ apiKey, projectId }: VerifyProjectIdDto) {
+  async verifyProjectApiKeys(apiKey: string, clientKey: string) {
     const existingApiKeyInDB =
-      await this.projectRepository.getProjectApiKey(projectId);
+      await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
     const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
-    return apiKeyIsValid;
+    return { apiKeyIsValid, existingApiKeyInDB };
   }
 
-  async getProjectApiKey(projectId: string) {
+  async getProjectKeys(projectId: string) {
     await this.checkIfProjectExists(projectId);
-    const { apiKey, hashedApiKey } = await this.generateApiKey();
+    const { key: apiKey, hashedKey } = await this.generateKey();
+    const { key: clientKey } = await this.generateKey();
     await this.projectRepository.updateProject(projectId, {
-      apiKey: hashedApiKey,
+      apiKey: hashedKey,
+      clientKey,
     });
-    return { success: true, apiKey };
+    return { success: true, clientKey, apiKey };
   }
 
-  async getProjectIDByApiKey(apiKey: string) {
-    const projectId = await this.projectRepository.getProjectIDByApiKey(apiKey);
+  async getProjectIDByClientKey(clientKey: string) {
+    const projectId =
+      await this.projectRepository.getProjectIDByClientKey(clientKey);
     return { success: true, projectId };
   }
 

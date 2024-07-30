@@ -88,7 +88,7 @@ export class AdminService {
     const [accessToken, refreshToken] = [
       await this.jwtService.signAsync(payload, {
         secret: this.configService.get('JWT_ACCESS_SECRET'),
-        expiresIn: '5h',
+        expiresIn: '10d',
       }),
       await generateHashedRefreshToken(),
     ];
