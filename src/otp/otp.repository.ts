@@ -18,7 +18,7 @@ export class OTPRepository {
       select: this.otpReturnObject,
     });
     return otp;
-  }
+  } 
 
   async getOTPDetails(email: string) {
     const otp = await this.prisma.otp.findUnique({

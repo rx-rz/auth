@@ -3,15 +3,21 @@ import {
   GoneException,
   Injectable,
   NotFoundException,
+  UsePipes,
 } from '@nestjs/common';
 import { OTPRepository } from './otp.repository';
-import { CreateOtpDto } from './dtos/create-otp-dto';
 import { generateOtp } from 'src/utils/helper-functions/generate-otp';
-import { VerifyOtpDto } from './dtos/verify-otp-dto';
 import { AdminRepository } from 'src/admin/admin.repository';
 import { UserRepository } from 'src/user/user.repository';
-import { VerifyAdminOtpDto } from './dtos/verify-admin-otp-dto';
-
+import {
+  CreateOtpDto,
+  VerifyAdminOtpDto,
+  CreateOtpSchema,
+  VerifyAdminOtpSchema,
+  VerifyOtpDto,
+  VerifyOtpSchema,
+} from './schema';
+import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 @Injectable()
 export class OtpService {
   constructor(
@@ -23,6 +29,7 @@ export class OtpService {
   private async checkIfUserHasOtpInstanceInDB(email: string) {
     return await this.otpRepository.getOTPDetails(email);
   }
+
 
   async sendOTP(data: CreateOtpDto) {
     const code = generateOtp();
@@ -69,6 +76,7 @@ export class OtpService {
       this.otpRepository.deleteOTP(data.email),
     ]);
   }
+
   async verifyOTP({ code, email, projectId, userId }: VerifyOtpDto) {
     const otpDetails = await this.checkIfUserHasOtpInstanceInDB(email);
     if (!otpDetails) {

@@ -4,7 +4,6 @@ import { ProjectController } from './project.controller';
 import { ProjectRepository } from './project.repository';
 import { UserRepository } from 'src/user/user.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
-import { ClsService } from 'nestjs-cls';
 
 @Module({
   controllers: [ProjectController],

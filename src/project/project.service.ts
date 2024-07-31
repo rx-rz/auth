@@ -4,18 +4,23 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
-import { CreateProjectDto } from './dtos/create-project-dto';
 import { randomBytes } from 'crypto';
-import { UpdateProjectNameDto } from './dtos/update-project-dto';
-import { AddUserToProjectDto } from './dtos/add-user-to-project-dto';
 import { UserRepository } from 'src/user/user.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
-import { RemoveUserFromProjectDto } from './dtos/remove-user-from-project-dto';
-import { AssignUserProjectRole } from './dtos/assign-user-project-role-dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
+import {
+  AddUserToProjectDto,
+  AdminIdDto,
+  AssignUserToProjectRoleDto,
+  CreateProjectDto,
+  IdDto,
+  RemoveUserFromProjectDto,
+  UpdateProjectNameDto,
+  VerifyProjectApiKeysDto,
+} from './schema';
 
 @Injectable()
 export class ProjectService {
@@ -82,20 +87,23 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  async updateProjectName({ id, name }: UpdateProjectNameDto) {
-    await this.checkIfProjectExists(id);
-    const project = await this.projectRepository.updateProject(id, { name });
+  
+  async updateProjectName({ projectId, name }: UpdateProjectNameDto) {
+    await this.checkIfProjectExists(projectId);
+    const project = await this.projectRepository.updateProject(projectId, {
+      name,
+    });
     return { success: true, project };
   }
 
-  async verifyProjectApiKeys(apiKey: string, clientKey: string) {
+  async verifyProjectApiKeys({ apiKey, clientKey }: VerifyProjectApiKeysDto) {
     const existingApiKeyInDB =
       await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
     const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
     return { apiKeyIsValid, existingApiKeyInDB };
   }
 
-  async getProjectKeys(projectId: string) {
+  async getProjectKeys({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const { key: apiKey, hashedKey } = await this.generateKey();
     const { key: clientKey } = await this.generateKey();
@@ -112,34 +120,34 @@ export class ProjectService {
     return { success: true, projectId };
   }
 
-  async getProjectDetails(projectId: string) {
+  async getProjectDetails({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.getProject(projectId);
     return { success: true, project };
   }
 
-  async getProjectMagicLinks(projectId: string) {
+  async getProjectMagicLinks({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const project =
       await this.projectRepository.getProjectMagicLinks(projectId);
     return { success: true, project };
   }
 
-  async getProjectRefreshTokens(projectId: string) {
+  async getProjectRefreshTokens({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const project =
       await this.projectRepository.getProjectRefreshTokens(projectId);
     return { success: true, project };
   }
 
-  async getAllProjectsCreatedByAdmin(adminId: string) {
+  async getAllProjectsCreatedByAdmin({adminId}: AdminIdDto) {
     await this.ensureAdminExists(adminId);
     const project =
       await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
     return { success: true, project };
   }
 
-  async deleteProject(projectId: string) {
+  async deleteProject({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.deleteProject(projectId);
     return { success: true, project };
@@ -180,14 +188,14 @@ export class ProjectService {
     projectId,
     roleId,
     userId,
-  }: AssignUserProjectRole) {
+  }: AssignUserToProjectRoleDto) {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExists(userId);
     const userAssignedARole =
       await this.projectRepository.assignUserProjectRole(
         userId,
         projectId,
-        parseInt(roleId),
+        roleId,
       );
     return { success: true, userAssignedARole };
   }

@@ -1,6 +1,4 @@
 import { compare } from 'bcryptjs';
-import { CreateUserDto } from './dtos/create-user-dto';
-import { UpdateUserDto } from './dtos/update-user-dto';
 import { UserRepository } from './user.repository';
 import {
   BadRequestException,
@@ -8,13 +6,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateUserPasswordDto } from './dtos/update-user-password-dto';
-import { UpdateUserEmailDto } from './dtos/update-user-email-dto';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { OnEvent } from '@nestjs/event-emitter';
-import { GetUserProjectDetailsDto } from './dtos/get-user-project-details-dto';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import {
+  CreateUserDto,
+  EmailDto,
+  GetUserProjectDetailsDto,
+  UpdateUserDto,
+  UpdateUserEmailDto,
+  UpdateUserPasswordDto,
+  UserIdDto,
+} from './schema';
 
 @Injectable()
 export class UserService {
@@ -110,13 +114,13 @@ export class UserService {
     return { success: true, user };
   }
 
-  async deleteUser(email: string) {
+  async deleteUser({ email }: EmailDto) {
     await this.checkIfUserWithEmailExists(email);
     const user = await this.userRepository.deleteUser(email);
     return { success: true, user };
   }
 
-  async getUserDetails(userId: string) {
+  async getUserDetails({ userId }: UserIdDto) {
     await this.checkIfUserExists(userId);
     const user = await this.userRepository.getUserById(userId);
     return { success: true, user };

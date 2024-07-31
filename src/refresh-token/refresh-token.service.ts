@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { RefreshTokenRepository } from './refresh-token.repository';
-import { StoreRefreshTokenDto } from './dtos/store-refresh-token.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import { StoreRefreshTokenDto } from './schema';
 
 @Injectable()
 export class RefreshTokenService {
@@ -12,8 +12,7 @@ export class RefreshTokenService {
 
   @CatchEmitterErrors()
   @OnEvent('refresh-token.created')
-  async storeOrUpdateRefreshToken(storeRefreshTokenDto: StoreRefreshTokenDto) {
-    console.log("here!")
-    await this.refreshTokenRepository.storeRefreshToken(storeRefreshTokenDto);
+  async storeOrUpdateRefreshToken(data: StoreRefreshTokenDto) {
+    await this.refreshTokenRepository.storeRefreshToken(data);
   }
 }
