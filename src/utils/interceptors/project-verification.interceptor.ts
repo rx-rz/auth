@@ -39,8 +39,7 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
         'Project credentials not provided. Please provide both your client and API keys',
       );
     const projectApiKeyIsValid = await this.projectService.verifyProjectApiKeys(
-      apiKey,
-      clientKey,
+      { apiKey, clientKey },
     );
     if (!projectApiKeyIsValid || !projectId)
       throw new BadRequestException('Invalid project credentials provided.');
