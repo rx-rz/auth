@@ -3,17 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateRoleDto } from './dtos/create-role-dto';
-import { RoleIdDto } from './dtos/role-id-dto';
-import { UpdateRoleNameDto } from './dtos/update-role-name-dto';
 import { RoleBasedAccessControlRepository } from './rbac.repository';
+import { CreateRoleDto, RoleIdDto, UpdateRoleNameDto } from './schema';
 
 @Injectable()
 export class RoleService {
   constructor(
     private readonly rbacRepository: RoleBasedAccessControlRepository,
   ) {}
-  async checkIfRoleExists(roleId: number) {
+  async checkIfRoleExists(roleId: string) {
     const role = await this.rbacRepository.getRoleDetails(roleId);
     if (!role) {
       throw new NotFoundException('Role with provided details not found.');
@@ -59,7 +57,7 @@ export class RoleService {
   }
 
   async deleteRole({ roleId }: RoleIdDto) {
-        await this.checkIfRoleExists(roleId);
+    await this.checkIfRoleExists(roleId);
     const role = await this.rbacRepository.deleteRole(roleId);
     return { success: true, role };
   }

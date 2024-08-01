@@ -230,7 +230,7 @@ export class ProjectRepository {
   async assignUserProjectRole(
     userId: string,
     projectId: string,
-    roleId: number,
+    roleId: string,
   ) {
     const userAssignedARole = await this.prisma.userProject.upsert({
       where: {

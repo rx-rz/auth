@@ -17,7 +17,7 @@ import {
   UpdateAdminEmailDto,
   UpdateAdminPasswordDto,
 } from './schema';
-import { AuthMethod } from '@prisma/client';
+import { Admin, AuthMethod } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
@@ -152,5 +152,10 @@ export class AdminService {
       name,
     );
     return { success: true, adminProject };
+  }
+
+  async deleteAdmin({adminId}: AdminIdDto){
+    const admin = await this.adminRepository.deleteAdmin(adminId)
+    return {success: true, admin}
   }
 }

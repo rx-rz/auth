@@ -88,4 +88,11 @@ export class AdminRepository {
     });
     return adminProject;
   }
+
+  async deleteAdmin(adminId: string) {
+    const admin = await this.prisma.admin.delete({
+      where: { id: adminId },
+    });
+    return admin;
+  }
 }

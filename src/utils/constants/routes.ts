@@ -4,6 +4,7 @@ export const ADMIN_ROUTES = {
   UPDATE_DETAILS: 'update-details',
   UPDATE_ADMIN_EMAIL: 'update-email',
   UPDATE_ADMIN_PASSWORD: 'update-password',
+  DELETE_ACCOUNT: 'delete',
   LOGIN: 'login',
   GET_PROJECTS: 'get-projects',
   GET_PROJECT_BY_NAME: 'get-project-by-name',
@@ -51,3 +52,10 @@ export const ROLE_ROUTES = {
   UPDATE_ROLE_NAME: 'update-role-name',
   DELETE_ROLE: 'delete',
 };
+
+type RouteObject =
+  | typeof ADMIN_ROUTES
+  | typeof OTP_ROUTES
+  | typeof PROJECT_ROUTES
+  | typeof USER_ROUTES
+  | typeof ROLE_ROUTES;

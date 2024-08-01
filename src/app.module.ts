@@ -55,7 +55,7 @@ import { ProjectVerificationInterceptorModule } from './utils/interceptors/proje
       signOptions: { expiresIn: '10m' },
     }),
     ConfigModule.forRoot({
-      envFilePath: ['.env.development', '.env'],
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
       isGlobal: true,
     }),
     LoginModule,

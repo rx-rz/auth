@@ -15,11 +15,19 @@ export class PermissionService {
     return { success: true, permission };
   }
 
-  async assignPermissionToRole() {}
+  async assignPermissionToRole(permissionId: string, roleId: string) {
+    const permission = await this.rbacRepository.assignPermissionToARole(permissionId, roleId)
+    return {success: true, permission}
+  }
 
-  async getSpecificPermission() {}
+  async getPermission(permissionId: string) {
+    const permission = await this.rbacRepository.getSpecificPermission(permissionId)
+  return permission
+  }
 
-  async updatePermission() {}
+  async updatePermission() {
+    
+  }
 
   async deletePermission() {}
 }

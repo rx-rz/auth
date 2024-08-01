@@ -23,7 +23,7 @@ export class RoleBasedAccessControlRepository {
     return permission;
   }
 
-  async assignPermissionToARole(permissionId: number, roleId: number) {
+  async assignPermissionToARole(permissionId: string, roleId: string) {
     const assignedPermission = await this.prisma.rolePermission.create({
       data: {
         permissionId,
@@ -41,7 +41,7 @@ export class RoleBasedAccessControlRepository {
     return assignedPermission;
   }
 
-  async getRolePermissions(roleId: number) {
+  async getRolePermissions(roleId: string) {
     const rolePermissions = await this.prisma.rolePermission.findMany({
       select: {
         role: {
@@ -56,7 +56,7 @@ export class RoleBasedAccessControlRepository {
     return rolePermissions;
   }
 
-  async getSpecificPermission(permissionId: number) {
+  async getSpecificPermission(permissionId: string) {
     const permission = await this.prisma.permission.findUnique({
       select: {
         id: true,
@@ -72,7 +72,7 @@ export class RoleBasedAccessControlRepository {
   }
 
   async updatePermission(
-    permissionId: number,
+    permissionId: string,
     data: Prisma.PermissionUpdateInput,
   ) {
     const permission = await this.prisma.permission.update({
@@ -90,7 +90,7 @@ export class RoleBasedAccessControlRepository {
     return permission;
   }
 
-  async updateRoleName(roleId: number, newName: string) {
+  async updateRoleName(roleId: string, newName: string) {
     const role = await this.prisma.role.update({
       where: { id: roleId },
       data: { name: newName },
@@ -98,7 +98,7 @@ export class RoleBasedAccessControlRepository {
     return role;
   }
 
-  async getRoleDetails(roleId: number) {
+  async getRoleDetails(roleId: string) {
     const role = await this.prisma.role.findUnique({
       where: { id: roleId },
       select: {
@@ -118,7 +118,7 @@ export class RoleBasedAccessControlRepository {
     return role;
   }
 
-  async deleteRole(roleId: number) {
+  async deleteRole(roleId: string) {
     let role;
     const a = await this.prisma.$transaction(async (prisma) => {
       await this.prisma.rolePermission.deleteMany({
@@ -138,7 +138,7 @@ export class RoleBasedAccessControlRepository {
     return role;
   }
 
-  async deletePermission(permissionId: number) {
+  async deletePermission(permissionId: string) {
     let permission;
     await this.prisma.$transaction(async (prisma) => {
       await prisma.rolePermission.deleteMany({

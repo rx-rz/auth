@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   Put,
@@ -97,5 +98,12 @@ export class AdminController {
   @UseGuards(AdminGuard)
   async getProjectByName(@Body() data: GetAdminProjectDto) {
     return this.adminService.getAdminProjectByName(data);
+  }
+
+  @SkipProjectVerification()
+  @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
+  @UseGuards(AdminGuard)
+  async deleteProject(@Query() data: AdminIdDto) {
+    return this.adminService.deleteAdmin(data);
   }
 }

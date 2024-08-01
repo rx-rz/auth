@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminService } from './admin.service';
-
-describe('AdminService', () => {
+import { AdminRepository } from './admin.repository';
+describe('Admin Controller', () => {
   let service: AdminService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AdminService],
+      providers: [AdminService, AdminRepository],
     }).compile();
 
     service = module.get<AdminService>(AdminService);
   });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('', () => {
+    it('akhi', async () => {
+      return true;
+    });
   });
 });

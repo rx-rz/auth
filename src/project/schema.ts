@@ -16,10 +16,10 @@ export const AddUserToProjectSchema = z.object({
     })
     .min(6, 'Password must be at least 6 characters')
     .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+    //   message:
+    //     'Password must contain at least one letter, one number, and one special character',
+    // }),
 });
 
 export type AddUserToProjectDto = z.infer<typeof AddUserToProjectSchema>;
@@ -27,7 +27,7 @@ export type AddUserToProjectDto = z.infer<typeof AddUserToProjectSchema>;
 export const AssignUserProjectRoleSchema = z.object({
   userId: z.string({ required_error: 'User ID should be provided' }),
   projectId: z.string({ required_error: 'Project ID should be provided' }),
-  roleId: z.coerce.number({ required_error: 'Role ID should be provided' }),
+  roleId: z.string({ required_error: 'Role ID should be provided' }),
 });
 
 export type AssignUserToProjectRoleDto = z.infer<

@@ -33,11 +33,11 @@ export const LoginAdminSchema = z.object({
       required_error: 'Password not provided.',
     })
     .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    .max(100, 'Password cannot exceed 100 characters'),
+  // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+  //   message:
+  //     'Password must contain at least one letter, one number, and one special character',
+  // }),
 });
 
 export type LoginAdminDto = z.infer<typeof LoginAdminSchema>;
@@ -51,11 +51,12 @@ export const RegisterAdminSchema = z.object({
       required_error: 'Password not provided.',
     })
     .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    .max(100, 'Password cannot exceed 100 characters'),
+  // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+  //   message:
+  //     'Password must contain at least one letter, one number, and one special character',
+  // }),
+
   firstName: z
     .string({
       invalid_type_error: 'First name must be a string',
@@ -119,11 +120,11 @@ export const UpdateAdminEmailSchema = z.object({
       required_error: 'Password not provided.',
     })
     .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    .max(100, 'Password cannot exceed 100 characters'),
+  // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+  //   message:
+  //     'Password must contain at least one letter, one number, and one special character',
+  // }),
 });
 
 export type UpdateAdminEmailDto = z.infer<typeof UpdateAdminEmailSchema>;
@@ -143,22 +144,22 @@ export const UpdateAdminPasswordSchema = z.object({
       required_error: 'Current password not provided.',
     })
     .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    .max(100, 'Password cannot exceed 100 characters'),
+  // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+  //   message:
+  //     'Password must contain at least one letter, one number, and one special character',
+  // }),
   newPassword: z
     .string({
       invalid_type_error: 'New password must be a string',
       required_error: 'New password not provided.',
     })
     .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password cannot exceed 100 characters')
-    .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
-      message:
-        'Password must contain at least one letter, one number, and one special character',
-    }),
+    .max(100, 'Password cannot exceed 100 characters'),
+  // .refine((val) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])/.test(val), {
+  //   message:
+  //     'Password must contain at least one letter, one number, and one special character',
+  // }),
 });
 
 export type UpdateAdminPasswordDto = z.infer<typeof UpdateAdminPasswordSchema>;

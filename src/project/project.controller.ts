@@ -51,9 +51,9 @@ export class ProjectController {
     return this.projectService.updateProjectName(data);
   }
 
-  @SkipProjectVerification()
   @Get(PROJECT_ROUTES.GET_KEYS)
-  @UsePipes(new ZodPipe(VerifyProjectApiKeysSchema))
+  @SkipProjectVerification()
+  @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
   async getProjectApiKey(@Query() data: IdDto) {
     return this.projectService.getProjectKeys(data);

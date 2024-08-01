@@ -10,11 +10,9 @@ import {
   Param,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
-import { CreateRoleDto } from './dtos/create-role-dto';
-import { UpdateRoleNameDto } from './dtos/update-role-name-dto';
-import { RoleIdDto } from './dtos/role-id-dto';
 import { ROLE_ROUTES } from 'src/utils/constants/routes';
 import { AdminGuard } from 'src/guard/admin.guard';
+import { CreateRoleDto, RoleIdDto, UpdateRoleNameDto } from './schema';
 
 @Controller(ROLE_ROUTES.BASE)
 export class RoleController {
