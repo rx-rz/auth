@@ -127,3 +127,15 @@ async function createTestAdmin(
     });
   if (response.ok) return true;
 }
+
+export const mockJwtService = {
+  signAsync: jest.fn()
+}
+
+export const mockConfigService = {
+  get: jest.fn()
+}
+
+export const mockAppEventEmitter  = {
+  emit: jest.fn()
+}

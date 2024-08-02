@@ -76,7 +76,9 @@ export class AdminService {
         'Admin with the provided details does not exist.',
       );
     }
-    await checkIfHashedValuesMatch(password, adminPassword);
+    const valuesMatch = await checkIfHashedValuesMatch(password, adminPassword);
+    if (!valuesMatch)
+      throw new BadRequestException('Invalid email or password.');
     const payload = {
       email: admin.email,
       firstName: admin.firstName,
@@ -154,8 +156,8 @@ export class AdminService {
     return { success: true, adminProject };
   }
 
-  async deleteAdmin({adminId}: AdminIdDto){
-    const admin = await this.adminRepository.deleteAdmin(adminId)
-    return {success: true, admin}
+  async deleteAdmin({ adminId }: AdminIdDto) {
+    const admin = await this.adminRepository.deleteAdmin(adminId);
+    return { success: true, admin };
   }
 }
