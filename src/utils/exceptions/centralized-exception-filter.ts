@@ -18,8 +18,10 @@ export class CentralizedExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
+      console.log(exception);
       message = exception.getResponse();
     } else if (exception instanceof Error) {
+      console.log(exception);
       message = exception.message;
     }
     response.status(status).json({

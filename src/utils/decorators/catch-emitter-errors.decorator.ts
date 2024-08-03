@@ -11,16 +11,8 @@ export function CatchEmitterErrors() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error) {
-        if (error instanceof HttpException) {
-          console.log(error);
-          return new HttpException(error.getResponse(), error.getStatus());
-        } else {
-          console.log(error);
-          return new HttpException(
-            error.message,
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-        }
+        throw error;
+        //        return error;
       }
     };
   };

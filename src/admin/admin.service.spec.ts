@@ -1,4 +1,4 @@
-import { RegisterAdminDto } from './schema';
+import { RegisterAdminDto, UpdateAdminDto } from './schema';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminService } from './admin.service';
 import { AdminRepository } from './admin.repository';
@@ -8,9 +8,13 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { faker } from '@faker-js/faker';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
-import * as helperFunctions from 'src/utils/helper-functions';
+import * as checkIfHashedValuesMatch from 'src/utils/helper-functions/check-if-hashed-values-match';
 describe('Admin Controller', () => {
   let service: AdminService;
   let adminRepository: jest.Mocked<AdminRepository>;
@@ -36,6 +40,7 @@ describe('Admin Controller', () => {
     getAdminByEmail: jest.fn(),
     createAdmin: jest.fn(),
     getAdminPassword: jest.fn(),
+    updateAdmin: jest.fn(),
   };
 
   const adminResolvedFromMock = {
@@ -108,7 +113,6 @@ describe('Admin Controller', () => {
           isVerified: false,
         }),
       );
-
       expect(result).toEqual({
         success: true,
         message: 'Admin registered successfully.',
@@ -123,22 +127,20 @@ describe('Admin Controller', () => {
   });
 
   describe('login admin', () => {
-
     const loginAdminDto = {
       email: faker.internet.email(),
       password: faker.internet.password(),
     };
-
-    it.skip('should login an admin successfully', async () => {
-      adminRepository.getAdminPassword.mockResolvedValue(
-        faker.string.alphanumeric(),
-      );
+    it('should login an admin successfully', async () => {
+      const mockPassword = faker.string.alphanumeric();
+      adminRepository.getAdminPassword.mockResolvedValue(mockPassword);
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       jwtService.signAsync.mockResolvedValue('mockAccessToken');
       configService.get.mockReturnValue('JWT_ACCESS_SECRET');
-      jest.spyOn(helperFunctions, 'checkIfHashedValuesMatch').mockResolvedValue(true)
+      jest
+        .spyOn(checkIfHashedValuesMatch, 'checkIfHashedValuesMatch')
+        .mockResolvedValue(true);
       const result = await service.loginAdmin(loginAdminDto);
-
       expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(
         loginAdminDto.email,
       );
@@ -148,7 +150,11 @@ describe('Admin Controller', () => {
       expect(jwtService.signAsync).toHaveBeenCalled();
       expect(appEventEmitter.emit).toHaveBeenCalledWith(
         'refresh-token.created',
-        expect.any(Object),
+        expect.objectContaining({
+          token: expect.any(String),
+          expiresAt: expect.any(Date),
+          adminId: expect.any(String),
+        }),
       );
       expect(result).toEqual({
         success: true,
@@ -157,18 +163,42 @@ describe('Admin Controller', () => {
       });
     });
 
-    it.skip('should throw a bad request exception when the password is incorrect', async () => {
+    it('should throw a bad request exception when the password is incorrect', async () => {
       adminRepository.getAdminPassword.mockResolvedValue(
         faker.string.alphanumeric(),
       );
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       jest
-        .spyOn(helperFunctions, 'checkIfHashedValuesMatch')
+        .spyOn(checkIfHashedValuesMatch, 'checkIfHashedValuesMatch')
         .mockResolvedValue(false);
       await expect(service.loginAdmin(loginAdminDto)).rejects.toThrow(
         BadRequestException,
       );
+    });
 
+    it('should throw a not found exception when the email provided for admin does not exist in the db', async () => {
+      adminRepository.getAdminByEmail.mockResolvedValue(null);
+      await expect(service.loginAdmin(loginAdminDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('update admin', () => {
+    const updateAdminDto = {
+      email: faker.internet.email(),
+      isVerified: true,
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+    };
+
+    it('should successfully update admin details', async () => {
+      adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock)
+      const result = await service.updateAdmin(updateAdminDto);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(
+        updateAdminDto.email,
+      );
+      expect(result.success).toBe(true)
     });
   });
 });

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
@@ -9,18 +9,13 @@ export class AppEventEmitter {
       const results = await this.eventEmitter.emitAsync(event, data);
       for (let i of results) {
         if (i instanceof HttpException) {
-          throw new HttpException(i.getResponse(), i.getStatus());
+          console.log(i);
+          throw i;
         }
       }
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else {
-        throw new HttpException(
-          error.message || 'An error occurred during event processing',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      console.log(error);
+      throw error;
     }
   }
 }
