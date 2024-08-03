@@ -33,13 +33,16 @@ export class AdminService {
     private configService: ConfigService,
   ) {}
 
-  private async getAdmin(email: string) {
+  private async getAdminByEmail(email: string) {
     const admin = await this.adminRepository.getAdminByEmail(email);
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
     return admin;
   }
 
-  private async ensureAdminExists(email: string) {
-    const admin = await this.getAdmin(email);
+  private async getAdminById(id: string) {
+    const admin = await this.adminRepository.getAdminByID(id);
     if (!admin) {
       throw new NotFoundException('Admin not found');
     }
@@ -47,16 +50,14 @@ export class AdminService {
   }
 
   private async verifyPassword(email: string, password: string) {
-    const existingPasswordInDB =
-      await this.adminRepository.getAdminPassword(email);
+    const existingPasswordInDB = await this.adminRepository.getAdminPassword(email);
     const passwordsMatch = await compare(password, existingPasswordInDB);
-    if (!passwordsMatch)
-      throw new BadRequestException('Invalid details provided');
+    if (!passwordsMatch) throw new BadRequestException('Invalid details provided');
     return passwordsMatch;
   }
 
   async registerAdmin(data: RegisterAdminDto) {
-    const admin = await this.getAdmin(data.email);
+    const admin = await this.adminRepository.getAdminByEmail(data.email);
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
       ...data,
@@ -69,16 +70,11 @@ export class AdminService {
 
   @CatchEmitterErrors()
   async loginAdmin({ email, password }: LoginAdminDto) {
-    const adminPassword = await this.adminRepository.getAdminPassword(email);
     const admin = await this.adminRepository.getAdminByEmail(email);
     if (!admin) {
-      throw new NotFoundException(
-        'Admin with the provided details does not exist.',
-      );
+      throw new NotFoundException('Admin with the provided details does not exist.');
     }
-    const valuesMatch = await checkIfHashedValuesMatch(password, adminPassword);
-    if (!valuesMatch)
-      throw new BadRequestException('Invalid email or password.');
+    await this.verifyPassword(email, password);
     const payload = {
       email: admin.email,
       firstName: admin.firstName,
@@ -106,57 +102,44 @@ export class AdminService {
   }
 
   async updateAdmin({ email, ...details }: UpdateAdminDto) {
-    await this.ensureAdminExists(email);
+    await this.getAdminByEmail(email);
     const admin = await this.adminRepository.updateAdmin(email, details);
     return { success: true, admin };
   }
 
-  async updateAdminEmail({
-    currentEmail,
-    newEmail,
-    password,
-  }: UpdateAdminEmailDto) {
-    const existingAdmin = await this.getAdmin(newEmail);
+  async updateAdminEmail({ currentEmail, newEmail, password }: UpdateAdminEmailDto) {
+    const existingAdmin = await this.adminRepository.getAdminByEmail(newEmail);
     if (existingAdmin)
       throw new ConflictException(
         'An email with the provided new email already exists. Please choose another.',
       );
-    await this.ensureAdminExists(currentEmail);
+    await this.getAdminByEmail(currentEmail);
     await this.verifyPassword(currentEmail, password);
-    const admin = await this.adminRepository.updateAdminEmail(
-      currentEmail,
-      newEmail,
-    );
+    const admin = await this.adminRepository.updateAdminEmail(currentEmail, newEmail);
     return { success: true, admin };
   }
 
-  async updateAdminPassword({
-    currentPassword,
-    email,
-    newPassword,
-  }: UpdateAdminPasswordDto) {
+  async updateAdminPassword({ currentPassword, email, newPassword }: UpdateAdminPasswordDto) {
+    await this.getAdminByEmail(email);
     await this.verifyPassword(email, currentPassword);
-    const admin = await this.adminRepository.updateAdminPassword(
-      email,
-      newPassword,
-    );
+    const admin = await this.adminRepository.updateAdminPassword(email, newPassword);
     return { success: true, admin };
   }
 
   async getAdminProjects({ adminId }: AdminIdDto) {
+    await this.getAdminById(adminId);
     const adminProjects = await this.adminRepository.getAdminProjects(adminId);
     return { success: true, adminProjects };
   }
 
   async getAdminProjectByName({ adminId, name }: GetAdminProjectDto) {
-    const adminProject = await this.adminRepository.getAdminProjectByName(
-      adminId,
-      name,
-    );
+    await this.getAdminById(adminId);
+    const adminProject = await this.adminRepository.getAdminProjectByName(adminId, name);
     return { success: true, adminProject };
   }
 
   async deleteAdmin({ adminId }: AdminIdDto) {
+    await this.getAdminById(adminId);
     const admin = await this.adminRepository.deleteAdmin(adminId);
     return { success: true, admin };
   }

@@ -31,6 +31,14 @@ export class AdminRepository {
     return admin;
   }
 
+  async getAdminByID(id: string) {
+    const admin = await this.prisma.admin.findUnique({
+      where: { id },
+      select: this.adminReturnObject,
+    });
+    return admin;
+  }
+
   async getAdminPassword(email: string) {
     const admin = await this.prisma.admin.findUnique({ where: { email } });
     return admin?.password || '';
@@ -92,6 +100,7 @@ export class AdminRepository {
   async deleteAdmin(adminId: string) {
     const admin = await this.prisma.admin.delete({
       where: { id: adminId },
+      select: this.adminReturnObject,
     });
     return admin;
   }
