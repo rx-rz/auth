@@ -95,6 +95,13 @@ export class AdminRepository {
           adminId,
         },
       },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        logins: true,
+        refreshTokens: true,
+      },
     });
     return adminProject;
   }

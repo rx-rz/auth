@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
 import { randomBytes } from 'crypto';
 import { UserRepository } from 'src/user/user.repository';
@@ -31,22 +27,13 @@ export class ProjectService {
   ) {}
   async generateKey() {
     const buffer = randomBytes(32);
-    const key = buffer
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    const key = buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     const hashedKey = await hashValue(key);
     return { hashedKey, key };
   }
 
-  private async getProject(projectId: string) {
-    const project = await this.projectRepository.getProject(projectId);
-    return project;
-  }
-
   private async checkIfProjectExists(projectId: string) {
-    const existingProject = await this.getProject(projectId);
+    const existingProject = await this.projectRepository.getProject(projectId);
     if (!existingProject) {
       throw new NotFoundException('Project with specified ID does not exist.');
     }
@@ -63,14 +50,12 @@ export class ProjectService {
 
   private async checkIfUserExists(userId: string) {
     const user = await this.userRepository.getUserById(userId);
-    if (!user)
-      throw new NotFoundException('User with provided details does not exist.');
+    if (!user) throw new NotFoundException('User with provided details does not exist.');
     return user;
   }
 
   async createProject({ adminId, name }: CreateProjectDto) {
-    const projectWithGivenName =
-      await this.adminRepository.getAdminProjectByName(adminId, name);
+    const projectWithGivenName = await this.adminRepository.getAdminProjectByName(adminId, name);
     const { hashedKey: apiKey, key: clientKey } = await this.generateKey();
     if (projectWithGivenName)
       throw new ConflictException(
@@ -87,7 +72,6 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  
   async updateProjectName({ projectId, name }: UpdateProjectNameDto) {
     await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.updateProject(projectId, {
@@ -97,8 +81,7 @@ export class ProjectService {
   }
 
   async verifyProjectApiKeys({ apiKey, clientKey }: VerifyProjectApiKeysDto) {
-    const existingApiKeyInDB =
-      await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
+    const existingApiKeyInDB = await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
     const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
     return { apiKeyIsValid, existingApiKeyInDB };
   }
@@ -115,8 +98,7 @@ export class ProjectService {
   }
 
   async getProjectIDByClientKey(clientKey: string) {
-    const projectId =
-      await this.projectRepository.getProjectIDByClientKey(clientKey);
+    const projectId = await this.projectRepository.getProjectIDByClientKey(clientKey);
     return { success: true, projectId };
   }
 
@@ -128,22 +110,19 @@ export class ProjectService {
 
   async getProjectMagicLinks({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
-    const project =
-      await this.projectRepository.getProjectMagicLinks(projectId);
+    const project = await this.projectRepository.getProjectMagicLinks(projectId);
     return { success: true, project };
   }
 
   async getProjectRefreshTokens({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
-    const project =
-      await this.projectRepository.getProjectRefreshTokens(projectId);
+    const project = await this.projectRepository.getProjectRefreshTokens(projectId);
     return { success: true, project };
   }
 
-  async getAllProjectsCreatedByAdmin({adminId}: AdminIdDto) {
+  async getAllProjectsCreatedByAdmin({ adminId }: AdminIdDto) {
     await this.ensureAdminExists(adminId);
-    const project =
-      await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
+    const project = await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
     return { success: true, project };
   }
 
@@ -177,26 +156,18 @@ export class ProjectService {
   async removeUserFromProject({ projectId, userId }: RemoveUserFromProjectDto) {
     await this.checkIfUserExists(userId);
     await this.checkIfProjectExists(projectId);
-    const user = await this.projectRepository.deleteUserFromProject(
-      userId,
-      projectId,
-    );
+    const user = await this.projectRepository.deleteUserFromProject(userId, projectId);
     return { success: true, user };
   }
 
-  async assignUserProjectRole({
-    projectId,
-    roleId,
-    userId,
-  }: AssignUserToProjectRoleDto) {
+  async assignUserProjectRole({ projectId, roleId, userId }: AssignUserToProjectRoleDto) {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExists(userId);
-    const userAssignedARole =
-      await this.projectRepository.assignUserProjectRole(
-        userId,
-        projectId,
-        roleId,
-      );
+    const userAssignedARole = await this.projectRepository.assignUserProjectRole(
+      userId,
+      projectId,
+      roleId,
+    );
     return { success: true, userAssignedARole };
   }
 }
