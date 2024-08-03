@@ -10,6 +10,12 @@ export const AdminIdSchema = z.object({
 
 export type AdminIdDto = z.infer<typeof AdminIdSchema>;
 
+export const AdminEmailSchema = z.object({
+  email: z.string().email({ message: 'Invalid email provided.' }),
+});
+
+export type AdminEmailDto = z.infer<typeof AdminEmailSchema>;
+
 // GetAdminProjectDto
 export const GetAdminProjectSchema = z.object({
   adminId: z.string({

@@ -24,12 +24,15 @@ export async function createTestingApp(): Promise<INestApplication> {
 }
 
 let projectId: string;
-let adminId: string;
+let adminEmail = faker.internet.email();
+
+export async function createTestAgent(app: INestApplication) {
+  return request.agent(app.getHttpServer());
+}
 
 export async function createAuthenticatedAgent(app: INestApplication) {
   const agent = request.agent(app.getHttpServer());
-  const { apiKey, authToken, clientKey, projectId } =
-    await getProjectAuthenticationRequirements();
+  const { apiKey, authToken, clientKey, projectId } = await getProjectAuthenticationRequirements();
   agent.set('Authorization', `Bearer ${authToken}`);
   agent.set('x-api-key', apiKey);
   agent.set('x-client-key', clientKey);
@@ -37,19 +40,16 @@ export async function createAuthenticatedAgent(app: INestApplication) {
   return agent;
 }
 
-export async function tearDownTestingApp(
-  app: INestApplication,
-  agent: TestAgent,
-) {
+export async function tearDownTestingApp(app: INestApplication, agent: TestAgent) {
   /* deleting an admin also immediately deletes a project as the schema is set to cascade.
-  */
+   */
   await deleteAdminAccount(agent);
   await app.close();
 }
 
 async function deleteAdminAccount(agent: TestAgent) {
   const response = await agent.delete('/admin/delete').query({
-    adminId,
+    adminEmail,
   });
   return response;
 }
@@ -60,10 +60,7 @@ async function getProjectAuthenticationRequirements() {
   if (!adminIsCreated) throw new Error('Error in creating admin');
   const authToken = await getAuthToken(app, email, password);
   const projectId = await createProject(authToken);
-  const { clientKey, apiKey } = await getProjectCredentials(
-    projectId,
-    authToken,
-  );
+  const { clientKey, apiKey } = await getProjectCredentials(projectId, authToken);
   return {
     clientKey,
     apiKey,
@@ -83,7 +80,7 @@ async function getProjectCredentials(projectId: string, authToken: string) {
 }
 
 async function createProject(authToken: string) {
-  adminId = decodeAuthToken(authToken).id;
+  const adminId = decodeAuthToken(authToken).id;
   const response = await request(app.getHttpServer())
     .post('/project/create-project')
     .send({
@@ -100,11 +97,7 @@ function decodeAuthToken(authToken: string) {
   return admin;
 }
 
-export async function getAuthToken(
-  app: INestApplication,
-  email: string,
-  password: string,
-) {
+export async function getAuthToken(app: INestApplication, email: string, password: string) {
   const response = await request(app.getHttpServer())
     .post('/admin/login')
     .send({ email, password });
@@ -112,30 +105,12 @@ export async function getAuthToken(
   return response.body.accessToken;
 }
 
-async function createTestAdmin(
-  app: INestApplication,
-  email: string,
-  password: string,
-) {
-  const response = await request(app.getHttpServer())
-    .post('/admin/register')
-    .send({
-      email,
-      password,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-    });
+async function createTestAdmin(app: INestApplication, email: string, password: string) {
+  const response = await request(app.getHttpServer()).post('/admin/register').send({
+    email,
+    password,
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+  });
   if (response.ok) return true;
-}
-
-export const mockJwtService = {
-  signAsync: jest.fn()
-}
-
-export const mockConfigService = {
-  get: jest.fn()
-}
-
-export const mockAppEventEmitter  = {
-  emit: jest.fn()
 }

@@ -6,18 +6,17 @@ import {
 } from '@nestjs/common';
 import { AdminRepository } from './admin.repository';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import { checkIfHashedValuesMatch } from 'src/utils/helper-functions/check-if-hashed-values-match';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import {
   RegisterAdminDto,
   UpdateAdminDto,
-  AdminIdDto,
   GetAdminProjectDto,
   LoginAdminDto,
   UpdateAdminEmailDto,
   UpdateAdminPasswordDto,
+  AdminEmailDto,
 } from './schema';
-import { Admin, AuthMethod } from '@prisma/client';
+import { AuthMethod } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
@@ -126,9 +125,9 @@ export class AdminService {
     return { success: true, admin };
   }
 
-  async getAdminProjects({ adminId }: AdminIdDto) {
-    await this.getAdminById(adminId);
-    const adminProjects = await this.adminRepository.getAdminProjects(adminId);
+  async getAdminProjects({ email }: AdminEmailDto) {
+    await this.getAdminByEmail(email);
+    const adminProjects = await this.adminRepository.getAdminProjects(email);
     return { success: true, adminProjects };
   }
 
@@ -138,9 +137,9 @@ export class AdminService {
     return { success: true, adminProject };
   }
 
-  async deleteAdmin({ adminId }: AdminIdDto) {
-    await this.getAdminById(adminId);
-    const admin = await this.adminRepository.deleteAdmin(adminId);
+  async deleteAdmin({ email }: AdminEmailDto) {
+    await this.getAdminByEmail(email);
+    const admin = await this.adminRepository.deleteAdmin(email);
     return { success: true, admin };
   }
 }

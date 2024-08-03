@@ -71,10 +71,12 @@ export class AdminRepository {
     return admin;
   }
 
-  async getAdminProjects(adminId: string) {
+  async getAdminProjects(email: string) {
     const adminProjects = await this.prisma.project.findMany({
       where: {
-        adminId,
+        admin: {
+          email,
+        },
       },
       select: {
         id: true,
@@ -97,9 +99,9 @@ export class AdminRepository {
     return adminProject;
   }
 
-  async deleteAdmin(adminId: string) {
+  async deleteAdmin(email: string) {
     const admin = await this.prisma.admin.delete({
-      where: { id: adminId },
+      where: { email },
       select: this.adminReturnObject,
     });
     return admin;

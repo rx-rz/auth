@@ -28,6 +28,7 @@ import {
   UpdateAdminPasswordSchema,
   GetAdminProjectSchema,
   LoginAdminSchema,
+  AdminEmailDto,
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
@@ -44,22 +45,10 @@ export class AdminController {
   }
 
   @SkipProjectVerification()
-  @UsePipes(new ZodPipe(UpdateAdminSchema))
-  @Put(ADMIN_ROUTES.UPDATE_DETAILS)
-  @UseGuards(AdminGuard)
-  async updateAdmin(@Body() data: UpdateAdminDto) {
-    return this.adminService.updateAdmin(data);
-  }
-
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(LoginAdminSchema))
   @Post(ADMIN_ROUTES.LOGIN)
-  async loginAdmin(
-    @Body() data: LoginAdminDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const { accessToken, refreshToken, success } =
-      await this.adminService.loginAdmin(data);
+  async loginAdmin(@Body() data: LoginAdminDto, @Res({ passthrough: true }) response: Response) {
+    const { accessToken, refreshToken, success } = await this.adminService.loginAdmin(data);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -68,6 +57,14 @@ export class AdminController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return { success, accessToken };
+  }
+
+  @SkipProjectVerification()
+  @UsePipes(new ZodPipe(UpdateAdminSchema))
+  @Put(ADMIN_ROUTES.UPDATE_DETAILS)
+  @UseGuards(AdminGuard)
+  async updateAdmin(@Body() data: UpdateAdminDto) {
+    return this.adminService.updateAdmin(data);
   }
 
   @SkipProjectVerification()
@@ -89,21 +86,21 @@ export class AdminController {
   @SkipProjectVerification()
   @Get(ADMIN_ROUTES.GET_PROJECTS)
   @UseGuards(AdminGuard)
-  async getAdminProjects(@Query() { adminId }: AdminIdDto) {
-    return this.adminService.getAdminProjects({ adminId });
+  async getAdminProjects(@Query() { email }: AdminEmailDto) {
+    return this.adminService.getAdminProjects({ email });
   }
 
   @UsePipes(new ZodPipe(GetAdminProjectSchema))
   @Get(ADMIN_ROUTES.GET_PROJECT_BY_NAME)
   @UseGuards(AdminGuard)
-  async getProjectByName(@Body() data: GetAdminProjectDto) {
+  async getAdminProjectByName(@Body() data: GetAdminProjectDto) {
     return this.adminService.getAdminProjectByName(data);
   }
 
   @SkipProjectVerification()
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
   @UseGuards(AdminGuard)
-  async deleteProject(@Query() data: AdminIdDto) {
+  async deleteAdmin(@Query() data: AdminEmailDto) {
     return this.adminService.deleteAdmin(data);
   }
 }
