@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
 import { randomBytes } from 'crypto';
 import { UserRepository } from 'src/user/user.repository';
@@ -7,6 +12,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
+
 import {
   AddUserToProjectDto,
   AdminIdDto,
@@ -82,8 +88,11 @@ export class ProjectService {
 
   async verifyProjectApiKeys({ apiKey, clientKey }: VerifyProjectApiKeysDto) {
     const existingApiKeyInDB = await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
+    if (!existingApiKeyInDB)
+      throw new NotFoundException('Project with the provided client key does not exist in the DB');
     const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
-    return { apiKeyIsValid, existingApiKeyInDB };
+    if (!apiKeyIsValid) throw new BadRequestException('API key provided is not a valid key');
+    return { success: true, existingApiKeyInDB };
   }
 
   async getProjectKeys({ projectId }: IdDto) {
@@ -99,6 +108,7 @@ export class ProjectService {
 
   async getProjectIDByClientKey(clientKey: string) {
     const projectId = await this.projectRepository.getProjectIDByClientKey(clientKey);
+    if (!projectId) throw new NotFoundException('Project with provided details not found');
     return { success: true, projectId };
   }
 

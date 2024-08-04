@@ -18,10 +18,7 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     private reflector: Reflector,
   ) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const skipProjectVerification = this.reflector.get(
       SkipProjectVerification,
       context.getHandler(),
@@ -38,11 +35,8 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
       throw new BadRequestException(
         'Project credentials not provided. Please provide both your client and API keys',
       );
-    const projectApiKeyIsValid = await this.projectService.verifyProjectApiKeys(
-      { apiKey, clientKey },
-    );
-    if (!projectApiKeyIsValid || !projectId)
-      throw new BadRequestException('Invalid project credentials provided.');
+    await this.projectService.verifyProjectApiKeys({ apiKey, clientKey });
+    if (!projectId) throw new BadRequestException('Invalid project credentials provided.');
     if (request.method !== 'GET') {
       request.body = { ...request.body, projectId };
     }

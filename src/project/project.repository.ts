@@ -54,7 +54,7 @@ export class ProjectRepository {
         id: true,
       },
     });
-    return project?.id || '';
+    return project?.id || null;
   }
 
   async getProjectApiKeyByClientKey(clientKey: string) {
@@ -64,7 +64,7 @@ export class ProjectRepository {
         apiKey: true,
       },
     });
-    return project?.apiKey || '';
+    return project?.apiKey || null;
   }
 
   async getProject(id: string) {
@@ -143,10 +143,7 @@ export class ProjectRepository {
     return project;
   }
 
-  async getAllProjectsCreatedByAdmin(
-    adminId: string,
-    args?: Prisma.ProjectFindManyArgs,
-  ) {
+  async getAllProjectsCreatedByAdmin(adminId: string, args?: Prisma.ProjectFindManyArgs) {
     const projects = await this.prisma.project.findMany({
       ...args,
       where: { adminId },
@@ -227,11 +224,7 @@ export class ProjectRepository {
     return projectRoles;
   }
 
-  async assignUserProjectRole(
-    userId: string,
-    projectId: string,
-    roleId: string,
-  ) {
+  async assignUserProjectRole(userId: string, projectId: string, roleId: string) {
     const userAssignedARole = await this.prisma.userProject.upsert({
       where: {
         userId_projectId: {
