@@ -24,7 +24,7 @@ describe('Admin Controller', () => {
   let appEventEmitter: jest.Mocked<AppEventEmitter>;
   let jwtService: jest.Mocked<JwtService>;
   let configService: jest.Mocked<ConfigService>;
-
+  let prismaService: PrismaService;
   const mockJwtService = {
     signAsync: jest.fn(),
   };
@@ -64,6 +64,7 @@ describe('Admin Controller', () => {
   }));
 
   beforeEach(async () => {
+    jest.resetModules();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminService,
@@ -93,6 +94,12 @@ describe('Admin Controller', () => {
     appEventEmitter = module.get(AppEventEmitter);
     jwtService = module.get(JwtService);
     configService = module.get(ConfigService);
+    prismaService = module.get(PrismaService);
+  });
+
+  afterEach(async () => {
+    jest.clearAllMocks();
+    await prismaService.$disconnect;
   });
 
   it('should be defined', () => {
@@ -222,7 +229,6 @@ describe('Admin Controller', () => {
         updateAdminDto.currentEmail,
         updateAdminDto.newEmail,
       );
-      console.log(result);
       expect(result.success).toBe(true);
       // expect(result.admin).toEqual(updatedAdmin);
     });
@@ -347,46 +353,6 @@ describe('Admin Controller', () => {
       expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(adminEmailDto.email);
     });
   });
-
-  // describe('get admin project by name', () => {
-  //   const getAdminProjectDto: GetAdminProjectDto = {
-  //     adminId: faker.string.uuid(),
-  //     name: faker.company.name(),
-  //   };
-  //   it('should successfully get an admin project by name', async () => {
-  //     const adminProjectResolvedFromMock = {
-  //       id: faker.string.uuid(),
-  //       name: faker.company.name(),
-  //       apiKey: faker.string.uuid(),
-  //       clientKey: faker.string.uuid(),
-  //       createdAt: faker.date.past(),
-  //       updatedAt: faker.date.recent(),
-  //       adminId: faker.string.uuid(),
-  //     };
-
-  //     adminRepository.getAdminByID.mockResolvedValue(adminResolvedFromMock);
-  //     adminRepository.getAdminProjectByName.mockResolvedValue(adminProjectResolvedFromMock);
-
-  //     const result = await service.getAdminProjectByName(getAdminProjectDto);
-
-  //     expect(adminRepository.getAdminByID).toHaveBeenCalledWith(getAdminProjectDto.adminId);
-  //     expect(adminRepository.getAdminProjectByName).toHaveBeenCalledWith(
-  //       getAdminProjectDto.adminId,
-  //       getAdminProjectDto.name,
-  //     );
-  //     expect(result.success).toBe(true);
-  //     expect(result.adminProject).toEqual(adminProjectResolvedFromMock);
-  //   });
-
-  //   it('should throw a not found exception when admin does not exist', async () => {
-  //     adminRepository.getAdminByID.mockResolvedValue(null);
-
-  //     await expect(service.getAdminProjectByName(getAdminProjectDto)).rejects.toThrow(
-  //       NotFoundException,
-  //     );
-  //     expect(adminRepository.getAdminByID).toHaveBeenCalledWith(getAdminProjectDto.adminId);
-  //   });
-  // });
 
   describe('delete admin', () => {
     const adminEmailDto: AdminEmailDto = {

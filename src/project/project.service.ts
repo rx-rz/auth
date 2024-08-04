@@ -131,7 +131,8 @@ export class ProjectService {
   }
 
   async getAllProjectsCreatedByAdmin({ adminId }: AdminIdDto) {
-    await this.ensureAdminExists(adminId);
+    const admin = await this.adminRepository.getAdminByID(adminId);
+    if (!admin) throw new NotFoundException('Admin with provided details could not be found');
     const project = await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
     return { success: true, project };
   }
