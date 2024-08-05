@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { ProjectService } from 'src/project/project.service';
 
-export const SkipProjectVerification = Reflector.createDecorator<boolean>();
+export const VerifyProject = Reflector.createDecorator();
 
 @Injectable()
 export class ProjectVerificationInterceptor implements NestInterceptor {
@@ -19,28 +19,29 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
   ) {}
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-    const skipProjectVerification = this.reflector.get(
-      SkipProjectVerification,
-      context.getHandler(),
-    );
-    if (skipProjectVerification) {
+    const verifyProject = this.reflector.get(VerifyProject, context.getHandler());
+
+    if (!verifyProject) {
       return next.handle();
     }
 
     const request = context.switchToHttp().getRequest();
     const apiKey = request.headers['x-api-key'];
     const clientKey = request.headers['x-client-key'];
-    const projectId = request.headers['x-project-id'];
     if (!apiKey || !clientKey)
       throw new BadRequestException(
         'Project credentials not provided. Please provide both your client and API keys',
       );
-    await this.projectService.verifyProjectApiKeys({ apiKey, clientKey });
+    const { projectId } = await this.projectService.verifyProjectApiKeys({ apiKey, clientKey });
     if (!projectId) throw new BadRequestException('Invalid project credentials provided.');
+
     if (request.method !== 'GET') {
-      request.body = { ...request.body, projectId };
+      request.body.projectId = projectId;
+      request.query.projectId = projectId;
+    } else {
+      request.query.projectId = projectId;
     }
-    request.query.projectId = projectId;
+
     return next.handle();
   }
 }

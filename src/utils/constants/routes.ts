@@ -14,6 +14,7 @@ export const OTP_ROUTES = {
   BASE: 'otp',
   SEND: 'send-otp',
   VERIFY: 'verify-otp',
+  VERIFY_ADMIN_OTP: 'verify-admin-otp',
 };
 
 export const PROJECT_ROUTES = {

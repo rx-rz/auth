@@ -46,14 +46,6 @@ export class ProjectService {
     return existingProject;
   }
 
-  private async ensureAdminExists(email: string) {
-    const admin = await this.adminRepository.getAdminByEmail(email);
-    if (!admin) {
-      throw new NotFoundException('Admin not found');
-    }
-    return admin;
-  }
-
   private async checkIfUserExists(userId: string) {
     const user = await this.userRepository.getUserById(userId);
     if (!user) throw new NotFoundException('User with provided details does not exist.');
@@ -87,12 +79,13 @@ export class ProjectService {
   }
 
   async verifyProjectApiKeys({ apiKey, clientKey }: VerifyProjectApiKeysDto) {
-    const existingApiKeyInDB = await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
+    const { apiKey: existingApiKeyInDB, projectId } =
+      await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
     if (!existingApiKeyInDB)
       throw new NotFoundException('Project with the provided client key does not exist in the DB');
     const apiKeyIsValid = await compare(apiKey, existingApiKeyInDB);
     if (!apiKeyIsValid) throw new BadRequestException('API key provided is not a valid key');
-    return { success: true, existingApiKeyInDB };
+    return { success: true, projectId };
   }
 
   async getProjectKeys({ projectId }: IdDto) {

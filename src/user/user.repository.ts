@@ -19,11 +19,7 @@ export class UserRepository {
     return user;
   }
 
-  async updateUserDetails(
-    userId: string,
-    projectId: string,
-    data: Prisma.UserProjectUpdateInput,
-  ) {
+  async updateUserDetails(userId: string, projectId: string, data: Prisma.UserProjectUpdateInput) {
     const user = await this.prisma.userProject.update({
       data,
       where: {
@@ -119,7 +115,7 @@ export class UserRepository {
     });
     return user;
   }
-  
+
   async getUserById(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -154,8 +150,8 @@ export class UserRepository {
   }
 
   async getUserPassword(email: string, projectId: string) {
-    const pws =await this.prisma.userProject.findMany({where: {user: {email}}})
-    console.log(pws)
+    const pws = await this.prisma.userProject.findMany({ where: { user: { email } } });
+    console.log(pws);
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
@@ -164,15 +160,11 @@ export class UserRepository {
         projectId,
       },
     });
-    console.log(user)
+    console.log(user);
     return user?.password || '';
   }
 
-  async updateUserPassword(
-    userId: string,
-    projectId: string,
-    newPassword: string,
-  ) {
+  async updateUserPassword(userId: string, projectId: string, newPassword: string) {
     const user = await this.prisma.userProject.update({
       where: {
         userId_projectId: {

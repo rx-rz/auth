@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { AdminGuard } from 'src/guard/admin.guard';
-import { SkipProjectVerification } from 'src/utils/interceptors/project-verification.interceptor';
+
 import { PROJECT_ROUTES } from 'src/utils/constants/routes';
 import {
   AddUserToProjectDto,
@@ -38,7 +38,6 @@ export class ProjectController {
 
   @Post(PROJECT_ROUTES.CREATE)
   @UsePipes(new ZodPipe(CreateProjectSchema))
-  @SkipProjectVerification()
   @UseGuards(AdminGuard)
   async createProject(@Body() data: CreateProjectDto) {
     return this.projectService.createProject(data);
@@ -52,7 +51,6 @@ export class ProjectController {
   }
 
   @Get(PROJECT_ROUTES.GET_KEYS)
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
   async getProjectApiKey(@Query() data: IdDto) {
@@ -108,10 +106,10 @@ export class ProjectController {
     return this.projectService.removeUserFromProject(data);
   }
 
-  @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)
-  @UsePipes(new ZodPipe(AssignUserProjectRoleSchema))
-  @UseGuards(AdminGuard)
-  async assignUserProjectRole(@Body() data: AssignUserToProjectRoleDto) {
-    return this.projectService.assignUserProjectRole(data);
-  }
+  // @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)
+  // @UsePipes(new ZodPipe(AssignUserProjectRoleSchema))
+  // @UseGuards(AdminGuard)
+  // async assignUserProjectRole(@Body() data: AssignUserToProjectRoleDto) {
+  //   return this.projectService.assignUserProjectRole(data);
+  // }
 }

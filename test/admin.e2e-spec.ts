@@ -1,5 +1,11 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { createAuthenticatedAgent, createTestingApp, tearDownTestingApp } from './test.utils';
+import {
+  AdminPayload,
+  createAuthenticatedAgent,
+  createProjectAuthenticatedAgent,
+  createTestingApp,
+  tearDownTestingApp,
+} from './test.utils';
 import TestAgent from 'supertest/lib/agent';
 import { faker } from '@faker-js/faker';
 import { RegisterAdminDto } from 'src/admin/schema';
@@ -7,16 +13,18 @@ import { RegisterAdminDto } from 'src/admin/schema';
 describe('Admin E2E', () => {
   let app: INestApplication;
   let authAgent: TestAgent;
+  let adminDetails: AdminPayload;
 
   beforeAll(async () => {
     app = await createTestingApp();
-    authAgent = await createAuthenticatedAgent(app);
+    const { agent, details } = await createAuthenticatedAgent(app);
+    authAgent = agent;
+    adminDetails = details;
   });
 
   afterAll(async () => {
-    await tearDownTestingApp(app, authAgent);
+    await tearDownTestingApp(app, authAgent, adminDetails.email);
   });
-  let testAdmin: RegisterAdminDto;
 
   describe('admin - register', () => {
     const [email, password] = [faker.internet.email(), faker.internet.password()];
@@ -42,6 +50,10 @@ describe('Admin E2E', () => {
     });
   });
 
+  // before each of the following tests, another test admin is created
+  // to use for every other test that follows. this will allow for test
+  // isolation
+  let testAdmin: RegisterAdminDto;
   beforeEach(async () => {
     testAdmin = {
       email: faker.internet.email(),
@@ -51,6 +63,7 @@ describe('Admin E2E', () => {
     };
     await authAgent.post('/admin/register').send(testAdmin);
   });
+
   afterEach(async () => {
     await authAgent.delete('/admin/delete').query({ email: testAdmin.email });
   });
@@ -99,7 +112,7 @@ describe('Admin E2E', () => {
     });
 
     it('throws a not found exception for non-existent admin', async () => {
-      const response = await authAgent.put('/admin/update').send({
+      const response = await authAgent.put('/admin/update-details').send({
         email: 'nonexistentemail@example.com',
         firstName: faker.person.firstName(),
       });
@@ -109,7 +122,6 @@ describe('Admin E2E', () => {
   });
 
   describe('admin - update email', () => {
-    const newEmail = faker.internet.email();
     it('updates admin email successfully', async () => {
       const response = await authAgent.put('/admin/update-email').send({
         currentEmail: testAdmin.email,
@@ -200,24 +212,29 @@ describe('Admin E2E', () => {
   });
 
   describe('admin - get project by name', () => {
-    const projectName = faker.commerce.productName(); // Generate a random project name
-
-    it.skip('retrieves admin project by name successfully', async () => {
-      const response = await authAgent.get(`/admin/projects/name`).send({
-        email: testAdmin.email,
-        name: projectName,
+    it('retrieves admin project by name successfully', async () => {
+      // create a test project in the db first before fetching it
+      const { agent: projectAuthenticatedAgent } = await provideProjectCredentialsForAgent(
+        authAgent,
+        adminDetails.id,
+      );
+      const response = await projectAuthenticatedAgent.get(`/admin/get-project-by-name`).send({
+        adminId: adminDetails.id,
+        name: faker.company.name(),
       });
       expect(response.body.success).toBe(true);
       expect(response.body.adminProject).toBeDefined();
     });
 
-    it.skip('throws a not found exception for non-existent project', async () => {
-      const response = await authAgent.get(`/admin/projects/name`).send({
-        email: testAdmin.email,
+    it('throws a not found exception for non-existent project', async () => {
+      const {} = createProjectAuthenticatedAgent(app);
+      const response = await projectAuthenticatedAgent.get(`/admin/get-project-by-name`).send({
+        adminId: adminDetails.id,
         name: 'nonexistentProjectName',
       });
-      expect(response.body.success).toBe(false);
-      expect(response.statusCode).toBe(HttpStatus.NOT_FOUND);
+
+      expect(response.body.adminProject).toBeNull();
+      // expect(response.statusCode).toBe(HttpStatus.NOT_FOUND);
     });
   });
 

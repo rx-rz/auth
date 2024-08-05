@@ -13,7 +13,7 @@ import {
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
 import { AdminGuard } from 'src/guard/admin.guard';
-import { SkipProjectVerification } from 'src/utils/interceptors/project-verification.interceptor';
+import { VerifyProject } from 'src/utils/interceptors/project-verification.interceptor';
 import {
   RegisterAdminDto,
   UpdateAdminDto,
@@ -37,14 +37,12 @@ import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(RegisterAdminSchema))
   @Post(ADMIN_ROUTES.REGISTER)
   async registerAdmin(@Body() data: RegisterAdminDto) {
     return this.adminService.registerAdmin(data);
   }
 
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(LoginAdminSchema))
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(@Body() data: LoginAdminDto, @Res({ passthrough: true }) response: Response) {
@@ -59,7 +57,6 @@ export class AdminController {
     return { success, accessToken };
   }
 
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(UpdateAdminSchema))
   @Put(ADMIN_ROUTES.UPDATE_DETAILS)
   @UseGuards(AdminGuard)
@@ -67,7 +64,6 @@ export class AdminController {
     return this.adminService.updateAdmin(data);
   }
 
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(UpdateAdminEmailSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
   @UseGuards(AdminGuard)
@@ -75,7 +71,6 @@ export class AdminController {
     return this.adminService.updateAdminEmail(data);
   }
 
-  @SkipProjectVerification()
   @UsePipes(new ZodPipe(UpdateAdminPasswordSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
   @UseGuards(AdminGuard)
@@ -83,7 +78,6 @@ export class AdminController {
     return this.adminService.updateAdminPassword(data);
   }
 
-  @SkipProjectVerification()
   @Get(ADMIN_ROUTES.GET_PROJECTS)
   @UseGuards(AdminGuard)
   async getAdminProjects(@Query() { email }: AdminEmailDto) {
@@ -97,7 +91,6 @@ export class AdminController {
     return this.adminService.getAdminProjectByName(data);
   }
 
-  @SkipProjectVerification()
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
   @UseGuards(AdminGuard)
   async deleteAdmin(@Query() data: AdminEmailDto) {

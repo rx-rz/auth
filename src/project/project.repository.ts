@@ -62,9 +62,10 @@ export class ProjectRepository {
       where: { clientKey },
       select: {
         apiKey: true,
+        id: true,
       },
     });
-    return project?.apiKey || null;
+    return { apiKey: project?.apiKey, projectId: project?.id };
   }
 
   async getProject(id: string) {

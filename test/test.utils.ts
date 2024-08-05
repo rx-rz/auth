@@ -8,9 +8,20 @@ import { CentralizedExceptionFilter } from '../src/utils/exceptions/centralized-
 import helmet from 'helmet';
 import TestAgent from 'supertest/lib/agent';
 import { verify } from 'jsonwebtoken';
+import { LoginAdminDto, RegisterAdminDto } from 'src/admin/schema';
+import { CreateProjectDto } from 'src/project/schema';
 
 let app: INestApplication;
 
+export type AdminPayload = {
+  email: string;
+  firstName: string;
+  isVerified: boolean;
+  lastName: string;
+  id: string;
+  role: 'admin';
+  mfaEnabled: boolean;
+};
 export async function createTestingApp(): Promise<INestApplication> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
@@ -23,94 +34,102 @@ export async function createTestingApp(): Promise<INestApplication> {
   return app;
 }
 
-let projectId: string;
-let adminEmail = faker.internet.email();
-
-export async function createTestAgent(app: INestApplication) {
-  return request.agent(app.getHttpServer());
+export async function tearDownTestingApp(
+  app: INestApplication,
+  agent: TestAgent,
+  adminEmail: string,
+) {
+  /* deleting an admin also immediately deletes any associated project as the schema is set to cascade.
+   */
+  await deleteAdminAccount(agent, adminEmail);
+  await app.close();
 }
 
 export async function createAuthenticatedAgent(app: INestApplication) {
   const agent = request.agent(app.getHttpServer());
-  const { apiKey, authToken, clientKey, projectId } = await getProjectAuthenticationRequirements();
-  agent.set('Authorization', `Bearer ${authToken}`);
+  const [email, password] = [faker.internet.email(), faker.internet.password()];
+  await createAdmin(agent, email, password);
+  const { token, details } = await getAdminDetails(agent, email, password);
+  // token derived upon log in is set in the agent.
+  agent.set('Authorization', `Bearer ${token}`);
+  return { agent, details };
+}
+
+export async function createProjectAuthenticatedAgent(app: INestApplication) {
+  const agent = request.agent(app.getHttpServer());
+  const [email, password] = [faker.internet.email(), faker.internet.password()];
+  await createAdmin(agent, email, password);
+  const { token, details } = await getAdminDetails(agent, email, password);
+  agent.set('Authorization', `Bearer ${token}`);
+  const projectName = faker.company.name();
+  const { projectId } = await createProject(agent, projectName, details.id);
+  const { clientKey, apiKey } = await getProjectKeys(agent, projectId);
+  agent.set('x-project-id', projectId);
   agent.set('x-api-key', apiKey);
   agent.set('x-client-key', clientKey);
-  agent.set('x-project-id', projectId);
-  return agent;
+  return { agent, projectId, projectName, clientKey, apiKey, details };
 }
 
-export async function tearDownTestingApp(app: INestApplication, agent: TestAgent) {
-  /* deleting an admin also immediately deletes a project as the schema is set to cascade.
-   */
-  await deleteAdminAccount(agent);
-  await app.close();
+export async function createAdmin(agent: TestAgent, email: string, password: string) {
+  // register test admin of whose details will be used for logging in to get a token
+  const registerAdminDto: RegisterAdminDto = {
+    email,
+    password,
+    lastName: faker.person.lastName(),
+    firstName: faker.person.firstName(),
+  };
+  const response = await agent.post('/admin/register').send(registerAdminDto);
+  if (response.body.success === false) {
+    throw new Error(response.body.message);
+  }
 }
 
-async function deleteAdminAccount(agent: TestAgent) {
+export async function getAdminDetails(agent: TestAgent, email: string, password: string) {
+  const loginAdminDto: LoginAdminDto = {
+    email,
+    password,
+  };
+  const response = await agent.post('/admin/login').send(loginAdminDto);
+  // log in an admin and get an access token. the access token is decoded to get
+  // other details that might be used for other tests
+  const details = decodeAdminAuthToken(response.body.accessToken);
+  return { details, token: response.body.accessToken };
+}
+
+async function deleteAdminAccount(agent: TestAgent, email: string) {
   const response = await agent.delete('/admin/delete').query({
-    adminEmail,
+    email,
   });
   return response;
 }
 
-async function getProjectAuthenticationRequirements() {
-  const [email, password] = [faker.internet.email(), 'adesare!@1'];
-  const adminIsCreated = await createTestAdmin(app, email, password);
-  if (!adminIsCreated) throw new Error('Error in creating admin');
-  const authToken = await getAuthToken(app, email, password);
-  const projectId = await createProject(authToken);
-  const { clientKey, apiKey } = await getProjectCredentials(projectId, authToken);
-  return {
-    clientKey,
-    apiKey,
-    authToken,
-    projectId,
+function decodeAdminAuthToken(authToken: string) {
+  const admin = verify(authToken, process.env.JWT_ACCESS_SECRET || '');
+  return admin as AdminPayload;
+}
+
+export async function createProject(agent: TestAgent, name: string, adminId: string) {
+  const createProjectDto: CreateProjectDto = {
+    name,
+    adminId,
   };
+  const { body } = await agent.post('/project/create-project').send(createProjectDto);
+  if (body.success === false) {
+    console.log(body);
+    throw new Error(body.message ?? 'An error occured');
+  }
+  return { projectId: body.project.id };
 }
 
-async function getProjectCredentials(projectId: string, authToken: string) {
-  const response = await request(app.getHttpServer())
-    .get('/project/get-keys')
-    .query({ projectId })
-    .set({ authorization: `Bearer ${authToken}` });
-
-  const { clientKey, apiKey } = response.body;
-  return { clientKey, apiKey };
+export async function deleteProject(agent: TestAgent, projectId: string) {
+  await agent.delete('/project/delete-project').query({ projectId });
 }
 
-async function createProject(authToken: string) {
-  const adminId = decodeAuthToken(authToken).id;
-  const response = await request(app.getHttpServer())
-    .post('/project/create-project')
-    .send({
-      name: faker.company.name(),
-      adminId,
-    })
-    .set({ authorization: `Bearer ${authToken}` });
-  projectId = response.body.project.id;
-  return response.body.project.id;
-}
-
-function decodeAuthToken(authToken: string) {
-  const admin: any = verify(authToken, process.env.JWT_ACCESS_SECRET || '');
-  return admin;
-}
-
-export async function getAuthToken(app: INestApplication, email: string, password: string) {
-  const response = await request(app.getHttpServer())
-    .post('/admin/login')
-    .send({ email, password });
-
-  return response.body.accessToken;
-}
-
-async function createTestAdmin(app: INestApplication, email: string, password: string) {
-  const response = await request(app.getHttpServer()).post('/admin/register').send({
-    email,
-    password,
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-  });
-  if (response.ok) return true;
+export async function getProjectKeys(agent: TestAgent, projectId: string) {
+  const { body } = await agent.get('/project/get-keys').query({ projectId });
+  if (body.success === false) {
+    console.log(body);
+    throw new Error(body.message ?? 'An error occured');
+  }
+  return { clientKey: body.clientKey, apiKey: body.apiKey };
 }
