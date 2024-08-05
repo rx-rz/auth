@@ -16,6 +16,7 @@ type User = {
   role: 'admin' | string;
   mfaEnabled: boolean;
 };
+
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
@@ -29,7 +30,7 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Invalid token provided.');
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload: User = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get('JWT_ACCESS_SECRET'),
       });
       if (payload && payload.role !== 'admin') {
@@ -42,7 +43,7 @@ export class AdminGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];    
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
 }

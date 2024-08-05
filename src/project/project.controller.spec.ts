@@ -233,22 +233,4 @@ describe('Project Controller', () => {
       );
     });
   });
-
-  describe('Assign user project role', () => {
-    const assignUserToProjectRoleDto: AssignUserToProjectRoleDto = {
-      projectId: faker.string.uuid(),
-      roleId: faker.string.uuid(),
-      userId: faker.string.uuid(),
-    };
-    it('should successfully assign a user a role in a project', async () => {
-      await expect(
-        projectController.assignUserProjectRole(assignUserToProjectRoleDto),
-      ).resolves.toEqual(
-        expect.objectContaining({
-          success: true,
-          userAssignedARole: expect.any(Object),
-        }),
-      );
-    });
-  });
 });

@@ -256,14 +256,20 @@ describe('ProjectService', () => {
     });
 
     it('should throw a not found exception when an inexistent client key is provided', async () => {
-      projectRepository.getProjectApiKeyByClientKey.mockResolvedValue(null);
+      projectRepository.getProjectApiKeyByClientKey.mockResolvedValue({
+        apiKey: '',
+        projectId: '',
+      });
       await expect(projectService.verifyProjectApiKeys(verifyProjectApiKeysDto)).rejects.toThrow(
         NotFoundException,
       );
     });
 
     it('should throw a bad request exception when the api key provided does not match the api key in the DB', async () => {
-      projectRepository.getProjectApiKeyByClientKey.mockResolvedValue(faker.string.uuid());
+      projectRepository.getProjectApiKeyByClientKey.mockResolvedValue({
+        apiKey: '',
+        projectId: '',
+      });
       const bcryptCompare = jest.fn().mockResolvedValue(false);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
       await expect(projectService.verifyProjectApiKeys(verifyProjectApiKeysDto)).rejects.toThrow(

@@ -1,15 +1,10 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from 'src/user/user.repository';
-import { RegisterWithEmailAndPasswordDto } from './dtos/register-with-email-and-password-dto';
-import { LoginWithEmailAndPasswordDto } from './dtos/login-with-email-and-password-dto';
 import { compare } from 'bcryptjs';
 import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import { generateAccessToken } from 'src/utils/helper-functions/generate-access-token';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { LoginWithEmailAndPasswordDto, RegisterWithEmailAndPasswordDto } from './schema';
 
 @Injectable()
 export class EmailAndPasswordAuthService {
@@ -19,10 +14,7 @@ export class EmailAndPasswordAuthService {
   ) {}
 
   private async getUserProjectDetails(email: string, projectId: string) {
-    const userDetails = await this.userRepository.getUserProjectDetailsByEmail(
-      email,
-      projectId,
-    );
+    const userDetails = await this.userRepository.getUserProjectDetailsByEmail(email, projectId);
 
     if (!userDetails) throw new NotFoundException('Invalid details provided.');
     return userDetails;
@@ -30,20 +22,12 @@ export class EmailAndPasswordAuthService {
 
   private async checkIfUserExists(email: string) {
     const user = await this.userRepository.getUserByEmail(email);
-    if (!user)
-      throw new NotFoundException('User with provided details does not exist.');
+    if (!user) throw new NotFoundException('User with provided details does not exist.');
     return user;
   }
 
-  private async checkIfPasswordsMatch(
-    email: string,
-    password: string,
-    projectId: string,
-  ) {
-    const userPasswordInDB = await this.userRepository.getUserPassword(
-      email,
-      projectId,
-    );
+  private async checkIfPasswordsMatch(email: string, password: string, projectId: string) {
+    const userPasswordInDB = await this.userRepository.getUserPassword(email, projectId);
     const passwordsMatch = await compare(password, userPasswordInDB);
     if (passwordsMatch === false) {
       throw new BadRequestException('Invalid details provided');
@@ -51,25 +35,18 @@ export class EmailAndPasswordAuthService {
     return true;
   }
 
-  async registerWithEmailAndPassword(
-    registerWithEmailAndPasswordDto: RegisterWithEmailAndPasswordDto,
-  ) {
-    await this.emitter.emit(
-      'user-create.email-password',
-      registerWithEmailAndPasswordDto,
-    );
+  async registerWithEmailAndPassword(dto: RegisterWithEmailAndPasswordDto) {
+    await this.emitter.emit('user-create.email-password', dto);
     return { success: true, message: 'User registered successfully' };
   }
 
-  async loginWithEmailAndPassword({
-    email,
-    password,
-    projectId,
-  }: LoginWithEmailAndPasswordDto) {
+  async loginWithEmailAndPassword({ email, password, projectId }: LoginWithEmailAndPasswordDto) {
     const user = await this.checkIfUserExists(email);
     await this.checkIfPasswordsMatch(email, password, projectId);
-    const { firstName, lastName, role, isVerified } =
-      await this.getUserProjectDetails(email, projectId);
+    const { firstName, lastName, role, isVerified } = await this.getUserProjectDetails(
+      email,
+      projectId,
+    );
     const [accessToken, refreshToken] = [
       generateAccessToken({
         email,
