@@ -10,6 +10,14 @@ export class LoginRepository {
     return login;
   }
 
+  async getLoginInstance(id: string) {
+    const login = await this.prisma.login.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    return login;
+  }
+
   async deleteLoginInstance(id: string) {
     const login = await this.prisma.login.delete({ where: { id } });
     return login;
