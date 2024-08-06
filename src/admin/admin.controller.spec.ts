@@ -65,7 +65,7 @@ describe('Admin Controller', () => {
   });
 
   describe('Register admin', () => {
-    const registerAdminDto: RegisterAdminDto = {
+    const dto: RegisterAdminDto = {
       email: faker.internet.email(),
       password: faker.internet.password(),
       firstName: faker.person.firstName(),
@@ -73,7 +73,7 @@ describe('Admin Controller', () => {
     };
 
     it('should successfully register an admin', async () => {
-      await expect(adminController.registerAdmin(registerAdminDto)).resolves.toEqual(
+      await expect(adminController.registerAdmin(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           message: expect.any(String),
@@ -97,12 +97,12 @@ describe('Admin Controller', () => {
   // });
 
   describe('Update admin', () => {
-    const updateAdminDto: UpdateAdminDto = {
+    const dto: UpdateAdminDto = {
       email: faker.internet.email(),
       firstName: faker.person.firstName(),
     };
     it('should successfully update an admin', async () => {
-      await expect(adminController.updateAdmin(updateAdminDto)).resolves.toEqual(
+      await expect(adminController.updateAdmin(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           admin: expect.any(Object),
@@ -112,13 +112,13 @@ describe('Admin Controller', () => {
   });
 
   describe('Update admin email', () => {
-    const updateAdminEmailDto: UpdateAdminEmailDto = {
+    const dto: UpdateAdminEmailDto = {
       currentEmail: faker.internet.email(),
       newEmail: faker.internet.email(),
       password: faker.internet.password(),
     };
     it('should successfully update an admin', async () => {
-      await expect(adminController.updateAdminEmail(updateAdminEmailDto)).resolves.toEqual(
+      await expect(adminController.updateAdminEmail(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           admin: expect.any(Object),
@@ -128,13 +128,13 @@ describe('Admin Controller', () => {
   });
 
   describe('Update admin password', () => {
-    const updateAdminPasswordDto: UpdateAdminPasswordDto = {
+    const dto: UpdateAdminPasswordDto = {
       email: faker.internet.email(),
       newPassword: faker.internet.password(),
       currentPassword: faker.internet.password(),
     };
     it('should successfully update an admin', async () => {
-      await expect(adminController.updateAdminPassword(updateAdminPasswordDto)).resolves.toEqual(
+      await expect(adminController.updateAdminPassword(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           admin: expect.any(Object),
@@ -144,11 +144,11 @@ describe('Admin Controller', () => {
   });
 
   describe('Get admin projects', () => {
-    const adminEmailDto: AdminEmailDto = {
+    const dto: AdminEmailDto = {
       email: faker.internet.email(),
     };
     it('should successfully update an admin', async () => {
-      await expect(adminController.getAdminProjects(adminEmailDto)).resolves.toEqual(
+      await expect(adminController.getAdminProjects(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           adminProjects: expect.any(Object),
@@ -158,12 +158,12 @@ describe('Admin Controller', () => {
   });
 
   describe('Get admin project by name', () => {
-    const getAdminProjectDto: GetAdminProjectDto = {
+    const dto: GetAdminProjectDto = {
       adminId: faker.string.uuid(),
       name: faker.company.name(),
     };
     it("should successfully get an admin project by it's name", async () => {
-      await expect(adminController.getAdminProjectByName(getAdminProjectDto)).resolves.toEqual(
+      await expect(adminController.getAdminProjectByName(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           adminProject: expect.any(Object),
@@ -173,11 +173,11 @@ describe('Admin Controller', () => {
   });
 
   describe('Delete admin account', () => {
-    const adminEmailDto: AdminEmailDto = {
+    const dto: AdminEmailDto = {
       email: faker.internet.email(),
     };
     it('should successfully delete an admin account', async () => {
-      await expect(adminController.deleteAdmin(adminEmailDto)).resolves.toEqual(
+      await expect(adminController.deleteAdmin(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           admin: expect.any(Object),

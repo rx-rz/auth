@@ -18,6 +18,7 @@ import {
 import { faker } from '@faker-js/faker';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { AuthMethod, TokenState } from '@prisma/client';
 
 describe('ProjectService', () => {
   let projectService: ProjectService;
@@ -28,108 +29,27 @@ describe('ProjectService', () => {
   let appEventEmitter: jest.Mocked<AppEventEmitter>;
 
   const mockUserRepository = {
-    getUserById: jest.fn().mockResolvedValue({
-      email: faker.internet.email(),
-      id: faker.string.uuid(),
-      userProjects: [{ projectId: faker.string.uuid(), isVerified: true }],
-    }),
+    getUserById: jest.fn(),
   };
   const mockProjectRepository = {
-    createProject: jest.fn().mockResolvedValue({
-      adminId: faker.string.uuid(),
-      name: faker.company.name(),
-      id: faker.string.uuid(),
-      createdAt: faker.date.past(),
-    }),
-    updateProject: jest.fn().mockResolvedValue({
-      adminId: faker.string.uuid(),
-      name: faker.company.name(),
-      id: faker.string.uuid(),
-      createdAt: faker.date.past(),
-    }),
-    getProject: jest.fn().mockResolvedValue({
-      id: faker.string.uuid(),
-      name: faker.company.name(),
-      adminId: faker.string.uuid(),
-      createdAt: faker.date.past(),
-      updatedAt: faker.date.past(),
-    }),
-    getProjectApiKeyByClientKey: jest.fn().mockResolvedValue(faker.string.uuid()),
-    getProjectIDByClientKey: jest.fn().mockResolvedValue(faker.string.uuid()),
-    getProjectMagicLinks: jest.fn().mockResolvedValue({
-      id: faker.string.uuid(),
-      name: faker.company.name(),
-      adminId: faker.string.uuid(),
-      magicLinks: [
-        {
-          id: faker.string.uuid(),
-          user: {
-            email: faker.internet.email(),
-          },
-          createdAt: faker.date.past(),
-        },
-      ],
-    }),
-    getProjectRefreshTokens: jest.fn().mockResolvedValue({
-      id: faker.string.uuid(),
-      name: faker.company.name(),
-      adminId: faker.string.uuid(),
-      refreshTokens: [
-        {
-          token: faker.string.uuid(),
-          expiresAt: faker.date.future(),
-          createdAt: faker.date.past(),
-          userId: faker.string.uuid(),
-          state: true,
-          authMethod: faker.string.sample(),
-        },
-      ],
-    }),
-    getAllProjectsCreatedByAdmin: jest.fn().mockResolvedValue([
-      {
-        adminId: faker.string.uuid(),
-        name: faker.company.name(),
-        id: faker.string.uuid(),
-        createdAt: faker.date.past(),
-      },
-    ]),
-    deleteProject: jest.fn().mockResolvedValue({
-      adminId: faker.string.uuid(),
-      name: faker.company.name(),
-      id: faker.string.uuid(),
-      createdAt: faker.date.past(),
-    }),
-    addUserToProject: jest.fn().mockResolvedValue({
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      user: {
-        email: faker.internet.email(),
-      },
-    }),
-    deleteUserFromProject: jest.fn().mockResolvedValue({
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      user: {
-        email: faker.internet.email(),
-      },
-    }),
-    assignUserProjectRole: jest.fn().mockResolvedValue({
-      userId: faker.string.uuid(),
-      projectId: faker.string.uuid(),
-      roleId: faker.string.uuid(),
-    }),
+    createProject: jest.fn(),
+    updateProject: jest.fn(),
+    getProject: jest.fn(),
+    getProjectApiKeyByClientKey: jest.fn(),
+    getProjectIDByClientKey: jest.fn(),
+    getProjectMagicLinks: jest.fn(),
+    getProjectRefreshTokens: jest.fn(),
+    getAllProjectsCreatedByAdmin: jest.fn(),
+    deleteProject: jest.fn(),
+    addUserToProject: jest.fn(),
+    deleteUserFromProject: jest.fn(),
+    assignUserProjectRole: jest.fn(),
   };
 
   const mockAdminRepository = {
     getAdminProjectByName: jest.fn(),
-    getAdminByID: jest.fn().mockResolvedValue({
-      id: faker.string.uuid(),
-      email: faker.internet.email(),
-    }),
-    getAdminByEmail: jest.fn().mockResolvedValue({
-      id: faker.string.uuid(),
-      email: faker.internet.email(),
-    }),
+    getAdminByID: jest.fn(),
+    getAdminByEmail: jest.fn(),
   };
 
   const mockAppEventEmitter = {
@@ -212,6 +132,13 @@ describe('ProjectService', () => {
     };
 
     it("should successfully update a project's name", async () => {
+      projectRepository.getProject.mockResolvedValue({
+        id: faker.string.uuid(),
+        name: faker.company.name(),
+        adminId: faker.string.uuid(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.past(),
+      });
       const result = await projectService.updateProjectName(dto);
       expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(result.success).toBe(true);
@@ -234,6 +161,10 @@ describe('ProjectService', () => {
     it("should successfullly verify a project's api keys", async () => {
       const bcryptCompare = jest.fn().mockResolvedValue(true);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
+      projectRepository.getProjectApiKeyByClientKey.mockResolvedValue({
+        apiKey: faker.string.uuid(),
+        projectId: faker.string.uuid(),
+      });
       const result = await projectService.verifyProjectApiKeys(dto);
       expect(result).toEqual(
         expect.objectContaining({
@@ -290,6 +221,7 @@ describe('ProjectService', () => {
   describe('get project id by client key', () => {
     const clientKey = faker.string.uuid();
     it('should successfully get project ID by client key', async () => {
+      projectRepository.getProjectIDByClientKey.mockResolvedValue(faker.string.uuid());
       const result = await projectService.getProjectIDByClientKey(clientKey);
       expect(result).toEqual({
         success: true,
@@ -309,7 +241,13 @@ describe('ProjectService', () => {
     const projectId = faker.string.uuid();
 
     it('should successfully get project details', async () => {
-      // projectRepository.getProject.mockResolvedValue(mockVal);
+      projectRepository.getProject.mockResolvedValue({
+        id: faker.string.uuid(),
+        name: faker.company.name(),
+        adminId: faker.string.uuid(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.past(),
+      });
       const result = await projectService.getProjectDetails({ projectId });
       expect(result.success).toBe(true);
       expect(result.project).toBeDefined();
@@ -327,12 +265,19 @@ describe('ProjectService', () => {
     const projectId = faker.string.uuid();
 
     it('should successfully get project magic links', async () => {
-      projectRepository.getProject.mockResolvedValue({
+      projectRepository.getProjectMagicLinks.mockResolvedValue({
         id: faker.string.uuid(),
         name: faker.company.name(),
         adminId: faker.string.uuid(),
-        createdAt: faker.date.past(),
-        updatedAt: faker.date.past(),
+        magicLinks: [
+          {
+            id: faker.string.uuid(),
+            user: {
+              email: faker.internet.email(),
+            },
+            createdAt: faker.date.past(),
+          },
+        ],
       });
       const result = await projectService.getProjectMagicLinks({ projectId });
       expect(result.success).toBe(true);
@@ -350,7 +295,21 @@ describe('ProjectService', () => {
     const projectId = faker.string.uuid();
     it('successfully get project refresh tokens', async () => {
       projectRepository.getProject.mockResolvedValue(mockVal);
-      // projectRepository.getProjectRefreshTokens.mockResolvedValue(mockVal);
+      projectRepository.getProjectRefreshTokens.mockResolvedValue({
+        id: faker.string.uuid(),
+        name: faker.company.name(),
+        adminId: faker.string.uuid(),
+        refreshTokens: [
+          {
+            token: faker.string.uuid(),
+            expiresAt: faker.date.future(),
+            createdAt: faker.date.past(),
+            userId: faker.string.uuid(),
+            state: TokenState.ACTIVE,
+            authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
+          },
+        ],
+      });
       const result = await projectService.getProjectRefreshTokens({ projectId });
       expect(result.success).toBe(true);
       expect(result.project).toBeDefined();
@@ -367,6 +326,25 @@ describe('ProjectService', () => {
   describe('get projects created by admin', () => {
     const adminId = faker.string.uuid();
     it('should successfully get the projects created by admin', async () => {
+      adminRepository.getAdminByID.mockResolvedValue({
+        id: faker.string.uuid(),
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        isVerified: faker.datatype.boolean(),
+        mfaEnabled: faker.datatype.boolean(),
+      });
+      projectRepository.getAllProjectsCreatedByAdmin.mockResolvedValue([
+        {
+          id: faker.string.uuid(),
+          name: faker.company.name(),
+          apiKey: faker.string.uuid(),
+          clientKey: faker.string.uuid(),
+          createdAt: faker.date.past(),
+          updatedAt: faker.date.recent(),
+          adminId: faker.string.uuid(),
+        },
+      ]);
       const result = await projectService.getAllProjectsCreatedByAdmin({ adminId });
       expect(adminRepository.getAdminByID).toHaveBeenCalledWith(adminId);
       expect(result.success).toBe(true);
@@ -390,6 +368,16 @@ describe('ProjectService', () => {
         adminId: faker.string.uuid(),
         createdAt: faker.date.past(),
         updatedAt: faker.date.past(),
+      });
+
+      projectRepository.deleteProject.mockResolvedValue({
+        adminId: faker.string.uuid(),
+        name: faker.company.name(),
+        id: faker.string.uuid(),
+        apiKey: faker.string.uuid(),
+        clientKey: faker.string.uuid(),
+        updatedAt: faker.date.anytime(),
+        createdAt: faker.date.past(),
       });
       const result = await projectService.deleteProject({ projectId });
       expect(projectRepository.getProject).toHaveBeenCalledWith(projectId);
@@ -419,6 +407,13 @@ describe('ProjectService', () => {
         userProjects: [{ projectId: faker.string.uuid(), isVerified: true }],
       });
       projectRepository.getProject.mockResolvedValue(mockVal);
+      projectRepository.addUserToProject.mockResolvedValue({
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        user: {
+          email: faker.internet.email(),
+        },
+      });
       const result = await projectService.addUserToProject(dto);
       expect(userRepository.getUserById).toHaveBeenCalledWith(dto.userId);
       expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
@@ -448,7 +443,13 @@ describe('ProjectService', () => {
 
     it('should successfully remove a user from a project', async () => {
       projectRepository.getProject.mockResolvedValue(mockVal);
-      projectRepository.deleteUserFromProject.mockResolvedValue(mockVal);
+      projectRepository.deleteUserFromProject.mockResolvedValue({
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        user: {
+          email: faker.internet.email(),
+        },
+      });
       const result = await projectService.removeUserFromProject(dto);
       expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(projectRepository.deleteUserFromProject).toHaveBeenCalledWith(
@@ -480,7 +481,17 @@ describe('ProjectService', () => {
 
     it('should successfully assign a user to a project role', async () => {
       projectRepository.getProject.mockResolvedValue(mockVal);
-      projectRepository.assignUserProjectRole.mockResolvedValue(mockVal);
+      projectRepository.assignUserProjectRole.mockResolvedValue({
+        userId: faker.string.uuid(),
+        projectId: faker.string.uuid(),
+        roleId: faker.string.uuid(),
+        firstName: faker.person.firstName(),
+        isVerified: faker.datatype.boolean(),
+        lastName: faker.person.lastName(),
+        createdAt: faker.date.anytime(),
+        password: faker.internet.password(),
+        updatedAt: faker.date.anytime(),
+      });
       const result = await projectService.assignUserProjectRole(dto);
       expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(projectRepository.assignUserProjectRole).toHaveBeenCalledWith(

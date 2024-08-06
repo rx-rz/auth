@@ -13,7 +13,6 @@ import {
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
 import { AdminGuard } from 'src/guard/admin.guard';
-import { VerifyProject } from 'src/utils/interceptors/project-verification.interceptor';
 import {
   RegisterAdminDto,
   UpdateAdminDto,

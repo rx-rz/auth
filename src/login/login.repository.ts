@@ -14,7 +14,6 @@ export class LoginRepository {
   async getLoginInstance(id: string) {
     const login = await this.prisma.login.findUnique({
       where: { id },
-      select: { id: true },
     });
     return login;
   }

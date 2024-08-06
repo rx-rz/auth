@@ -10,9 +10,6 @@ import { CreateOtpDto, VerifyAdminOtpDto, VerifyOtpDto } from './schema';
 
 describe('OtpService', () => {
   let otpService: OtpService;
-  let otpRepository: jest.Mocked<OTPRepository>;
-  let adminRepository: jest.Mocked<AdminRepository>;
-  let userRepository: jest.Mocked<UserRepository>;
   let prismaService: PrismaService;
 
   const mockUserRepository = {
@@ -77,9 +74,6 @@ describe('OtpService', () => {
     }).compile();
 
     otpService = module.get<OtpService>(OtpService);
-    otpRepository = module.get(OTPRepository);
-    adminRepository = module.get(AdminRepository);
-    userRepository = module.get(UserRepository);
     prismaService = module.get(PrismaService);
   });
 

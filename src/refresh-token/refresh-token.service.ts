@@ -6,9 +6,7 @@ import { StoreRefreshTokenDto } from './schema';
 
 @Injectable()
 export class RefreshTokenService {
-  constructor(
-    private readonly refreshTokenRepository: RefreshTokenRepository,
-  ) {}
+  constructor(private readonly refreshTokenRepository: RefreshTokenRepository) {}
 
   @CatchEmitterErrors()
   @OnEvent('refresh-token.created')

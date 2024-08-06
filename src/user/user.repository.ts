@@ -150,8 +150,7 @@ export class UserRepository {
   }
 
   async getUserPassword(email: string, projectId: string) {
-    const pws = await this.prisma.userProject.findMany({ where: { user: { email } } });
-    console.log(pws);
+    await this.prisma.userProject.findMany({ where: { user: { email } } });
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
@@ -160,7 +159,6 @@ export class UserRepository {
         projectId,
       },
     });
-    console.log(user);
     return user?.password || '';
   }
 
