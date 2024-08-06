@@ -93,7 +93,6 @@ export class AdminController {
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
   @UseGuards(AdminGuard)
   async deleteAdmin(@Query() data: AdminEmailDto) {
-    console.log('test');
     return this.adminService.deleteAdmin(data);
   }
 }
