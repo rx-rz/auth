@@ -161,7 +161,7 @@ describe('OtpService', () => {
   describe('verifyAdminOTP', () => {
     const dto: VerifyAdminOtpDto = {
       email: faker.internet.email(),
-      code: faker.string.numeric(6),
+      code: otpResolvedFromMock.code,
     };
 
     it('should successfully verify an admin OTP', async () => {
@@ -169,7 +169,6 @@ describe('OtpService', () => {
       mockAdminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
 
       const result = await otpService.verifyAdminOTP(dto);
-
       expect(mockOtpRepository.getOTPDetails).toHaveBeenCalledWith(dto.email);
       expect(mockAdminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
       expect(mockAdminRepository.updateAdmin).toHaveBeenCalledWith(dto.email, {
@@ -194,6 +193,8 @@ describe('OtpService', () => {
     });
 
     it('should throw a bad request exception when the OTP is invalid', async () => {
+      mockOtpRepository.getOTPDetails.mockResolvedValue(otpResolvedFromMock);
+      mockAdminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       mockOtpRepository.getOTPDetails.mockResolvedValue({
         ...otpResolvedFromMock,
         code: faker.string.numeric(6),
@@ -203,6 +204,8 @@ describe('OtpService', () => {
     });
 
     it('should throw a gone exception when the OTP has expired', async () => {
+      mockOtpRepository.getOTPDetails.mockResolvedValue(otpResolvedFromMock);
+      mockAdminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       mockOtpRepository.getOTPDetails.mockResolvedValue({
         ...otpResolvedFromMock,
         expiresAt: new Date(Date.now() - 10 * 60 * 1000),
@@ -216,7 +219,7 @@ describe('OtpService', () => {
   describe('verifyOTP', () => {
     const dto: VerifyOtpDto = {
       email: faker.internet.email(),
-      code: faker.string.numeric(6),
+      code: otpResolvedFromMock.code,
       projectId: faker.string.uuid(),
       userId: faker.string.uuid(),
     };
@@ -251,6 +254,8 @@ describe('OtpService', () => {
     });
 
     it('should throw a bad request exception when the OTP is invalid', async () => {
+      mockOtpRepository.getOTPDetails.mockResolvedValue(otpResolvedFromMock);
+      mockUserRepository.getUserByEmail.mockResolvedValue(userResolvedFromMock);
       mockOtpRepository.getOTPDetails.mockResolvedValue({
         ...otpResolvedFromMock,
         code: faker.string.numeric(6),
@@ -260,6 +265,8 @@ describe('OtpService', () => {
     });
 
     it('should throw a gone exception when the OTP has expired', async () => {
+      mockOtpRepository.getOTPDetails.mockResolvedValue(otpResolvedFromMock);
+      mockUserRepository.getUserByEmail.mockResolvedValue(userResolvedFromMock);
       mockOtpRepository.getOTPDetails.mockResolvedValue({
         ...otpResolvedFromMock,
         expiresAt: new Date(Date.now() - 10 * 60 * 1000),
