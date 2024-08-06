@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { CreateLoginInstanceDto } from './schema';
+
 @Injectable()
 export class LoginRepository {
   constructor(private readonly prisma: PrismaService) {}

@@ -107,7 +107,7 @@ describe('Admin Controller', () => {
   });
 
   describe('register admin', () => {
-    const registerAdminDto: RegisterAdminDto = {
+    const dto: RegisterAdminDto = {
       email: faker.internet.email(),
       password: faker.internet.password(),
       firstName: faker.person.firstName(),
@@ -117,11 +117,11 @@ describe('Admin Controller', () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
       adminRepository.createAdmin.mockResolvedValue(adminResolvedFromMock);
 
-      const result = await service.registerAdmin(registerAdminDto);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(registerAdminDto.email);
+      const result = await service.registerAdmin(dto);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
       expect(adminRepository.createAdmin).toHaveBeenCalledWith(
         expect.objectContaining({
-          ...registerAdminDto,
+          ...dto,
           password: expect.any(String),
           mfaEnabled: false,
           isVerified: false,
@@ -134,12 +134,12 @@ describe('Admin Controller', () => {
     });
     it('should throw a conflict exception whenever an admin with the same email is already registered', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
-      await expect(service.registerAdmin(registerAdminDto)).rejects.toThrow(ConflictException);
+      await expect(service.registerAdmin(dto)).rejects.toThrow(ConflictException);
     });
   });
 
   describe('login admin', () => {
-    const loginAdminDto = {
+    const dto = {
       email: faker.internet.email(),
       password: faker.internet.password(),
     };
@@ -152,10 +152,10 @@ describe('Admin Controller', () => {
       (bcrypt.compare as jest.Mock) = bcryptCompare;
       jwtService.signAsync.mockResolvedValue('mockAccessToken');
       configService.get.mockReturnValue('JWT_ACCESS_SECRET');
-      const result = await service.loginAdmin(loginAdminDto);
+      const result = await service.loginAdmin(dto);
 
-      expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(loginAdminDto.email);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(loginAdminDto.email);
+      expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(dto.email);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
       expect(jwtService.signAsync).toHaveBeenCalled();
       expect(appEventEmitter.emit).toHaveBeenCalledWith(
         'refresh-token.created',
@@ -177,20 +177,20 @@ describe('Admin Controller', () => {
       adminRepository.getAdminPassword.mockResolvedValue(faker.string.alphanumeric());
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
-      await expect(service.loginAdmin(loginAdminDto)).rejects.toThrow(BadRequestException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(loginAdminDto.email);
-      expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(loginAdminDto.email);
+      await expect(service.loginAdmin(dto)).rejects.toThrow(BadRequestException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
+      expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(dto.email);
     });
 
     it('should throw a not found exception when the email provided for admin does not exist in the db', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
-      await expect(service.loginAdmin(loginAdminDto)).rejects.toThrow(NotFoundException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(loginAdminDto.email);
+      await expect(service.loginAdmin(dto)).rejects.toThrow(NotFoundException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
     });
   });
 
   describe('update admin', () => {
-    const updateAdminDto = {
+    const dto = {
       email: faker.internet.email(),
       isVerified: true,
       firstName: faker.person.firstName(),
@@ -199,19 +199,19 @@ describe('Admin Controller', () => {
 
     it('should successfully update admin details', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
-      const result = await service.updateAdmin(updateAdminDto);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.email);
+      const result = await service.updateAdmin(dto);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
       expect(result.success).toBe(true);
     });
 
     it('should throw a not found exception whenever an invalid email is provided', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
-      await expect(service.updateAdmin(updateAdminDto)).rejects.toThrow(NotFoundException);
+      await expect(service.updateAdmin(dto)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update admin email', () => {
-    const updateAdminDto: UpdateAdminEmailDto = {
+    const dto: UpdateAdminEmailDto = {
       currentEmail: faker.internet.email(),
       newEmail: faker.internet.email(),
       password: faker.internet.password(),
@@ -223,12 +223,9 @@ describe('Admin Controller', () => {
       adminRepository.getAdminByEmail.mockResolvedValueOnce(adminResolvedFromMock);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
       adminRepository.updateAdminEmail.mockResolvedValue(adminResolvedFromMock);
-      const result = await service.updateAdminEmail(updateAdminDto);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.currentEmail);
-      expect(adminRepository.updateAdminEmail).toHaveBeenCalledWith(
-        updateAdminDto.currentEmail,
-        updateAdminDto.newEmail,
-      );
+      const result = await service.updateAdminEmail(dto);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.currentEmail);
+      expect(adminRepository.updateAdminEmail).toHaveBeenCalledWith(dto.currentEmail, dto.newEmail);
       expect(result.success).toBe(true);
       // expect(result.admin).toEqual(updatedAdmin);
     });
@@ -238,15 +235,15 @@ describe('Admin Controller', () => {
       adminRepository.getAdminByEmail.mockResolvedValueOnce(null);
       //mocks that current email isn't in the db
       adminRepository.getAdminByEmail.mockResolvedValueOnce(null);
-      await expect(service.updateAdminEmail(updateAdminDto)).rejects.toThrow(NotFoundException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.newEmail);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.currentEmail);
+      await expect(service.updateAdminEmail(dto)).rejects.toThrow(NotFoundException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.newEmail);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.currentEmail);
     });
 
     it('should throw a conflict exception when the new email provided already exists in the database', async () => {
       adminRepository.getAdminByEmail.mockResolvedValueOnce(adminResolvedFromMock);
-      await expect(service.updateAdminEmail(updateAdminDto)).rejects.toThrow(ConflictException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.newEmail);
+      await expect(service.updateAdminEmail(dto)).rejects.toThrow(ConflictException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.newEmail);
     });
 
     it('should throw a bad request exception for invalid passwords', async () => {
@@ -257,16 +254,16 @@ describe('Admin Controller', () => {
       adminRepository.getAdminByEmail.mockResolvedValueOnce(adminResolvedFromMock);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
 
-      await expect(service.updateAdminEmail(updateAdminDto)).rejects.toThrow(BadRequestException);
+      await expect(service.updateAdminEmail(dto)).rejects.toThrow(BadRequestException);
 
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.newEmail);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminDto.currentEmail);
-      expect(bcrypt.compare).toHaveBeenCalledWith(updateAdminDto.password, expect.any(String));
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.newEmail);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.currentEmail);
+      expect(bcrypt.compare).toHaveBeenCalledWith(dto.password, expect.any(String));
     });
   });
 
   describe('update admin password', () => {
-    const updateAdminPasswordDto: UpdateAdminPasswordDto = {
+    const dto: UpdateAdminPasswordDto = {
       currentPassword: faker.internet.password(),
       email: faker.internet.email(),
       newPassword: faker.internet.password(),
@@ -277,26 +274,18 @@ describe('Admin Controller', () => {
       (bcrypt.compare as jest.Mock) = bcryptCompare;
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       adminRepository.updateAdminPassword.mockResolvedValue(adminResolvedFromMock);
-      const result = await service.updateAdminPassword(updateAdminPasswordDto);
+      const result = await service.updateAdminPassword(dto);
 
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        updateAdminPasswordDto.currentPassword,
-        expect.any(String),
-      );
-      expect(adminRepository.updateAdminPassword).toHaveBeenCalledWith(
-        updateAdminPasswordDto.email,
-        updateAdminPasswordDto.newPassword,
-      );
+      expect(bcrypt.compare).toHaveBeenCalledWith(dto.currentPassword, expect.any(String));
+      expect(adminRepository.updateAdminPassword).toHaveBeenCalledWith(dto.email, dto.newPassword);
       expect(result.success).toBe(true);
       // expect(result.admin).toEqual(updatedAdmin);
     });
 
     it('should throw a not found exception when email does not exist', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
-      await expect(service.updateAdminPassword(updateAdminPasswordDto)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminPasswordDto.email);
+      await expect(service.updateAdminPassword(dto)).rejects.toThrow(NotFoundException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
     });
 
     it('should throw a bad request exception for invalid current password', async () => {
@@ -305,20 +294,15 @@ describe('Admin Controller', () => {
       // Mock that the email exists in the database
       adminRepository.getAdminByEmail.mockResolvedValueOnce(adminResolvedFromMock);
 
-      await expect(service.updateAdminPassword(updateAdminPasswordDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.updateAdminPassword(dto)).rejects.toThrow(BadRequestException);
 
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        updateAdminPasswordDto.currentPassword,
-        expect.any(String),
-      );
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(updateAdminPasswordDto.email);
+      expect(bcrypt.compare).toHaveBeenCalledWith(dto.currentPassword, expect.any(String));
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
     });
   });
 
   describe('get admin projects', () => {
-    const adminEmailDto: AdminEmailDto = {
+    const dto: AdminEmailDto = {
       email: faker.string.uuid(),
     };
     it('should successfully get admin projects', async () => {
@@ -338,10 +322,10 @@ describe('Admin Controller', () => {
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       adminRepository.getAdminProjects.mockResolvedValue(adminProjectsResolvedFromMock);
 
-      const result = await service.getAdminProjects(adminEmailDto);
+      const result = await service.getAdminProjects(dto);
 
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(adminEmailDto.email);
-      expect(adminRepository.getAdminProjects).toHaveBeenCalledWith(adminEmailDto.email);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
+      expect(adminRepository.getAdminProjects).toHaveBeenCalledWith(dto.email);
       expect(result.success).toBe(true);
       expect(result.adminProjects).toEqual(adminProjectsResolvedFromMock);
     });
@@ -349,23 +333,23 @@ describe('Admin Controller', () => {
     it('should throw a not found exception when admin does not exist', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
 
-      await expect(service.getAdminProjects(adminEmailDto)).rejects.toThrow(NotFoundException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(adminEmailDto.email);
+      await expect(service.getAdminProjects(dto)).rejects.toThrow(NotFoundException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
     });
   });
 
   describe('delete admin', () => {
-    const adminEmailDto: AdminEmailDto = {
+    const dto: AdminEmailDto = {
       email: faker.string.uuid(),
     };
     it('should successfully delete an admin', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(adminResolvedFromMock);
       adminRepository.deleteAdmin.mockResolvedValue(adminResolvedFromMock);
 
-      const result = await service.deleteAdmin(adminEmailDto);
+      const result = await service.deleteAdmin(dto);
 
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(adminEmailDto.email);
-      expect(adminRepository.deleteAdmin).toHaveBeenCalledWith(adminEmailDto.email);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
+      expect(adminRepository.deleteAdmin).toHaveBeenCalledWith(dto.email);
       expect(result.success).toBe(true);
       expect(result.admin).toEqual(adminResolvedFromMock);
     });
@@ -373,8 +357,8 @@ describe('Admin Controller', () => {
     it('should throw a not found exception when admin does not exist', async () => {
       adminRepository.getAdminByEmail.mockResolvedValue(null);
 
-      await expect(service.deleteAdmin(adminEmailDto)).rejects.toThrow(NotFoundException);
-      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(adminEmailDto.email);
+      await expect(service.deleteAdmin(dto)).rejects.toThrow(NotFoundException);
+      expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
     });
   });
 });

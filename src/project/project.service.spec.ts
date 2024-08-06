@@ -16,12 +16,7 @@ import {
   VerifyProjectApiKeysDto,
 } from './schema';
 import { faker } from '@faker-js/faker';
-import {
-  BadRequestException,
-  ConflictException,
-  HttpStatus,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 describe('ProjectService', () => {
@@ -181,7 +176,7 @@ describe('ProjectService', () => {
   });
 
   describe('create project', () => {
-    const createProjectDto: CreateProjectDto = {
+    const dto: CreateProjectDto = {
       adminId: faker.string.uuid(),
       name: faker.company.name(),
     };
@@ -191,7 +186,7 @@ describe('ProjectService', () => {
         hashedKey: faker.string.uuid(),
         key: faker.string.uuid(),
       });
-      const result = await projectService.createProject(createProjectDto);
+      const result = await projectService.createProject(dto);
       expect(generateKeySpy).toHaveBeenCalled();
       expect(result.success).toBe(true);
       expect(result.project).toBeDefined();
@@ -205,40 +200,33 @@ describe('ProjectService', () => {
           mockVal: 'mockVal',
         }),
       );
-      await expect(projectService.createProject(createProjectDto)).rejects.toThrow(
-        ConflictException,
-      );
-      expect(adminRepository.getAdminProjectByName).toHaveBeenCalledWith(
-        createProjectDto.adminId,
-        createProjectDto.name,
-      );
+      await expect(projectService.createProject(dto)).rejects.toThrow(ConflictException);
+      expect(adminRepository.getAdminProjectByName).toHaveBeenCalledWith(dto.adminId, dto.name);
     });
   });
 
   describe('update project name', () => {
-    const updateProjectNameDto: UpdateProjectNameDto = {
+    const dto: UpdateProjectNameDto = {
       name: faker.company.name(),
       projectId: faker.string.uuid(),
     };
 
     it("should successfully update a project's name", async () => {
-      const result = await projectService.updateProjectName(updateProjectNameDto);
-      expect(projectRepository.getProject).toHaveBeenCalledWith(updateProjectNameDto.projectId);
+      const result = await projectService.updateProjectName(dto);
+      expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(result.success).toBe(true);
       expect(result.project).toBeDefined();
     });
 
     it('should throw a not found error when a project with the provided details does not exist', async () => {
       projectRepository.getProject.mockResolvedValue(null);
-      await expect(projectService.updateProjectName(updateProjectNameDto)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(projectRepository.getProject).toHaveBeenCalledWith(updateProjectNameDto.projectId);
+      await expect(projectService.updateProjectName(dto)).rejects.toThrow(NotFoundException);
+      expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
     });
   });
 
   describe('verify project api keys', () => {
-    const verifyProjectApiKeysDto: VerifyProjectApiKeysDto = {
+    const dto: VerifyProjectApiKeysDto = {
       apiKey: faker.string.uuid(),
       clientKey: faker.string.uuid(),
     };
@@ -246,7 +234,7 @@ describe('ProjectService', () => {
     it("should successfullly verify a project's api keys", async () => {
       const bcryptCompare = jest.fn().mockResolvedValue(true);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
-      const result = await projectService.verifyProjectApiKeys(verifyProjectApiKeysDto);
+      const result = await projectService.verifyProjectApiKeys(dto);
       expect(result).toEqual(
         expect.objectContaining({
           success: true,
@@ -260,9 +248,7 @@ describe('ProjectService', () => {
         apiKey: '',
         projectId: '',
       });
-      await expect(projectService.verifyProjectApiKeys(verifyProjectApiKeysDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(projectService.verifyProjectApiKeys(dto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw a bad request exception when the api key provided does not match the api key in the DB', async () => {
@@ -272,9 +258,7 @@ describe('ProjectService', () => {
       });
       const bcryptCompare = jest.fn().mockResolvedValue(false);
       (bcrypt.compare as jest.Mock) = bcryptCompare;
-      await expect(projectService.verifyProjectApiKeys(verifyProjectApiKeysDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(projectService.verifyProjectApiKeys(dto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -421,7 +405,7 @@ describe('ProjectService', () => {
   });
 
   describe('Add user to project', () => {
-    const addUserToProjectDto: AddUserToProjectDto = {
+    const dto: AddUserToProjectDto = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       userId: faker.string.uuid(),
@@ -435,33 +419,29 @@ describe('ProjectService', () => {
         userProjects: [{ projectId: faker.string.uuid(), isVerified: true }],
       });
       projectRepository.getProject.mockResolvedValue(mockVal);
-      const result = await projectService.addUserToProject(addUserToProjectDto);
-      expect(userRepository.getUserById).toHaveBeenCalledWith(addUserToProjectDto.userId);
-      expect(projectRepository.getProject).toHaveBeenCalledWith(addUserToProjectDto.projectId);
+      const result = await projectService.addUserToProject(dto);
+      expect(userRepository.getUserById).toHaveBeenCalledWith(dto.userId);
+      expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(result.success).toBe(true);
       expect(result.userAddedToProject).toBeDefined();
     });
 
     it('should throw a not found exception when the user cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(null);
-      await expect(projectService.addUserToProject(addUserToProjectDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(projectService.addUserToProject(dto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw a not found exception when the project cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(mockVal);
       projectRepository.getProject.mockResolvedValue(null);
-      await expect(projectService.addUserToProject(addUserToProjectDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(projectService.addUserToProject(dto)).rejects.toThrow(NotFoundException);
     });
   });
 
   // @project.service.spec.ts
 
   describe('remove user from project', () => {
-    const removeUserFromProjectDto: RemoveUserFromProjectDto = {
+    const dto: RemoveUserFromProjectDto = {
       userId: faker.string.uuid(),
       projectId: faker.string.uuid(),
     };
@@ -469,11 +449,11 @@ describe('ProjectService', () => {
     it('should successfully remove a user from a project', async () => {
       projectRepository.getProject.mockResolvedValue(mockVal);
       projectRepository.deleteUserFromProject.mockResolvedValue(mockVal);
-      const result = await projectService.removeUserFromProject(removeUserFromProjectDto);
-      expect(projectRepository.getProject).toHaveBeenCalledWith(removeUserFromProjectDto.projectId);
+      const result = await projectService.removeUserFromProject(dto);
+      expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(projectRepository.deleteUserFromProject).toHaveBeenCalledWith(
-        removeUserFromProjectDto.userId,
-        removeUserFromProjectDto.projectId,
+        dto.userId,
+        dto.projectId,
       );
       expect(result.success).toBe(true);
       expect(result.user).toBeDefined();
@@ -481,22 +461,18 @@ describe('ProjectService', () => {
 
     it('should throw a not found exception when the user cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(null);
-      await expect(projectService.removeUserFromProject(removeUserFromProjectDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(projectService.removeUserFromProject(dto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw a not found exception when the project cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(mockVal);
       projectRepository.getProject.mockResolvedValue(null);
-      await expect(projectService.removeUserFromProject(removeUserFromProjectDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(projectService.removeUserFromProject(dto)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('assign user project role', () => {
-    const assignUserToProjectRoleDto: AssignUserToProjectRoleDto = {
+    const dto: AssignUserToProjectRoleDto = {
       userId: faker.string.uuid(),
       projectId: faker.string.uuid(),
       roleId: faker.string.uuid(),
@@ -505,14 +481,12 @@ describe('ProjectService', () => {
     it('should successfully assign a user to a project role', async () => {
       projectRepository.getProject.mockResolvedValue(mockVal);
       projectRepository.assignUserProjectRole.mockResolvedValue(mockVal);
-      const result = await projectService.assignUserProjectRole(assignUserToProjectRoleDto);
-      expect(projectRepository.getProject).toHaveBeenCalledWith(
-        assignUserToProjectRoleDto.projectId,
-      );
+      const result = await projectService.assignUserProjectRole(dto);
+      expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(projectRepository.assignUserProjectRole).toHaveBeenCalledWith(
-        assignUserToProjectRoleDto.userId,
-        assignUserToProjectRoleDto.projectId,
-        assignUserToProjectRoleDto.roleId,
+        dto.userId,
+        dto.projectId,
+        dto.roleId,
       );
       expect(result.success).toBe(true);
       expect(result.userAssignedARole).toBeDefined();
@@ -520,17 +494,13 @@ describe('ProjectService', () => {
 
     it('should throw a not found exception when the user cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(null);
-      await expect(
-        projectService.assignUserProjectRole(assignUserToProjectRoleDto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(projectService.assignUserProjectRole(dto)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw a not found exception when the project cannot be found', async () => {
       userRepository.getUserById.mockResolvedValue(mockVal);
       projectRepository.getProject.mockResolvedValue(null);
-      await expect(
-        projectService.assignUserProjectRole(assignUserToProjectRoleDto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(projectService.assignUserProjectRole(dto)).rejects.toThrow(NotFoundException);
     });
   });
 });
