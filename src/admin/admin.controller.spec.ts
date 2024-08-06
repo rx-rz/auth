@@ -13,7 +13,6 @@ import {
   UpdateAdminPasswordDto,
 } from './schema';
 import { faker } from '@faker-js/faker';
-
 describe('Admin Controller', () => {
   let adminController: AdminController;
   let adminService: AdminService;
@@ -86,8 +85,11 @@ describe('Admin Controller', () => {
   //     email: faker.internet.email(),
   //     password: faker.internet.password(),
   //   };
+  //   const response = {
+  //     cookie: jest.fn(),
+  //   } as unknown as jest.Mocked<Response>;
   //   it('should log in an admin successfully', async () => {
-  //     await expect(adminController.loginAdmin(loginAdminDto)).resolves.toEqual(
+  //     await expect(adminController.loginAdmin(loginAdminDto, response)).resolves.toEqual(
   //       expect.objectContaining({
   //         success: true,
   //         admin: expect.any(Object),

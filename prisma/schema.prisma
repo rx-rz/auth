@@ -194,9 +194,9 @@ model RefreshToken {
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
   authMethod AuthMethod @default(EMAIL_AND_PASSWORD_SIGNIN)
-  user       User?      @relation(fields: [userId], references: [id])
-  admin      Admin?     @relation(fields: [adminId], references: [id])
-  project    Project?   @relation(fields: [projectId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  admin      Admin?     @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project    Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("refresh_tokens")
 }
@@ -211,7 +211,7 @@ model AdminNotification {
 
   createdAt DateTime                  @default(now()) @map("created_at")
   updatedAt DateTime                  @updatedAt @map("updated_at")
-  admin     Admin                     @relation(fields: [adminId], references: [id])
+  admin     Admin                     @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   severity  AdminNotificationSeverity
   type      AdminNotificationType
 
@@ -222,7 +222,7 @@ model AdminNotification {
 model WebAuthnCredential {
   id           String   @id @unique() @default(cuid())
   adminId      String
-  admin        Admin    @relation(fields: [adminId], references: [id])
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   credentialId String   @unique
   publicKey    Bytes
   counter      BigInt
@@ -242,8 +242,8 @@ model Login {
   status        LoginStatus
   failureReason String?     @map("failure_reason")
   createdAt     DateTime    @default(now()) @map("created_at")
-  user          User        @relation(fields: [userId], references: [id])
-  project       Project     @relation(fields: [projectId], references: [id])
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("login")
 }

@@ -55,12 +55,12 @@ export class AdminService {
     return passwordsMatch;
   }
 
-  async registerAdmin(data: RegisterAdminDto) {
-    const admin = await this.adminRepository.getAdminByEmail(data.email);
+  async registerAdmin(dto: RegisterAdminDto) {
+    const admin = await this.adminRepository.getAdminByEmail(dto.email);
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
-      ...data,
-      password: await hashValue(data.password),
+      ...dto,
+      password: await hashValue(dto.password),
       mfaEnabled: false,
       isVerified: false,
     });
@@ -91,6 +91,7 @@ export class AdminService {
       await generateHashedRefreshToken(),
     ];
 
+    // emit event to save the refresh token instance in the DB
     await this.emitter.emit('refresh-token.created', {
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
