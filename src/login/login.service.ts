@@ -14,7 +14,7 @@ export class LoginService {
     if (!login) throw new NotFoundException('Login instance not found');
   }
 
-  @OnEvent('user.login')
+  @OnEvent('login.create-login-instance')
   @UsePipes(new ZodPipe(CreateLoginInstanceSchema))
   async createLoginInstance(body: CreateLoginInstanceDto) {
     const login = await this.loginRepository.createLoginInstance(body);

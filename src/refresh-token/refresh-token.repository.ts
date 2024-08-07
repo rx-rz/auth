@@ -7,11 +7,12 @@ export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async storeRefreshToken(data: Prisma.RefreshTokenCreateInput) {
-    await this.prisma.refreshToken.create({
+    const refreshToken = await this.prisma.refreshToken.create({
       data: {
         ...data,
       },
     });
+    return refreshToken;
   }
 
   async getRefreshToken(id: string) {
@@ -28,10 +29,7 @@ export class RefreshTokenRepository {
     return refreshTokens;
   }
 
-  async getAdminRefreshTokens(
-    email: string,
-    args?: Prisma.RefreshTokenFindManyArgs,
-  ) {
+  async getAdminRefreshTokens(email: string, args?: Prisma.RefreshTokenFindManyArgs) {
     const adminRefreshTokens = await this.prisma.refreshToken.findMany({
       ...args,
       include: { admin: { where: { email } } },
@@ -39,10 +37,7 @@ export class RefreshTokenRepository {
     return adminRefreshTokens;
   }
 
-  async getUserRefreshTokens(
-    email: string,
-    args?: Prisma.RefreshTokenFindManyArgs,
-  ) {
+  async getUserRefreshTokens(email: string, args?: Prisma.RefreshTokenFindManyArgs) {
     const userRefreshTokens = this.prisma.refreshToken.findMany({
       ...args,
       include: { user: { where: { email } } },

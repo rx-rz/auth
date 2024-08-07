@@ -11,6 +11,8 @@ export class RefreshTokenService {
   @CatchEmitterErrors()
   @OnEvent('refresh-token.created')
   async storeOrUpdateRefreshToken(data: StoreRefreshTokenDto) {
-    await this.refreshTokenRepository.storeRefreshToken(data);
+    console.log({ msg: 'here!' });
+    const refreshToken = await this.refreshTokenRepository.storeRefreshToken(data);
+    console.log(refreshToken);
   }
 }
