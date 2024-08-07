@@ -8,11 +8,9 @@ import { StoreRefreshTokenDto } from './schema';
 export class RefreshTokenService {
   constructor(private readonly refreshTokenRepository: RefreshTokenRepository) {}
 
-  @CatchEmitterErrors()
   @OnEvent('refresh-token.created')
+  @CatchEmitterErrors()
   async storeOrUpdateRefreshToken(data: StoreRefreshTokenDto) {
-    console.log({ msg: 'here!' });
-    const refreshToken = await this.refreshTokenRepository.storeRefreshToken(data);
-    console.log(refreshToken);
+    const a = await this.refreshTokenRepository.storeRefreshToken(data);
   }
 }

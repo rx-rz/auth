@@ -18,7 +18,7 @@ import { faker } from '@faker-js/faker';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
-describe('Admin Controller', () => {
+describe('Admin Service', () => {
   let service: AdminService;
   let adminRepository: jest.Mocked<AdminRepository>;
   let appEventEmitter: jest.Mocked<AppEventEmitter>;
@@ -153,7 +153,6 @@ describe('Admin Controller', () => {
       jwtService.signAsync.mockResolvedValue('mockAccessToken');
       configService.get.mockReturnValue('JWT_ACCESS_SECRET');
       const result = await service.loginAdmin(dto);
-
       expect(adminRepository.getAdminPassword).toHaveBeenCalledWith(dto.email);
       expect(adminRepository.getAdminByEmail).toHaveBeenCalledWith(dto.email);
       expect(jwtService.signAsync).toHaveBeenCalled();

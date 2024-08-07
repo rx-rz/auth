@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { UserRepository } from './user.repository';
+import { ProjectRepository } from 'src/project/project.repository';
 
 describe('UserService', () => {
   let userService: UserService;
@@ -9,6 +10,10 @@ describe('UserService', () => {
 
   const mockAppEventEmitter = {
     emit: jest.fn(),
+  };
+
+  const mockProjectRepository = {
+    getProject: jest.fn(),
   };
 
   const mockUserRepository = {
@@ -37,11 +42,14 @@ describe('UserService', () => {
           provide: UserRepository,
           useValue: mockUserRepository,
         },
+        {
+          provide: ProjectRepository,
+          useValue: mockProjectRepository,
+        },
       ],
     }).compile();
 
     userService = module.get<UserService>(UserService);
-    userRepository = module.get(UserRepository);
   });
 
   it('should be defined', () => {

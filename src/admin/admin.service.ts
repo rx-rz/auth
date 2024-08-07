@@ -99,7 +99,6 @@ export class AdminService {
       userId: 'aa',
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
-    await this.emitter.emit('login.create-login-instance', {});
     return { success: true, accessToken, refreshToken };
   }
 

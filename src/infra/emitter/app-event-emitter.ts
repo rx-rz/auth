@@ -1,21 +1,25 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client/runtime/library';
+import { EventEmitter2 } from 'eventemitter2';
 
 @Injectable()
 export class AppEventEmitter {
   constructor(private readonly eventEmitter: EventEmitter2) {}
-  async emit<T>(event: string, data: T): Promise<void> {
-    try {
-      const results = await this.eventEmitter.emitAsync(event, data);
-      for (let i of results) {
-        if (i instanceof HttpException) {
-          console.log(i);
-          throw i;
-        }
+
+  async emit<T>(event: string, data: T, isSubFunc?: boolean) {
+    const results = await this.eventEmitter.emitAsync(event, data);
+    for (let i of results) {
+      console.log(i);
+      if (
+        i instanceof HttpException ||
+        i instanceof PrismaClientKnownRequestError ||
+        i instanceof PrismaClientUnknownRequestError
+      ) {
+        throw i;
       }
-    } catch (error) {
-      console.log(error);
-      throw error;
     }
   }
 }

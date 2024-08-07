@@ -71,10 +71,7 @@ export class RoleBasedAccessControlRepository {
     return permission;
   }
 
-  async updatePermission(
-    permissionId: string,
-    data: Prisma.PermissionUpdateInput,
-  ) {
+  async updatePermission(permissionId: string, data: Prisma.PermissionUpdateInput) {
     const permission = await this.prisma.permission.update({
       select: {
         id: true,

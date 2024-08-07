@@ -8,7 +8,6 @@ async function bootstrap() {
   app.setGlobalPrefix('/api/v1');
   app.use(helmet());
   app.use(cookieParser());
-  app.useGlobalFilters(new CentralizedExceptionFilter());
   await app.listen(3000);
 }
 bootstrap();

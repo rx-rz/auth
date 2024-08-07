@@ -39,71 +39,71 @@ export class ProjectController {
   @Post(PROJECT_ROUTES.CREATE)
   @UsePipes(new ZodPipe(CreateProjectSchema))
   @UseGuards(AdminGuard)
-  async createProject(@Body() data: CreateProjectDto) {
-    return this.projectService.createProject(data);
+  async createProject(@Body() body: CreateProjectDto) {
+    return this.projectService.createProject(body);
   }
 
   @Put(PROJECT_ROUTES.UPDATE_PROJECT_NAME)
   @UsePipes(new ZodPipe(UpdateProjectNameSchema))
   @UseGuards(AdminGuard)
-  async updateProjectName(@Body() data: UpdateProjectNameDto) {
-    return this.projectService.updateProjectName(data);
+  async updateProjectName(@Body() body: UpdateProjectNameDto) {
+    return this.projectService.updateProjectName(body);
   }
 
   @Get(PROJECT_ROUTES.GET_KEYS)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
-  async getProjectApiKey(@Query() data: IdDto) {
-    return this.projectService.getProjectKeys(data);
+  async getProjectApiKey(@Query() query: IdDto) {
+    return this.projectService.getProjectKeys(query);
   }
 
   @Get(PROJECT_ROUTES.GET_PROJECT)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
-  async getProject(@Query() data: IdDto) {
-    return this.projectService.getProjectDetails(data);
+  async getProject(@Query() query: IdDto) {
+    return this.projectService.getProjectDetails(query);
   }
 
   @Get(PROJECT_ROUTES.GET_MAGIC_LINKS)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
-  async getProjectMagicLinks(@Query() data: IdDto) {
-    return this.projectService.getProjectMagicLinks(data);
+  async getProjectMagicLinks(@Query() query: IdDto) {
+    return this.projectService.getProjectMagicLinks(query);
   }
 
   @Get(PROJECT_ROUTES.GET_REFRESH_TOKENS)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
-  async getProjectRefreshTokens(@Query() data: IdDto) {
-    return this.projectService.getProjectRefreshTokens(data);
+  async getProjectRefreshTokens(@Query() query: IdDto) {
+    return this.projectService.getProjectRefreshTokens(query);
   }
 
   @Get(PROJECT_ROUTES.GET_ALL_BY_ADMIN)
   @UsePipes(new ZodPipe(AdminIdSchema))
   @UseGuards(AdminGuard)
-  async getAllProjectsCreatedByAdmin(@Query() data: AdminIdDto) {
-    return this.projectService.getAllProjectsCreatedByAdmin(data);
+  async getAllProjectsCreatedByAdmin(@Query() query: AdminIdDto) {
+    return this.projectService.getAllProjectsCreatedByAdmin(query);
   }
 
   @Delete(PROJECT_ROUTES.DELETE)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
-  async deleteProject(@Query() data: IdDto) {
-    return this.projectService.deleteProject(data);
+  async deleteProject(@Query() query: IdDto) {
+    return this.projectService.deleteProject(query);
   }
 
   @Post(PROJECT_ROUTES.ADD_USER_TO_PROJECT)
   @UsePipes(new ZodPipe(AddUserToProjectSchema))
   @UseGuards(AdminGuard)
-  async addUserToProject(@Body() data: AddUserToProjectDto) {
-    return this.projectService.addUserToProject(data);
+  async addUserToProject(@Body() body: AddUserToProjectDto) {
+    return this.projectService.addUserToProject(body);
   }
 
   @Delete(PROJECT_ROUTES.REMOVE_USER_FROM_PROJECT)
   @UsePipes(new ZodPipe(RemoveUserFromProjectSchema))
   @UseGuards(AdminGuard)
-  async removeUserFromProject(@Body() data: RemoveUserFromProjectDto) {
-    return this.projectService.removeUserFromProject(data);
+  async removeUserFromProject(@Body() body: RemoveUserFromProjectDto) {
+    return this.projectService.removeUserFromProject(body);
   }
 
   // @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)

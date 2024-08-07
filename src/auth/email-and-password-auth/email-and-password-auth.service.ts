@@ -5,6 +5,7 @@ import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-
 import { generateAccessToken } from 'src/utils/helper-functions/generate-access-token';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { LoginWithEmailAndPasswordDto, RegisterWithEmailAndPasswordDto } from './schema';
+import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class EmailAndPasswordAuthService {
@@ -35,8 +36,12 @@ export class EmailAndPasswordAuthService {
     return true;
   }
 
+  @CatchEmitterErrors()
   async registerWithEmailAndPassword(dto: RegisterWithEmailAndPasswordDto) {
-    await this.emitter.emit('user-create.email-password', dto);
+    const err = await this.emitter.emit('user-create.email-password', dto);
+    if (typeof err !== 'undefined') {
+      throw err;
+    }
     return { success: true, message: 'User registered successfully' };
   }
 

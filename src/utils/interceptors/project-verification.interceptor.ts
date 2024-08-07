@@ -34,7 +34,6 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
       );
     const { projectId } = await this.projectService.verifyProjectApiKeys({ apiKey, clientKey });
     if (!projectId) throw new BadRequestException('Invalid project credentials provided.');
-
     if (request.method !== 'GET') {
       request.body.projectId = projectId;
       request.query.projectId = projectId;

@@ -1,16 +1,16 @@
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client/runtime/library';
 import { Response } from 'express';
 
-@Catch()
+@Catch(HttpException, PrismaClientKnownRequestError, PrismaClientUnknownRequestError)
 export class CentralizedExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
+    console.log(exception);
     const ctx = host.switchToHttp();
+
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -21,7 +21,6 @@ export class CentralizedExceptionFilter implements ExceptionFilter {
       console.log(exception);
       message = exception.getResponse();
     } else if (exception instanceof Error) {
-      console.log(exception);
       message = exception.message;
     }
     response.status(status).json({

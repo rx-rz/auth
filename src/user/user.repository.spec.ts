@@ -3,6 +3,7 @@ import { UserRepository } from './user.repository';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import { CreateUserDto } from './schema';
 
 describe('UserRepository', () => {
   let userRepository: UserRepository;
@@ -43,8 +44,12 @@ describe('UserRepository', () => {
 
   describe('createUser', () => {
     it('should create a user', async () => {
-      const mockUserData: Prisma.UserCreateInput = {
+      const mockUserData: CreateUserDto = {
         email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        projectId: faker.string.uuid(),
+        password: faker.internet.password(),
       };
       const mockCreatedUser = {
         ...mockUserData,
@@ -53,18 +58,24 @@ describe('UserRepository', () => {
       };
       (prismaService.user.create as jest.Mock).mockResolvedValue(mockCreatedUser);
       const result = await userRepository.createUser(mockUserData);
+      expect(prismaService.$transaction).toHaveBeenCalledWith(expect.any(Function));
       expect(prismaService.user.create).toHaveBeenCalledWith({
-        data: mockUserData,
+        data: { email: mockUserData.email },
         select: {
           email: true,
-          createdAt: true,
           id: true,
         },
       });
-      expect(result).toEqual(mockCreatedUser);
+      expect(prismaService.userProject.create).toHaveBeenCalledWith({
+        data: {
+          firstName: mockUserData.firstName,
+          lastName: mockUserData.lastName,
+          projectId: mockUserData.projectId,
+          userId: mockCreatedUser.id,
+        },
+      });
     });
   });
-
   describe('updateUserDetails', () => {
     it('should update user details', async () => {
       const mockUserId = faker.string.uuid();

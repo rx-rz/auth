@@ -1,20 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
+import { CreateUserDto } from './schema';
 
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(data: Prisma.UserCreateInput) {
-    console.log(data);
-    const user = await this.prisma.user.create({
-      data: { email: data.email },
-      select: {
-        email: true,
-        createdAt: true,
-        id: true,
-      },
+  async createUser(data: CreateUserDto) {
+    const user = await this.prisma.$transaction(async (prisma) => {
+      const userCreated = await prisma.user.create({
+        data: { email: data.email },
+        select: {
+          email: true,
+          id: true,
+        },
+      });
+
+      console.log(userCreated, data.projectId);
+      // assign user to specified project.
+
+      const a = await prisma.userProject.create({
+        data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          projectId: data.projectId,
+          userId: userCreated.id,
+        },
+        select: {
+          firstName: true,
+        },
+      });
+      console.log(a);
+      return userCreated;
     });
     return user;
   }
