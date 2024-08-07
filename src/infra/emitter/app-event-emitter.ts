@@ -9,7 +9,7 @@ import { EventEmitter2 } from 'eventemitter2';
 export class AppEventEmitter {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
-  async emit<T>(event: string, data: T, isSubFunc?: boolean) {
+  async emit<T>(event: string, data: T) {
     const results = await this.eventEmitter.emitAsync(event, data);
     for (let i of results) {
       console.log(i);
