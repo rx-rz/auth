@@ -57,7 +57,7 @@ describe('UserRepository', () => {
         createdAt: new Date(),
       };
       (prismaService.user.create as jest.Mock).mockResolvedValue(mockCreatedUser);
-      const result = await userRepository.createUser(mockUserData);
+      await userRepository.createUser(mockUserData);
       expect(prismaService.$transaction).toHaveBeenCalledWith(expect.any(Function));
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: { email: mockUserData.email },
@@ -72,6 +72,10 @@ describe('UserRepository', () => {
           lastName: mockUserData.lastName,
           projectId: mockUserData.projectId,
           userId: mockCreatedUser.id,
+          password: mockCreatedUser.password,
+        },
+        select: {
+          firstName: true,
         },
       });
     });
@@ -309,16 +313,8 @@ describe('UserRepository', () => {
       const mockUserProject = {
         password: faker.internet.password(),
       };
-      (prismaService.userProject.findMany as jest.Mock).mockResolvedValue([mockUserProject]);
       (prismaService.userProject.findFirst as jest.Mock).mockResolvedValue(mockUserProject);
       const result = await userRepository.getUserPassword(mockEmail, mockProjectId);
-      expect(prismaService.userProject.findMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            email: mockEmail,
-          },
-        },
-      });
       expect(prismaService.userProject.findFirst).toHaveBeenCalledWith({
         where: {
           user: {

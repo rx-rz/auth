@@ -16,7 +16,7 @@ export class UserRepository {
           id: true,
         },
       });
-      const a = await prisma.userProject.create({
+      await prisma.userProject.create({
         data: {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -28,8 +28,6 @@ export class UserRepository {
           firstName: true,
         },
       });
-      console.log(a);
-      return userCreated;
     });
     return user;
   }
@@ -129,7 +127,6 @@ export class UserRepository {
         },
       },
     });
-    console.log({ user });
     return user;
   }
 
@@ -179,7 +176,6 @@ export class UserRepository {
   }
 
   async updateUserPassword(userId: string, projectId: string, newPassword: string) {
-    console.log('here!', newPassword);
     const user = await this.prisma.userProject.update({
       where: {
         userId_projectId: {
@@ -189,7 +185,6 @@ export class UserRepository {
       },
       data: { password: newPassword },
       select: {
-        password: true,
         user: {
           select: {
             email: true,
