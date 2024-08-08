@@ -8,9 +8,7 @@ import { Response } from 'express';
 @Catch(HttpException, PrismaClientKnownRequestError, PrismaClientUnknownRequestError)
 export class CentralizedExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    console.log(exception);
     const ctx = host.switchToHttp();
-
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -18,7 +16,6 @@ export class CentralizedExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      console.log(exception);
       message = exception.getResponse();
     } else if (exception instanceof Error) {
       message = exception.message;

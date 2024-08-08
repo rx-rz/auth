@@ -20,7 +20,7 @@ type User = {
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {

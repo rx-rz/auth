@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
+import { CreateUserDto } from 'src/user/schema';
+import { AddUserToProjectDto } from './schema';
 
 @Injectable()
 export class ProjectRepository {
@@ -160,21 +162,9 @@ export class ProjectRepository {
     return deletedProject;
   }
 
-  async addUserToProject(
-    firstName: string,
-    lastName: string,
-    userId: string,
-    projectId: string,
-    password?: string,
-  ) {
+  async addUserToProject(data: AddUserToProjectDto) {
     const user = await this.prisma.userProject.create({
-      data: {
-        firstName,
-        lastName,
-        userId,
-        projectId,
-        password,
-      },
+      data,
       select: {
         firstName: true,
         lastName: true,

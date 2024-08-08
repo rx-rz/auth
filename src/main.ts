@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { CentralizedExceptionFilter } from './utils/exceptions/centralized-exception-filter';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 async function bootstrap() {

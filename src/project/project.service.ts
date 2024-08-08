@@ -147,13 +147,13 @@ export class ProjectService {
   }: AddUserToProjectDto) {
     await this.checkIfUserExists(userId);
     await this.checkIfProjectExists(projectId);
-    const userAddedToProject = await this.projectRepository.addUserToProject(
+    const userAddedToProject = await this.projectRepository.addUserToProject({
       firstName,
       lastName,
       userId,
       projectId,
       password,
-    );
+    });
     return { success: true, userAddedToProject };
   }
 

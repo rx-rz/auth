@@ -26,7 +26,6 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly projectRepository: ProjectRepository,
-    private readonly emitter: AppEventEmitter,
   ) {}
 
   private async checkIfUserExists(userId: string) {
@@ -57,14 +56,22 @@ export class UserService {
   @OnEvent('user-create.email-password')
   @CatchEmitterErrors()
   async createUser({ email, firstName, lastName, password, projectId }: CreateUserDto) {
-    console.log('here!');
     const existingUser = await this.userRepository.getUserByEmail(email);
     const project = await this.projectRepository.getProject(projectId);
-    console.log({ project, existingUser });
     if (!project) throw new NotFoundException('Project with provided ID does not exist');
+
     const userIsAssignedToProject = await this.checkIfUserIsAssignedToProject(email, projectId);
     if (existingUser && userIsAssignedToProject) {
       throw new ConflictException('User is already assigned to this project.');
+    }
+    if (existingUser && !userIsAssignedToProject) {
+      await this.projectRepository.addUserToProject({
+        firstName,
+        lastName,
+        password,
+        projectId,
+        userId: existingUser.id,
+      });
     }
     if (!existingUser) {
       await this.userRepository.createUser({

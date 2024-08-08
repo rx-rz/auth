@@ -371,13 +371,8 @@ describe('ProjectService', () => {
       });
 
       projectRepository.deleteProject.mockResolvedValue({
-        adminId: faker.string.uuid(),
         name: faker.company.name(),
         id: faker.string.uuid(),
-        apiKey: faker.string.uuid(),
-        clientKey: faker.string.uuid(),
-        updatedAt: faker.date.anytime(),
-        createdAt: faker.date.past(),
       });
       const result = await projectService.deleteProject({ projectId });
       expect(projectRepository.getProject).toHaveBeenCalledWith(projectId);

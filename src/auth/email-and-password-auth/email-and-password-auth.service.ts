@@ -38,10 +38,7 @@ export class EmailAndPasswordAuthService {
 
   @CatchEmitterErrors()
   async registerWithEmailAndPassword(dto: RegisterWithEmailAndPasswordDto) {
-    const err = await this.emitter.emit('user-create.email-password', dto);
-    if (typeof err !== 'undefined') {
-      throw err;
-    }
+    await this.emitter.emit('user-create.email-password', dto);
     return { success: true, message: 'User registered successfully' };
   }
 

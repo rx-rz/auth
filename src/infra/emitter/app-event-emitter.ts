@@ -12,7 +12,6 @@ export class AppEventEmitter {
   async emit<T>(event: string, data: T) {
     const results = await this.eventEmitter.emitAsync(event, data);
     for (let i of results) {
-      console.log(i);
       if (
         i instanceof HttpException ||
         i instanceof PrismaClientKnownRequestError ||
