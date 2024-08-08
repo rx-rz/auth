@@ -35,7 +35,7 @@ export const PROJECT_ROUTES = {
 export const USER_ROUTES = {
   BASE: 'user',
   CREATE: 'create',
-  UPDATE_USER_PROJECT_DETAILS: 'update-user-project-details',
+  UPDATE_USER_PROJECT_DETAILS: 'update-project-details',
   UPDATE_PASSWORD: 'update-password',
   UPDATE_EMAIL: 'update-email',
   GET_DETAILS: 'get-details',
@@ -49,9 +49,17 @@ export const ROLE_ROUTES = {
   BASE: 'role',
   CREATE_ROLE: 'create-role',
   GET_ROLE: 'get-details',
-  GET_ROLE_PERMISSIONS: 'get-role-permissions',
   UPDATE_ROLE_NAME: 'update-role-name',
   DELETE_ROLE: 'delete',
+};
+
+export const PERMISSION_ROUTES = {
+  BASE: 'permission',
+  CREATE_PERMISSION: 'create-permission',
+  ASSIGN_TO_ROLE: 'assign-to-role',
+  GET_DETAILS: 'get-details',
+  UPDATE_PERMISSION: 'update-permission',
+  DELETE_PERMISSION: 'delete',
 };
 
 type RouteObject =

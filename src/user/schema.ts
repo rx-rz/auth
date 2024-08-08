@@ -8,6 +8,7 @@ export const CreateUserSchema = z.object({
     .max(255, 'Email must be at most 255 characters'),
   password: z.string().optional(),
   projectId: z.string().min(1, 'Project ID is required'),
+  roleId: z.string().optional(),
   firstName: z
     .string()
     .min(6, 'First name must be at least 6 characters')
@@ -50,9 +51,7 @@ export const GetUserProjectDetailsSchema = z.object({
   projectId: z.string().min(1, 'Project ID is required'),
 });
 
-export type GetUserProjectDetailsDto = z.infer<
-  typeof GetUserProjectDetailsSchema
->;
+export type GetUserProjectDetailsDto = z.infer<typeof GetUserProjectDetailsSchema>;
 
 export const UpdateUserSchema = z.object({
   firstName: z

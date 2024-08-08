@@ -17,13 +17,24 @@ export class UserRepository {
         },
       });
       await prisma.userProject.create({
-        data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          projectId: data.projectId,
-          userId: userCreated.id,
-          password: data.password,
-        },
+        // if a role id is specified during user creation
+        // assign user a role immediately
+        data: data.roleId
+          ? {
+              firstName: data.firstName,
+              lastName: data.lastName,
+              projectId: data.projectId,
+              userId: userCreated.id,
+              roleId: data.roleId,
+              password: data.password,
+            }
+          : {
+              firstName: data.firstName,
+              lastName: data.lastName,
+              projectId: data.projectId,
+              userId: userCreated.id,
+              password: data.password,
+            },
         select: {
           firstName: true,
         },

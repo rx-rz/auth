@@ -30,15 +30,9 @@ export class RoleService {
     return { success: true, role };
   }
 
-  async getRolePermissions({ roleId }: RoleIdDto) {
+  async updateRoleName({ name, roleId }: UpdateRoleNameDto) {
     await this.checkIfRoleExists(roleId);
-    const rolePermissions = await this.rbacRepository.getRolePermissions(roleId);
-    return { success: true, rolePermissions };
-  }
-
-  async updateRoleName({ newName, roleId }: UpdateRoleNameDto) {
-    await this.checkIfRoleExists(roleId);
-    const role = await this.rbacRepository.updateRoleName(roleId, newName);
+    const role = await this.rbacRepository.updateRoleName(roleId, name);
     return { success: true, role };
   }
 

@@ -41,22 +41,7 @@ export class RoleBasedAccessControlRepository {
     return assignedPermission;
   }
 
-  async getRolePermissions(roleId: string) {
-    const rolePermissions = await this.prisma.rolePermission.findMany({
-      select: {
-        role: {
-          select: { name: true },
-        },
-        permission: {
-          select: { description: true, name: true, id: true },
-        },
-      },
-      where: { roleId },
-    });
-    return rolePermissions;
-  }
-
-  async getSpecificPermission(permissionId: string) {
+  async getPermissionDetails(permissionId: string) {
     const permission = await this.prisma.permission.findUnique({
       select: {
         id: true,
@@ -87,10 +72,10 @@ export class RoleBasedAccessControlRepository {
     return permission;
   }
 
-  async updateRoleName(roleId: string, newName: string) {
+  async updateRoleName(roleId: string, name: string) {
     const role = await this.prisma.role.update({
       where: { id: roleId },
-      data: { name: newName },
+      data: { name },
     });
     return role;
   }
@@ -117,14 +102,19 @@ export class RoleBasedAccessControlRepository {
 
   async deleteRole(roleId: string) {
     let role;
-    const a = await this.prisma.$transaction(async (prisma) => {
-      await this.prisma.rolePermission.deleteMany({
+    await this.prisma.$transaction(async (prisma) => {
+      const rolePermissions = await prisma.rolePermission.findMany({
         where: { roleId },
       });
-      await this.prisma.permission.delete({
-        where: { id: roleId },
-      });
-      role = await this.prisma.role.delete({
+      if (rolePermissions && rolePermissions.length > 0) {
+        await prisma.rolePermission.deleteMany({
+          where: { roleId },
+        });
+        await prisma.permission.delete({
+          where: { id: roleId },
+        });
+      }
+      role = await prisma.role.delete({
         where: { id: roleId },
         select: {
           id: true,
@@ -138,9 +128,14 @@ export class RoleBasedAccessControlRepository {
   async deletePermission(permissionId: string) {
     let permission;
     await this.prisma.$transaction(async (prisma) => {
-      await prisma.rolePermission.deleteMany({
+      const rolePermissions = await prisma.rolePermission.findMany({
         where: { permissionId },
       });
+      if (rolePermissions && rolePermissions.length > 0) {
+        await prisma.rolePermission.deleteMany({
+          where: { permissionId },
+        });
+      }
       permission = await prisma.permission.delete({
         where: { id: permissionId },
       });

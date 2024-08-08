@@ -16,7 +16,7 @@ export const RoleIDSchema = z.object({
 export type RoleIdDto = z.infer<typeof RoleIDSchema>;
 
 export const UpdateRoleNameSchema = z.object({
-  newName: z
+  name: z
     .string({ required_error: 'Role name is required' })
     .max(50, 'Role name cannot be longer than 255 characters'),
   roleId: z.string({ required_error: 'Role ID is required' }),
