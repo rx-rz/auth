@@ -16,16 +16,13 @@ export class UserRepository {
           id: true,
         },
       });
-
-      console.log(userCreated, data.projectId);
-      // assign user to specified project.
-
       const a = await prisma.userProject.create({
         data: {
           firstName: data.firstName,
           lastName: data.lastName,
           projectId: data.projectId,
           userId: userCreated.id,
+          password: data.password,
         },
         select: {
           firstName: true,
@@ -168,7 +165,6 @@ export class UserRepository {
   }
 
   async getUserPassword(email: string, projectId: string) {
-    await this.prisma.userProject.findMany({ where: { user: { email } } });
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
@@ -181,6 +177,7 @@ export class UserRepository {
   }
 
   async updateUserPassword(userId: string, projectId: string, newPassword: string) {
+    console.log('here!', newPassword);
     const user = await this.prisma.userProject.update({
       where: {
         userId_projectId: {
@@ -190,6 +187,7 @@ export class UserRepository {
       },
       data: { password: newPassword },
       select: {
+        password: true,
         user: {
           select: {
             email: true,

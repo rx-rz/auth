@@ -6,19 +6,14 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
 import { ProjectService } from 'src/project/project.service';
 
 export const VerifyProject = Reflector.createDecorator();
-type User = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  id: string;
-  role: 'admin' | 'user';
-  mfaEnabled: boolean;
-};
+// decorator meant to protect routes meant for users alone
+// e.g update password
+export const UserOnly = Reflector.createDecorator();
+
 @Injectable()
 export class ProjectVerificationInterceptor implements NestInterceptor {
   constructor(
@@ -41,6 +36,7 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     const apiKey = request.headers['x-api-key'];
     const clientKey = request.headers['x-client-key'];
     const { role } = this.decodeUserToken(request.headers.authorization);
+
     // api key verification is meant for users who will access the endpoints
     // from an external app. admins will use MFA to authenticate requests in
     // the custom auth management app frontend.
@@ -62,3 +58,12 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     return next.handle();
   }
 }
+
+type User = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  id: string;
+  role: 'admin' | 'user';
+  mfaEnabled: boolean;
+};

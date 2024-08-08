@@ -109,6 +109,7 @@ export class UserService {
     return { success: true, user };
   }
 
+  //TODO: update user password doesn't update??
   async updateUserPassword({
     currentPassword,
     email,
@@ -118,11 +119,8 @@ export class UserService {
   }: UpdateUserPasswordDto) {
     await this.checkIfUserWithEmailExists(email);
     await this.checkIfPasswordsMatch(email, currentPassword, projectId);
-    const user = await this.userRepository.updateUserPassword(
-      userId,
-      projectId,
-      await hashValue(newPassword),
-    );
+    const password = await hashValue(newPassword);
+    const { user } = await this.userRepository.updateUserPassword(userId, projectId, password);
     return { success: true, user };
   }
 

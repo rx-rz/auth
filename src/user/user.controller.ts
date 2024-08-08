@@ -31,8 +31,8 @@ export class UserController {
   @VerifyProject()
   @Get(USER_ROUTES.GET_USER_PROJECT_DETAILS)
   @UsePipes(new ZodPipe(GetUserProjectDetailsSchema))
-  async getUserProjectDetails(@Body() body: UserIDProjectIDDto) {
-    return this.userService.getUserProjectDetails(body);
+  async getUserProjectDetails(@Query() query: UserIDProjectIDDto) {
+    return this.userService.getUserProjectDetails(query);
   }
 
   @VerifyProject()
