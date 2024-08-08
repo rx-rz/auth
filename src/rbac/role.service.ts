@@ -1,16 +1,11 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { RoleBasedAccessControlRepository } from './rbac.repository';
 import { CreateRoleDto, RoleIdDto, UpdateRoleNameDto } from './schema';
 
 @Injectable()
 export class RoleService {
-  constructor(
-    private readonly rbacRepository: RoleBasedAccessControlRepository,
-  ) {}
+  constructor(private readonly rbacRepository: RoleBasedAccessControlRepository) {}
+
   async checkIfRoleExists(roleId: string) {
     const role = await this.rbacRepository.getRoleDetails(roleId);
     if (!role) {
@@ -18,16 +13,14 @@ export class RoleService {
     }
     return role;
   }
+
   async createRole({ name, projectId }: CreateRoleDto) {
-    const existingRole =
-      await this.rbacRepository.getRoleDetailsByNameAndProjectId(
-        name,
-        projectId,
-      );
+    const existingRole = await this.rbacRepository.getRoleDetailsByNameAndProjectId(
+      name,
+      projectId,
+    );
     if (existingRole)
-      throw new ConflictException(
-        'Role with same name is already attached to this project.',
-      );
+      throw new ConflictException('Role with same name is already attached to this project.');
     const role = await this.rbacRepository.createRole({
       name,
       project: {
@@ -39,8 +32,7 @@ export class RoleService {
 
   async getRolePermissions({ roleId }: RoleIdDto) {
     await this.checkIfRoleExists(roleId);
-    const rolePermissions =
-      await this.rbacRepository.getRolePermissions(roleId);
+    const rolePermissions = await this.rbacRepository.getRolePermissions(roleId);
     return { success: true, rolePermissions };
   }
 
