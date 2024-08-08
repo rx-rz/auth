@@ -6,6 +6,8 @@ import { generateAccessToken } from 'src/utils/helper-functions/generate-access-
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { LoginWithEmailAndPasswordDto, RegisterWithEmailAndPasswordDto } from './schema';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
+import { AuthMethod } from '@prisma/client';
+import { ProjectRepository } from 'src/project/project.repository';
 
 @Injectable()
 export class EmailAndPasswordAuthService {
@@ -16,7 +18,6 @@ export class EmailAndPasswordAuthService {
 
   private async getUserProjectDetails(email: string, projectId: string) {
     const userDetails = await this.userRepository.getUserProjectDetailsByEmail(email, projectId);
-
     if (!userDetails) throw new NotFoundException('Invalid details provided.');
     return userDetails;
   }
@@ -29,9 +30,10 @@ export class EmailAndPasswordAuthService {
 
   private async checkIfPasswordsMatch(email: string, password: string, projectId: string) {
     const userPasswordInDB = await this.userRepository.getUserPassword(email, projectId);
+    if (!userPasswordInDB) throw new BadRequestException('Invalid user details provided.');
     const passwordsMatch = await compare(password, userPasswordInDB);
     if (passwordsMatch === false) {
-      throw new BadRequestException('Invalid details provided');
+      throw new BadRequestException('Invalid user details provided');
     }
     return true;
   }
@@ -42,8 +44,14 @@ export class EmailAndPasswordAuthService {
     return { success: true, message: 'User registered successfully' };
   }
 
+  @CatchEmitterErrors()
   async loginWithEmailAndPassword({ email, password, projectId }: LoginWithEmailAndPasswordDto) {
+    if (!projectId) throw new BadRequestException('Project ID not provided');
+    // since the getUserProjectDetailsByEmail() repository function
+    // used in getUserProjectDetails allows undefined values for
+    // projectId, it has to be checked
     const user = await this.checkIfUserExists(email);
+
     await this.checkIfPasswordsMatch(email, password, projectId);
     const { firstName, lastName, role, isVerified } = await this.getUserProjectDetails(
       email,
@@ -60,6 +68,12 @@ export class EmailAndPasswordAuthService {
       }),
       await generateHashedRefreshToken(),
     ];
+    await this.emitter.emit('refresh-token.created', {
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      userId: user.id,
+      authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
+    });
     return { success: true, accessToken, refreshToken };
   }
 }

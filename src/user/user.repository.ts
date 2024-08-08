@@ -108,6 +108,7 @@ export class UserRepository {
         user: {
           email,
         },
+
         projectId,
       },
       select: {
@@ -128,6 +129,7 @@ export class UserRepository {
         },
       },
     });
+    console.log({ user });
     return user;
   }
 

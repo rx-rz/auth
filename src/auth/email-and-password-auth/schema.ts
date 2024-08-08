@@ -1,14 +1,17 @@
 import { z } from 'zod';
 
-export const LoginWithEmailAndPasswordDtoSchema = z.object({
-  password: z.string(),
+export const LoginWithEmailAndPasswordSchema = z.object({
+  password: z.string({
+    required_error: 'Password is required',
+    invalid_type_error: 'Password must be string',
+  }),
   email: z.string().email(),
-  projectId: z.string(),
+  projectId: z.string({ required_error: 'Project ID is required' }),
 });
 
-export type LoginWithEmailAndPasswordDto = z.infer<typeof LoginWithEmailAndPasswordDtoSchema>;
+export type LoginWithEmailAndPasswordDto = z.infer<typeof LoginWithEmailAndPasswordSchema>;
 
-export const RegisterWithEmailAndPasswordDtoSchema = z.object({
+export const RegisterWithEmailAndPasswordSchema = z.object({
   firstName: z.string().min(2).max(100),
   lastName: z.string().min(2).max(100),
   email: z.string().email(),
@@ -16,4 +19,4 @@ export const RegisterWithEmailAndPasswordDtoSchema = z.object({
   projectId: z.string(),
 });
 
-export type RegisterWithEmailAndPasswordDto = z.infer<typeof RegisterWithEmailAndPasswordDtoSchema>;
+export type RegisterWithEmailAndPasswordDto = z.infer<typeof RegisterWithEmailAndPasswordSchema>;

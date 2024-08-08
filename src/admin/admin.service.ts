@@ -96,7 +96,6 @@ export class AdminService {
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       adminId: admin.id,
-      userId: 'aa',
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
     return { success: true, accessToken, refreshToken };

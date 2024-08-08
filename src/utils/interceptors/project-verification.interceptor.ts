@@ -21,9 +21,11 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     private reflector: Reflector,
   ) {}
 
-  decodeUserToken(token: string) {
-    const userToken: User = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    return userToken;
+  decodeUserToken(token: string | undefined) {
+    if (token) {
+      const userToken: User = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      return userToken;
+    }
   }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
@@ -35,12 +37,12 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const apiKey = request.headers['x-api-key'];
     const clientKey = request.headers['x-client-key'];
-    const { role } = this.decodeUserToken(request.headers.authorization);
+    const user = this.decodeUserToken(request.headers.authorization);
 
     // api key verification is meant for users who will access the endpoints
     // from an external app. admins will use MFA to authenticate requests in
     // the custom auth management app frontend.
-    if (role === 'admin') {
+    if (user && user.role === 'admin') {
       return next.handle();
     }
     if (!apiKey || !clientKey)

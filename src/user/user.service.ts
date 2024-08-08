@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { OnEvent } from '@nestjs/event-emitter';
-import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import {
   CreateUserDto,
