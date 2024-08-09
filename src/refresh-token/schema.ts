@@ -18,3 +18,12 @@ export const StoreRefreshTokenSchema = z
   });
 
 export type StoreRefreshTokenDto = z.infer<typeof StoreRefreshTokenSchema>;
+
+export const UpdateRefreshTokenStateSchema = z.object({
+  id: z.string({ required_error: 'Refresh Token ID is required!' }),
+  status: z.enum(['ACTIVE', 'EXPIRED', 'BLACKLISTED', 'REVOKED'], {
+    message: 'Invalid status provided.',
+  }),
+});
+
+export type UpdateRefreshTokenStateDto = z.infer<typeof UpdateRefreshTokenStateSchema>;

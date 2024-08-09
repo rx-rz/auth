@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, TokenState } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
 
 @Injectable()
@@ -7,9 +7,18 @@ export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async storeRefreshToken(data: Prisma.RefreshTokenCreateInput) {
-    const refreshToken = await this.prisma.refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
         ...data,
+      },
+    });
+  }
+
+  async updateRefreshTokenStatus(id: string, status: TokenState) {
+    const refreshToken = await this.prisma.refreshToken.update({
+      where: { id },
+      data: {
+        state: status,
       },
     });
     return refreshToken;
@@ -27,14 +36,6 @@ export class RefreshTokenRepository {
       ...args,
     });
     return refreshTokens;
-  }
-
-  async getAdminRefreshTokens(email: string, args?: Prisma.RefreshTokenFindManyArgs) {
-    const adminRefreshTokens = await this.prisma.refreshToken.findMany({
-      ...args,
-      include: { admin: { where: { email } } },
-    });
-    return adminRefreshTokens;
   }
 
   async getUserRefreshTokens(email: string, args?: Prisma.RefreshTokenFindManyArgs) {
