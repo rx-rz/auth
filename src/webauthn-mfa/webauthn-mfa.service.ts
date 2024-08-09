@@ -3,15 +3,16 @@ import { randomBytes } from 'crypto';
 
 @Injectable()
 export class WebauthnMfaService {
-  private createChallenge(bytes = 32) {
-    const buffer = randomBytes(bytes);
-    const challenge = buffer
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-    return challenge;
+  async getChallenge() {
+    // the challenge is a nonce (number / string that occurs only once)
+    // it must be truly random and base64 url encoded
+    const array = new Uint8Array(32);
+    const randomCryptographicKey = crypto.getRandomValues(array);
+    return { success: true, challenge: this.base64urlEncode(randomCryptographicKey) };
   }
 
-  challenge = this.createChallenge();
+  base64urlEncode(buffer: Uint8Array): string {
+    const encodedString = Buffer.from(buffer).toString('base64url');
+    return encodedString;
+  }
 }

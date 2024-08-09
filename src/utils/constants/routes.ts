@@ -10,6 +10,11 @@ export const ADMIN_ROUTES = {
   GET_PROJECT_BY_NAME: 'get-project-by-name',
 };
 
+export const MFA_ROUTES = {
+  BASE: 'mfa',
+  GET_CHALLENGE: 'get-challenge',
+};
+
 export const OTP_ROUTES = {
   BASE: 'otp',
   SEND: 'send-otp',
