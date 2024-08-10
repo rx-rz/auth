@@ -28,7 +28,7 @@ describe('Admin Controller', () => {
               return Promise.resolve({ success: true, message: 'Admin registered successfullly' });
             }),
             loginAdmin: jest.fn().mockImplementation(() => {
-              return Promise.resolve({ success: true, accessToken: faker.string.uuid() });
+              return Promise.resolve({ success: true, message: 'Login successful' });
             }),
             updateAdmin: jest.fn().mockImplementation(() => {
               return Promise.resolve({ success: true, admin: {} });

@@ -15,11 +15,11 @@ import { MagicLinkAuthModule } from './auth/magic-link-auth/magic-link-auth.modu
 import { EmailAndPasswordAuthModule } from './auth/email-and-password-auth/email-and-password-auth.module';
 import { RoleBasedAccessControlModule } from './rbac/rbac.module';
 import { AppEventEmitterModule } from './infra/emitter/app-event-emitter.module';
-import { ClsModule } from 'nestjs-cls';
 import { LoginModule } from './login/login.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ProjectVerificationInterceptorModule } from './utils/interceptors/project-verification.module';
+
 @Module({
   controllers: [AppController],
   providers: [
@@ -43,12 +43,6 @@ import { ProjectVerificationInterceptorModule } from './utils/interceptors/proje
     RoleBasedAccessControlModule,
     ProjectVerificationInterceptorModule,
     AppEventEmitterModule,
-    ClsModule.forRoot({
-      global: true,
-      middleware: {
-        mount: true,
-      },
-    }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_ACCESS_SECRET,

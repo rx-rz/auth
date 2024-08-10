@@ -98,7 +98,7 @@ export class AdminService {
       adminId: admin.id,
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
-    return { success: true, accessToken, refreshToken };
+    return { success: true, accessToken: `Bearer ${accessToken}`, refreshToken };
   }
 
   async updateAdmin({ email, ...details }: UpdateAdminDto) {

@@ -25,7 +25,7 @@ export class AdminGuard implements CanActivate {
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractTokenFromCookies(request);
     if (!token) {
       throw new UnauthorizedException('Invalid token provided.');
     }
@@ -42,8 +42,8 @@ export class AdminGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+  private extractTokenFromCookies(request: any): string | undefined {
+    const [type, token] = request.cookies.accessToken?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
 }
