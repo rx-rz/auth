@@ -13,6 +13,7 @@ export const ADMIN_ROUTES = {
 export const MFA_ROUTES = {
   BASE: 'mfa',
   GET_CHALLENGE: 'get-challenge',
+  VERIFY_CHALLENGE: 'verify-challenge',
 };
 
 export const OTP_ROUTES = {

@@ -51,7 +51,6 @@ export class AdminController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      // maximum age of 7 days
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     response.cookie('accessToken', accessToken, {
@@ -59,11 +58,9 @@ export class AdminController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      // maximum age of 7 days
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    return { success, message: 'Login successful' };
+    return { success, message: 'Login successful', accessToken };
   }
 
   @UsePipes(new ZodPipe(UpdateAdminSchema))

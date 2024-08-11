@@ -1,21 +1,22 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { WebauthnMfaService } from './webauthn-mfa.service';
-import { client, server } from '@passwordless-id/webauthn';
 import { MFA_ROUTES } from 'src/utils/constants/routes';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { VerifyChallengeDto } from './schema';
 
 @Controller(MFA_ROUTES.BASE)
 export class WebauthnMfaController {
   constructor(private readonly webauthnMfaService: WebauthnMfaService) {}
 
   @Get(MFA_ROUTES.GET_CHALLENGE)
-  async getChallenge(@Res({ passthrough: true }) response: Response) {
+  async getChallenge() {
     const { challenge, success } = await this.webauthnMfaService.getChallenge();
-    return { challenge };
+    return { success, challenge };
   }
 
-  @Get('challenge')
-  async testChallenge() {
-    return this.webauthnMfaService.testGetAgain();
+  @Post(MFA_ROUTES.VERIFY_CHALLENGE)
+  async verifyChallenge(@Req() request: Request, @Body() body: VerifyChallengeDto) {
+    const challenge = request.cookies.challenge;
+    return this.webauthnMfaService.verifyChallenge(body, challenge);
   }
 }
