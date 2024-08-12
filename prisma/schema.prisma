@@ -220,17 +220,20 @@ model AdminNotification {
 }
 
 model WebAuthnCredential {
-  id           String   @id @unique() @default(cuid())
-  adminId      String
-  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  credentialId String   @unique
-  publicKey    Bytes
-  counter      BigInt?
-  algorithm    String
-  transports   String[]
-  createdAt    DateTime @default(now())
-  lastUsedAt   DateTime @updatedAt
+  id             String   @id @unique() @default(cuid())
+  adminId        String
+  publicKey      Bytes
+  admin          Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  webauthnUserId String
+  counter        BigInt?
+  deviceType     String   @db.VarChar(32)
+  backedUp       Boolean  @default(false)
+  transports     String[]
+  createdAt      DateTime @default(now())
+  lastUsedAt     DateTime @updatedAt
 
+@@index([webauthnUserId])
+  @@unique([adminId, webauthnUserId])
   @@map("webauthn_credentials")
 }
 
