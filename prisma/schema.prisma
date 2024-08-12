@@ -22,6 +22,7 @@ model Admin {
   refreshTokens       RefreshToken[]
   adminNotifications  AdminNotification[]
   webAuthnCredentials WebAuthnCredential[]
+  challenge           Challenge[]
 
   @@map("admins")
 }
@@ -219,11 +220,20 @@ model AdminNotification {
   @@map("admin_notifications")
 }
 
+model Challenge {
+  id        String @id @unique() @default(cuid())
+  adminId   String @unique()
+  admin     Admin  @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  challenge String
+
+  @@index([adminId])
+}
+
 model WebAuthnCredential {
   id             String   @id @unique() @default(cuid())
-  adminId        String
+  userId         String
   publicKey      Bytes
-  admin          Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  admin          Admin    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   webauthnUserId String
   counter        BigInt?
   deviceType     String   @db.VarChar(32)
@@ -232,7 +242,7 @@ model WebAuthnCredential {
   createdAt      DateTime @default(now())
   lastUsedAt     DateTime @updatedAt
 
-  @@unique([adminId, webauthnUserId])
+  @@unique([userId, webauthnUserId])
   @@index([webauthnUserId])
   @@map("webauthn_credentials")
 }

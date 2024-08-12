@@ -12,7 +12,7 @@ export const ADMIN_ROUTES = {
 
 export const MFA_ROUTES = {
   BASE: 'mfa',
-  GET_CHALLENGE: 'get-challenge',
+  GET_REGISTRATION_OPTIONS: 'get-registration-options',
   VERIFY_CHALLENGE: 'verify-challenge',
 };
 

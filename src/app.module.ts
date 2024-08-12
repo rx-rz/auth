@@ -5,7 +5,6 @@ import { AdminModule } from './admin/admin.module';
 import { OtpModule } from './otp/otp.module';
 import { DatabaseModule } from './infra/db/database.module';
 import { RefreshTokenModule } from './refresh-token/refresh-token.module';
-import { WebauthnMfaModule } from './webauthn-mfa/webauthn-mfa.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -19,6 +18,7 @@ import { LoginModule } from './login/login.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ProjectVerificationInterceptorModule } from './utils/interceptors/project-verification.module';
+import { MfaModule } from './mfa/mfa.module';
 
 @Module({
   controllers: [AppController],
@@ -34,7 +34,6 @@ import { ProjectVerificationInterceptorModule } from './utils/interceptors/proje
     OtpModule,
     DatabaseModule,
     RefreshTokenModule,
-    WebauthnMfaModule,
     ProjectModule,
     UserModule,
     EmailAndPasswordAuthModule,
@@ -53,6 +52,7 @@ import { ProjectVerificationInterceptorModule } from './utils/interceptors/proje
       isGlobal: true,
     }),
     LoginModule,
+    MfaModule,
   ],
 })
 export class AppModule {}

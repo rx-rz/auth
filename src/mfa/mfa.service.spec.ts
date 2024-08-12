@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WebauthnMfaService } from './webauthn-mfa.service';
+import { MfaService } from './mfa.service';
 
-describe('WebauthnMfaService', () => {
-  let service: WebauthnMfaService;
+describe('MfaService', () => {
+  let service: MfaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [WebauthnMfaService],
+      providers: [MfaService],
     }).compile();
 
-    service = module.get<WebauthnMfaService>(WebauthnMfaService);
+    service = module.get<MfaService>(MfaService);
   });
 
   it('should be defined', () => {

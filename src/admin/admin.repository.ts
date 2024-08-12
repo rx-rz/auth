@@ -87,6 +87,15 @@ export class AdminRepository {
     return adminProjects;
   }
 
+  async getAdminWebAuthnCredentials(email: string) {
+    const credentials = await this.prisma.webAuthnCredential.findMany({
+      where: {
+        admin: { email },
+      },
+    });
+    return credentials;
+  }
+
   async getAdminProjectByName(adminId: string, name: string) {
     const adminProject = await this.prisma.project.findUnique({
       where: {
