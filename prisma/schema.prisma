@@ -232,8 +232,8 @@ model WebAuthnCredential {
   createdAt      DateTime @default(now())
   lastUsedAt     DateTime @updatedAt
 
-@@index([webauthnUserId])
   @@unique([adminId, webauthnUserId])
+  @@index([webauthnUserId])
   @@map("webauthn_credentials")
 }
 
