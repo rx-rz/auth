@@ -36,7 +36,6 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.0.0",
-    "@passwordless-id/webauthn": "^1.6.2",
     "@prisma/client": "^5.16.2",
     "@simplewebauthn/server": "^10.0.1",
     "bcryptjs": "^2.4.3",

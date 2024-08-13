@@ -13,7 +13,7 @@ export const ADMIN_ROUTES = {
 export const MFA_ROUTES = {
   BASE: 'mfa',
   GET_REGISTRATION_OPTIONS: 'get-registration-options',
-  VERIFY_CHALLENGE: 'verify-challenge',
+  VERIFY_REGISTRATION_OPTIONS: 'verify-registration-options',
 };
 
 export const OTP_ROUTES = {

@@ -19,13 +19,31 @@ export class MfaRepository {
     return credentials;
   }
 
-  async createChallenge(data: Prisma.ChallengeCreateInput) {
-    const challenge = await this.prisma.challenge.create({ data });
+  async createChallenge(nonce: string, adminId: string) {
+    const challenge = await this.prisma.challenge.upsert({
+      create: {
+        challenge: nonce,
+        adminId,
+      },
+      update: {
+        challenge: nonce,
+      },
+      where: {
+        adminId,
+      },
+    });
     return challenge;
   }
 
   async getChallenge(adminId: string) {
     const challenge = await this.prisma.challenge.findUnique({
+      where: { adminId },
+    });
+    return challenge;
+  }
+
+  async deleteChallenge(adminId: string) {
+    const challenge = await this.prisma.challenge.delete({
       where: { adminId },
     });
     return challenge;
