@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { MfaRepository } from './mfa.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
 import {
+  AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -14,7 +15,8 @@ import {
   verifyRegistrationResponse,
   VerifyRegistrationResponseOpts,
 } from '@simplewebauthn/server';
-import { EmailDto, VerifyMfaRegistrationDto } from './schema';
+import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers';
+import { EmailDto, VerifyMfaAuthenticationDto, VerifyMfaRegistrationDto } from './schema';
 
 @Injectable()
 export class MfaService {
@@ -65,18 +67,21 @@ export class MfaService {
   }
 
   async verifyMfaRegistrationOptions(dto: VerifyMfaRegistrationDto) {
-    const { email, options } = dto;
+    const { email, webAuthnUserId, options } = dto;
     const admin = await this.getAdminByEmail(email);
     const challengeBody = await this.getAdminChallenge(admin.id);
 
     const { verified, registrationInfo } = await verifyRegistrationResponse({
-      response: options as unknown as RegistrationResponseJSON,
+      response: options as RegistrationResponseJSON,
       expectedChallenge: challengeBody.challenge,
       expectedOrigin: this.origin,
       expectedRPID: this.rpID,
       requireUserVerification: true,
     });
-    if (!verified) throw new BadRequestException('Verification invalid');
+    if (!verified) throw new BadRequestException('Verification failed.');
+    if (!registrationInfo) throw new BadRequestException('Verification failed.');
+    const { credentialDeviceType, credentialPublicKey, credentialBackedUp, counter, credentialID } =
+      registrationInfo;
     await Promise.all([
       this.mfaRepository.setCredentials({
         admin: {
@@ -84,21 +89,21 @@ export class MfaService {
             id: admin.id,
           },
         },
-        deviceType: registrationInfo?.credentialDeviceType ?? '',
+        deviceType: credentialDeviceType ?? '',
         publicKey: Buffer.from(
-          registrationInfo?.credentialPublicKey!,
-          registrationInfo?.credentialPublicKey.byteOffset,
-          registrationInfo?.credentialPublicKey.byteLength,
+          credentialPublicKey!,
+          credentialPublicKey.byteOffset,
+          credentialPublicKey.byteLength,
         ),
-        webauthnUserId: dto.webAuthnUserId,
-        backedUp: registrationInfo?.credentialBackedUp,
-        counter: registrationInfo?.counter,
-        transports: dto.options.response.transports,
+        webauthnUserId: webAuthnUserId,
+        backedUp: credentialBackedUp,
+        counter: counter,
+        transports: options.response.transports,
+        credentialId: credentialID ?? '',
       }),
       this.mfaRepository.deleteChallenge(admin.id),
       this.adminRepository.updateAdmin(email, { mfaEnabled: true }),
     ]);
-
     return { success: true, message: 'Verification successful' };
   }
 
@@ -112,21 +117,30 @@ export class MfaService {
     return { success: true, options };
   }
 
-  async verifyMfaAuthenticationOptions({ email }: EmailDto) {
+  async verifyMfaAuthenticationOptions({ email, ...options }: VerifyMfaAuthenticationDto) {
     const admin = await this.getAdminByEmail(email);
     const challengeBody = await this.getAdminChallenge(admin.id);
-    const credentials = await this.getAdminCredentials(admin.id);
-    // const verification = await verifyAuthenticationResponse({
-    //   response: challengeBody as any,
-    //   expectedChallenge: challengeBody.challenge,
-    //   expectedOrigin: this.origin,
-    //   expectedRPID: this.rpID,
-    //   authenticator: {
-    //     counter: credentials.map((credential) => credential.)
-    //   }
-    // })
-    // const {} = await verifyAuthenticationResponse({
-    //   response:
-    // })
+    const credentials = (await this.getAdminCredentials(admin.id)).find(
+      (credential) => credential.webauthnUserId === options.response.userHandle,
+    );
+    if (!credentials) throw new NotFoundException('Credentials not found');
+    const { verified } = await verifyAuthenticationResponse({
+      response: options as AuthenticationResponseJSON,
+      expectedChallenge: challengeBody.challenge,
+      expectedOrigin: this.origin,
+      expectedRPID: this.rpID,
+      authenticator: {
+        counter: Number(credentials.counter),
+        credentialID: isoBase64URL.fromUTF8String(credentials.credentialId),
+        credentialPublicKey: new Uint8Array(
+          credentials.publicKey.buffer,
+          credentials.publicKey.byteOffset,
+          credentials.publicKey.byteLength,
+        ),
+        transports: credentials.transports as AuthenticatorTransportFuture[],
+      },
+    });
+    if (!verified) throw new BadRequestException('Verification failed');
+    return { success: true, message: 'User verified successfully' };
   }
 }

@@ -233,6 +233,7 @@ model WebAuthnCredential {
   id             String   @id @unique() @default(cuid())
   userId         String
   publicKey      Bytes
+  credentialId   String   @unique()
   admin          Admin    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   webauthnUserId String
   counter        BigInt?

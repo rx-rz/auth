@@ -34,3 +34,20 @@ export const VerifyMfaRegistrationSchema = z.object({
 });
 
 export type VerifyMfaRegistrationDto = z.infer<typeof VerifyMfaRegistrationSchema>;
+
+export const VerifyMfaAuthenticationSchema = z.object({
+  email: z.string().email(),
+  id: z.string(),
+  rawId: z.string(),
+  response: z.object({
+    authenticatorData: z.string(),
+    clientDataJSON: z.string(),
+    signature: z.string(),
+    userHandle: z.string(),
+  }),
+  type: z.string(),
+  clientExtensionResults: z.object({}),
+  authenticatorAttachment: z.string(),
+});
+
+export type VerifyMfaAuthenticationDto = z.infer<typeof VerifyMfaAuthenticationSchema>;

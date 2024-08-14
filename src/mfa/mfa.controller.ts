@@ -5,6 +5,8 @@ import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 import {
   EmailDto,
   EmailSchema,
+  VerifyMfaAuthenticationDto,
+  VerifyMfaAuthenticationSchema,
   VerifyMfaRegistrationDto,
   VerifyMfaRegistrationSchema,
 } from './schema';
@@ -23,7 +25,6 @@ export class MfaController {
   @Post(MFA_ROUTES.VERIFY_REGISTRATION_OPTIONS)
   @UsePipes(new ZodPipe(VerifyMfaRegistrationSchema))
   async verifyRegistrationOptiosn(@Body() body: VerifyMfaRegistrationDto) {
-    console.log({ body });
     return this.mfaService.verifyMfaRegistrationOptions(body);
   }
 
@@ -31,5 +32,11 @@ export class MfaController {
   @UsePipes(new ZodPipe(EmailSchema))
   async getAuthenticationOptions(@Query() query: EmailDto) {
     return this.mfaService.generateMfaAuthenticationOptions(query);
+  }
+
+  @Post(MFA_ROUTES.VERIFY_AUTHENTICATION_OPTIONS)
+  @UsePipes(new ZodPipe(VerifyMfaAuthenticationSchema))
+  async verifyAuthenticationOptions(@Body() body: VerifyMfaAuthenticationDto) {
+    return this.mfaService.verifyMfaAuthenticationOptions(body);
   }
 }
