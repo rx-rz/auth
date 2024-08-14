@@ -16,7 +16,7 @@ export class MfaController {
 
   @Get(MFA_ROUTES.GET_REGISTRATION_OPTIONS)
   @UsePipes(new ZodPipe(EmailSchema))
-  async getRegistrationOptions(@Req() response: Response, @Query() query: EmailDto) {
+  async getRegistrationOptions(@Query() query: EmailDto) {
     return this.mfaService.generateMfaRegistrationOptions(query);
   }
 
@@ -25,5 +25,11 @@ export class MfaController {
   async verifyRegistrationOptiosn(@Body() body: VerifyMfaRegistrationDto) {
     console.log({ body });
     return this.mfaService.verifyMfaRegistrationOptions(body);
+  }
+
+  @Get(MFA_ROUTES.GET_AUTHENTICATION_OPTIONS)
+  @UsePipes(new ZodPipe(EmailSchema))
+  async getAuthenticationOptions(@Query() query: EmailDto) {
+    return this.mfaService.generateMfaAuthenticationOptions(query);
   }
 }

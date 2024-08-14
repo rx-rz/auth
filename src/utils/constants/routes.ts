@@ -14,6 +14,8 @@ export const MFA_ROUTES = {
   BASE: 'mfa',
   GET_REGISTRATION_OPTIONS: 'get-registration-options',
   VERIFY_REGISTRATION_OPTIONS: 'verify-registration-options',
+  GET_AUTHENTICATION_OPTIONS: 'get-authentication-options',
+  VERIFY_AUTHENTICATION_OPTIONS: 'verify-authentication-options',
 };
 
 export const OTP_ROUTES = {

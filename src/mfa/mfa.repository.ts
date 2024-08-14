@@ -5,9 +5,9 @@ import { PrismaService } from 'src/infra/db/prisma.service';
 @Injectable()
 export class MfaRepository {
   constructor(private readonly prisma: PrismaService) {}
-  async getCredentials(email: string) {
+  async getCredentials(id: string) {
     const credentials = await this.prisma.webAuthnCredential.findMany({
-      where: { admin: { email } },
+      where: { admin: { id } },
     });
     return credentials;
   }

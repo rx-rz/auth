@@ -4,6 +4,7 @@ import { AdminRepository } from 'src/admin/admin.repository';
 import {
   AuthenticatorTransportFuture,
   PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
 } from '@simplewebauthn/types';
 import {
@@ -31,9 +32,16 @@ export class MfaService {
     return admin;
   }
 
-  async checkIfChallengeExists(adminId: string) {
+  async getAdminChallenge(adminId: string) {
     const challenge = await this.mfaRepository.getChallenge(adminId);
+    if (!challenge) throw new NotFoundException('Challenge not found');
     return challenge;
+  }
+
+  async getAdminCredentials(id: string) {
+    const credentials = await this.mfaRepository.getCredentials(id);
+    if (!credentials) throw new NotFoundException('No MFA Credentials found for admin');
+    return credentials;
   }
 
   async generateMfaRegistrationOptions({ email }: EmailDto) {
@@ -59,8 +67,7 @@ export class MfaService {
   async verifyMfaRegistrationOptions(dto: VerifyMfaRegistrationDto) {
     const { email, options } = dto;
     const admin = await this.getAdminByEmail(email);
-    const challengeBody = await this.mfaRepository.getChallenge(admin.id);
-    if (!challengeBody) throw new NotFoundException('Challenge not found');
+    const challengeBody = await this.getAdminChallenge(admin.id);
 
     const { verified, registrationInfo } = await verifyRegistrationResponse({
       response: options as unknown as RegistrationResponseJSON,
@@ -89,25 +96,35 @@ export class MfaService {
         transports: dto.options.response.transports,
       }),
       this.mfaRepository.deleteChallenge(admin.id),
+      this.adminRepository.updateAdmin(email, { mfaEnabled: true }),
     ]);
 
     return { success: true, message: 'Verification successful' };
   }
 
   async generateMfaAuthenticationOptions({ email }: EmailDto) {
-    const credentials = await this.mfaRepository.getCredentials(email);
-
-    // const options: PublicKeyCredentialCreationOptionsJSON = await generateAuthenticationOptions({
-    //   rpID: this.rpID,
-    //   allowCredentials: credentials.map((credential) => ({
-    //     id: credential.id,
-    //     transports: credential.transports as AuthenticatorTransportFuture[],
-    //   })),
-    // });
-    // await this.mfaRepository.createChallenge();
+    const admin = await this.getAdminByEmail(email);
+    const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+      rpID: this.rpID,
+      allowCredentials: [],
+    });
+    await this.mfaRepository.createChallenge(options.challenge, admin.id);
+    return { success: true, options };
   }
 
-  async verifyMfaAuthenticationOptions() {
+  async verifyMfaAuthenticationOptions({ email }: EmailDto) {
+    const admin = await this.getAdminByEmail(email);
+    const challengeBody = await this.getAdminChallenge(admin.id);
+    const credentials = await this.getAdminCredentials(admin.id);
+    // const verification = await verifyAuthenticationResponse({
+    //   response: challengeBody as any,
+    //   expectedChallenge: challengeBody.challenge,
+    //   expectedOrigin: this.origin,
+    //   expectedRPID: this.rpID,
+    //   authenticator: {
+    //     counter: credentials.map((credential) => credential.)
+    //   }
+    // })
     // const {} = await verifyAuthenticationResponse({
     //   response:
     // })

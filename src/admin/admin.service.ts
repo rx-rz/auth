@@ -61,8 +61,6 @@ export class AdminService {
     await this.adminRepository.createAdmin({
       ...dto,
       password: await hashValue(dto.password),
-      mfaEnabled: false,
-      isVerified: false,
     });
     return { success: true, message: 'Admin registered successfully.' };
   }
