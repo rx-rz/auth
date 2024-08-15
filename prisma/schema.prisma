@@ -10,7 +10,7 @@ datasource db {
 // Admin model
 model Admin {
   id                  String               @id @unique() @default(cuid())
-  email               String               @unique @db.VarChar(255)
+  email               String               @unique() @db.VarChar(255)
   password            String               @db.VarChar(255)
   firstName           String               @map("first_name") @db.VarChar(255)
   lastName            String               @map("last_name") @db.VarChar(255)
@@ -29,20 +29,22 @@ model Admin {
 
 // Project model
 model Project {
-  id            String         @id @unique() @default(cuid())
-  name          String         @db.VarChar(255)
-  apiKey        String         @unique @db.VarChar(64)
-  clientKey     String         @unique @default(cuid()) @db.VarChar(64)
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  adminId       String         @map("admin_id")
-  admin         Admin          @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  users         User[]
-  userProjects  UserProject[]
-  refreshTokens RefreshToken[]
-  magicLinks    MagicLink[]
-  roles         Role[]
-  logins        Login[]
+  id               String             @id @unique() @default(cuid())
+  name             String             @db.VarChar(255)
+  apiKey           String             @unique() @map("api_key") @db.VarChar(64)
+  clientKey        String             @unique() @default(cuid()) @map("client_key") @db.VarChar(64)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  adminId          String             @map("admin_id")
+  admin            Admin              @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  users            User[]
+  oauthProviders   OAuthProvider[]
+  userProjects     UserProject[]
+  refreshTokens    RefreshToken[]
+  magicLinks       MagicLink[]
+  roles            Role[]
+  logins           Login[]
+  UserOauthAccount UserOauthAccount[]
 
   @@unique([name, adminId], name: "project_name_admin_id_unique")
   @@map("projects")
@@ -51,7 +53,7 @@ model Project {
 // User model
 model User {
   id            String             @id @unique() @default(cuid())
-  email         String             @unique @db.VarChar(255)
+  email         String             @unique() @db.VarChar(255)
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
   projects      Project[]
@@ -93,8 +95,8 @@ model Permission {
 
 // RolePermission model
 model RolePermission {
-  roleId       String
-  permissionId String
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
   role         Role       @relation(fields: [roleId], references: [id])
   permission   Permission @relation(fields: [permissionId], references: [id])
 
@@ -127,11 +129,16 @@ model UserProject {
 // OAuthProvider model
 model OAuthProvider {
   id            String             @id @unique() @default(cuid())
-  name          String             @unique @db.VarChar(50)
+  name          OAuthProviders     @default(GOOGLE) @map("auth_method")
+  projectId     String             @map("project_id")
+  project       Project            @relation(fields: [projectId], references: [id])
+  clientId      String             @unique() @map("client_id")
+  clientSecret  String             @unique() @map("client_secret")
   oauthAccounts UserOauthAccount[]
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
 
+  @@unique([name, projectId])
   @@map("oauth_providers")
 }
 
@@ -140,6 +147,8 @@ model UserOauthAccount {
   id                    String        @id @unique() @default(cuid())
   userId                String        @map("user_id")
   providerId            String        @map("provider_id")
+  projectId             String        @map("project_id")
+  project               Project       @relation(fields: [projectId], references: [id])
   providerUserId        String        @map("provider_user_id") @db.VarChar(255)
   accessToken           String?       @map("access_token")
   refreshToken          String?       @map("refresh_token")
@@ -160,7 +169,7 @@ model MagicLink {
   id        String   @id @unique() @default(cuid())
   userId    String   @map("user_id")
   projectId String   @map("project_id")
-  token     String   @unique @db.VarChar(255)
+  token     String   @unique() @db.VarChar(255)
   expiresAt DateTime @map("expires_at")
   isValid   Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
@@ -189,12 +198,12 @@ model RefreshToken {
   userId     String?    @map("user_id")
   adminId    String?    @map("admin_id")
   projectId  String?    @map("project_id")
-  token      String     @unique
+  token      String     @unique()
   expiresAt  DateTime   @map("expires_at")
   state      TokenState @default(ACTIVE)
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
-  authMethod AuthMethod @default(EMAIL_AND_PASSWORD_SIGNIN)
+  authMethod AuthMethod @default(EMAIL_AND_PASSWORD_SIGNIN) @map("auth_method")
   user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   admin      Admin?     @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   project    Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -208,7 +217,7 @@ model AdminNotification {
   adminId String  @map("admin_id")
   title   String
   content String
-  isRead  Boolean @default(false)
+  isRead  Boolean @default(false) @map("is_read")
 
   createdAt DateTime                  @default(now()) @map("created_at")
   updatedAt DateTime                  @updatedAt @map("updated_at")
@@ -222,26 +231,27 @@ model AdminNotification {
 
 model Challenge {
   id        String @id @unique() @default(cuid())
-  adminId   String @unique()
+  adminId   String @unique() @map("admin_id")
   admin     Admin  @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   challenge String
 
   @@index([adminId])
+  @@map("challenges")
 }
 
 model WebAuthnCredential {
   id             String   @id @unique() @default(cuid())
-  userId         String
-  publicKey      Bytes
+  userId         String   @map("user_id")
+  publicKey      Bytes    @map("public_key")
   credentialId   String   @unique()
   admin          Admin    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  webauthnUserId String
+  webauthnUserId String   @map("webauthn_userid")
   counter        BigInt?
-  deviceType     String   @db.VarChar(32)
-  backedUp       Boolean  @default(false)
+  deviceType     String   @map("device_type") @db.VarChar(32)
+  backedUp       Boolean  @default(false) @map("backed_up")
   transports     String[]
-  createdAt      DateTime @default(now())
-  lastUsedAt     DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  lastUsedAt     DateTime @updatedAt @map("last_used_at")
 
   @@unique([userId, webauthnUserId])
   @@index([webauthnUserId])
@@ -295,4 +305,9 @@ enum AdminNotificationSeverity {
 enum LoginStatus {
   SUCCESS
   FAILURE
+}
+
+enum OAuthProviders {
+  GOOGLE
+  GITHUB
 }

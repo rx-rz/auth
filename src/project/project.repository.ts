@@ -84,6 +84,17 @@ export class ProjectRepository {
     return project;
   }
 
+  async getProjectOAuthProviders(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        oauthProviders: true,
+      },
+    });
+    return project?.oauthProviders ?? [];
+  }
+
   async getProjectUsers(id: string) {
     const projectUsers = await this.prisma.userProject.findMany({
       where: { projectId: id },

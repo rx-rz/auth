@@ -69,11 +69,11 @@ export class MfaService {
   async verifyMfaRegistrationOptions(dto: VerifyMfaRegistrationDto) {
     const { email, webAuthnUserId, options } = dto;
     const admin = await this.getAdminByEmail(email);
-    const challengeBody = await this.getAdminChallenge(admin.id);
+    const { challenge } = await this.getAdminChallenge(admin.id);
 
     const { verified, registrationInfo } = await verifyRegistrationResponse({
       response: options as RegistrationResponseJSON,
-      expectedChallenge: challengeBody.challenge,
+      expectedChallenge: challenge,
       expectedOrigin: this.origin,
       expectedRPID: this.rpID,
       requireUserVerification: true,
@@ -119,14 +119,14 @@ export class MfaService {
 
   async verifyMfaAuthenticationOptions({ email, ...options }: VerifyMfaAuthenticationDto) {
     const admin = await this.getAdminByEmail(email);
-    const challengeBody = await this.getAdminChallenge(admin.id);
+    const { challenge } = await this.getAdminChallenge(admin.id);
     const credentials = (await this.getAdminCredentials(admin.id)).find(
       (credential) => credential.webauthnUserId === options.response.userHandle,
     );
     if (!credentials) throw new NotFoundException('Credentials not found');
     const { verified } = await verifyAuthenticationResponse({
       response: options as AuthenticationResponseJSON,
-      expectedChallenge: challengeBody.challenge,
+      expectedChallenge: challenge,
       expectedOrigin: this.origin,
       expectedRPID: this.rpID,
       authenticator: {
