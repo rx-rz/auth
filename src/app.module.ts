@@ -42,6 +42,7 @@ import { MfaModule } from './mfa/mfa.module';
     RoleBasedAccessControlModule,
     ProjectVerificationInterceptorModule,
     AppEventEmitterModule,
+
     JwtModule.register({
       global: true,
       secret: process.env.JWT_ACCESS_SECRET,

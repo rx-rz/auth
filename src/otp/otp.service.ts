@@ -4,6 +4,8 @@ import { generateOtp } from 'src/utils/helper-functions/generate-otp';
 import { AdminRepository } from 'src/admin/admin.repository';
 import { UserRepository } from 'src/user/user.repository';
 import { CreateOtpDto, VerifyAdminOtpDto, VerifyOtpDto } from './schema';
+import { Mailer } from 'src/infra/mail/mail.service';
+import { SendEmailDto } from 'src/infra/mail/schema';
 
 @Injectable()
 export class OtpService {
@@ -11,6 +13,7 @@ export class OtpService {
     private readonly otpRepository: OTPRepository,
     private readonly adminRepository: AdminRepository,
     private readonly userRepository: UserRepository,
+    private readonly mailer: Mailer,
   ) {}
 
   private async checkIfUserHasOtpInstanceInDB(email: string) {
@@ -37,8 +40,14 @@ export class OtpService {
           code: code.toString(),
           expiresAt: new Date(Date.now() + 10 * 60 * 1000),
         });
-
-    return { success: true, otpDetails };
+    const mailOptions: SendEmailDto = {
+      recipients: ['adeleyetemiloluwa674@gmail.com'],
+      subject: 'OTP',
+      html: `<h1>Hello ${user.email},Your OTP is: <br/> <span style="font-size:60px;">${code}</span></h1><p>It expires in <span style="color:red;">10 minutes.</span></p>`,
+      from: 'adeleyetemiloluwa.work@gmail.com',
+    };
+    const { error, response } = await this.mailer.sendEmail(mailOptions);
+    return { success: true, otpDetails, error, response };
   }
 
   async verifyAdminOTP({ code, email }: VerifyAdminOtpDto) {
@@ -82,9 +91,7 @@ export class OtpService {
       throw new GoneException('Provided OTP has expired.');
     }
     await Promise.all([
-      this.userRepository.updateUserDetails(userId, projectId, {
-        isVerified: true,
-      }),
+      this.userRepository.updateUserDetails(userId, projectId, { isVerified: true }),
       this.otpRepository.deleteOTP(email),
     ]);
     return { success: true, message: 'OTP verified successfully' };

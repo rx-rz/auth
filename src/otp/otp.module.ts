@@ -4,9 +4,10 @@ import { OtpController } from './otp.controller';
 import { OTPRepository } from './otp.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
 import { UserRepository } from 'src/user/user.repository';
+import { Mailer } from 'src/infra/mail/mail.service';
 
 @Module({
   controllers: [OtpController],
-  providers: [OtpService, OTPRepository, AdminRepository, UserRepository],
+  providers: [OtpService, OTPRepository, AdminRepository, UserRepository, Mailer],
 })
 export class OtpModule {}
