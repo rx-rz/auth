@@ -70,6 +70,13 @@ export const PERMISSION_ROUTES = {
   DELETE_PERMISSION: 'delete',
 };
 
+export const MAGIC_LINK_ROUTES = {
+  BASE: 'magic-link',
+  SEND_MAGIC_LINK: 'send-magic-link',
+  DELETE_MAGIC_LINK: 'delete',
+  VERIFY_MAGIC_LINK: 'verify',
+};
+
 type RouteObject =
   | typeof ADMIN_ROUTES
   | typeof OTP_ROUTES

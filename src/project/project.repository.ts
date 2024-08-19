@@ -114,27 +114,6 @@ export class ProjectRepository {
     return projectUsers;
   }
 
-  async getProjectMagicLinks(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        adminId: true,
-        magicLinks: {
-          select: {
-            id: true,
-            user: {
-              select: { email: true },
-            },
-            createdAt: true,
-          },
-        },
-      },
-    });
-    return project;
-  }
-
   async getProjectRefreshTokens(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },

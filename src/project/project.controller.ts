@@ -64,13 +64,6 @@ export class ProjectController {
     return this.projectService.getProjectDetails(query);
   }
 
-  @Get(PROJECT_ROUTES.GET_MAGIC_LINKS)
-  @UsePipes(new ZodPipe(IdSchema))
-  @UseGuards(AdminGuard)
-  async getProjectMagicLinks(@Query() query: IdDto) {
-    return this.projectService.getProjectMagicLinks(query);
-  }
-
   @Get(PROJECT_ROUTES.GET_REFRESH_TOKENS)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)

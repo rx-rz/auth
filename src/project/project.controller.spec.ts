@@ -143,20 +143,6 @@ describe('Project Controller', () => {
     });
   });
 
-  describe('Get project magic links', () => {
-    const idDto: IdDto = {
-      projectId: faker.string.uuid(),
-    };
-    it('should successfully get project magic links', async () => {
-      await expect(projectController.getProjectMagicLinks(idDto)).resolves.toEqual(
-        expect.objectContaining({
-          success: true,
-          project: expect.any(Object),
-        }),
-      );
-    });
-  });
-
   describe('Get project refresh tokens', () => {
     const idDto: IdDto = {
       projectId: faker.string.uuid(),

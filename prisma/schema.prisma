@@ -41,7 +41,6 @@ model Project {
   oauthProviders   OAuthProvider[]
   userProjects     UserProject[]
   refreshTokens    RefreshToken[]
-  magicLinks       MagicLink[]
   roles            Role[]
   logins           Login[]
   UserOauthAccount UserOauthAccount[]
@@ -59,7 +58,6 @@ model User {
   projects      Project[]
   userProjects  UserProject[]
   oauthAccounts UserOauthAccount[]
-  magicLinks    MagicLink[]
   refreshTokens RefreshToken[]
   logins        Login[]
 
@@ -164,21 +162,6 @@ model UserOauthAccount {
   @@map("user_oauth_accounts")
 }
 
-// MagicLink model
-model MagicLink {
-  id        String   @id @unique() @default(cuid())
-  userId    String   @map("user_id")
-  projectId String   @map("project_id")
-  token     String   @unique() @db.VarChar(255)
-  expiresAt DateTime @map("expires_at")
-  isValid   Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id])
-  project   Project  @relation(fields: [projectId], references: [id])
-
-  @@map("magic_links")
-}
 
 // OTP model
 model Otp {

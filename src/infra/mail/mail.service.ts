@@ -24,7 +24,7 @@ export class Mailer {
   async sendEmail(dto: SendEmailDto) {
     let response: SMTPTransport.SentMessageInfo | undefined;
     let error: Error | undefined;
-    const { html, subject, from, placeholder, text, recipients } = dto;
+    const { html, subject, from, recipients } = dto;
     const transport = this.transporter();
     const options: Options = {
       from: from ?? {

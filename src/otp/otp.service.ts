@@ -47,6 +47,7 @@ export class OtpService {
       from: 'adeleyetemiloluwa.work@gmail.com',
     };
     const { error, response } = await this.mailer.sendEmail(mailOptions);
+    if (error) throw error;
     return { success: true, otpDetails, error, response };
   }
 

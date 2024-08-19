@@ -261,36 +261,6 @@ describe('ProjectService', () => {
     });
   });
 
-  describe('get project magic links', () => {
-    const projectId = faker.string.uuid();
-
-    it('should successfully get project magic links', async () => {
-      projectRepository.getProjectMagicLinks.mockResolvedValue({
-        id: faker.string.uuid(),
-        name: faker.company.name(),
-        adminId: faker.string.uuid(),
-        magicLinks: [
-          {
-            id: faker.string.uuid(),
-            user: {
-              email: faker.internet.email(),
-            },
-            createdAt: faker.date.past(),
-          },
-        ],
-      });
-      const result = await projectService.getProjectMagicLinks({ projectId });
-      expect(result.success).toBe(true);
-    });
-
-    it('should throw a not found exception when the project does not exist', async () => {
-      projectRepository.getProject.mockResolvedValue(null);
-      await expect(projectService.getProjectMagicLinks({ projectId })).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
   describe('get project refresh tokens', () => {
     const projectId = faker.string.uuid();
     it('successfully get project refresh tokens', async () => {

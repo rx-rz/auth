@@ -111,12 +111,6 @@ export class ProjectService {
     return { success: true, project };
   }
 
-  async getProjectMagicLinks({ projectId }: IdDto) {
-    await this.checkIfProjectExists(projectId);
-    const project = await this.projectRepository.getProjectMagicLinks(projectId);
-    return { success: true, project };
-  }
-
   async getProjectRefreshTokens({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const project = await this.projectRepository.getProjectRefreshTokens(projectId);
