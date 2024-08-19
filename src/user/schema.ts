@@ -13,6 +13,7 @@ export const CreateUserSchema = z.object({
     .string()
     .min(6, 'First name must be at least 6 characters')
     .max(255, 'First name must be at most 255 characters'),
+  isVerified: z.boolean().optional(),
   lastName: z
     .string()
     .min(6, 'Last name must be at least 6 characters')

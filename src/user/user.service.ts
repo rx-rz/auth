@@ -86,7 +86,7 @@ export class UserService {
   async updateUser(updateUserDto: UpdateUserDto) {
     const { userId, projectId, ...data } = updateUserDto;
     await this.checkIfUserExists(updateUserDto.userId);
-    const user = await this.userRepository.updateUserDetails(userId, projectId, data);
+    const user = await this.userRepository.updateUserProjectDetails(userId, projectId, data);
     return { success: true, user };
   }
 

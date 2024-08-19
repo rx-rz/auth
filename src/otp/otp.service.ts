@@ -92,7 +92,7 @@ export class OtpService {
       throw new GoneException('Provided OTP has expired.');
     }
     await Promise.all([
-      this.userRepository.updateUserDetails(userId, projectId, { isVerified: true }),
+      this.userRepository.updateUserProjectDetails(userId, projectId, { isVerified: true }),
       this.otpRepository.deleteOTP(email),
     ]);
     return { success: true, message: 'OTP verified successfully' };

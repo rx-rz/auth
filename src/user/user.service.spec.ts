@@ -29,7 +29,7 @@ describe('UserService', () => {
     updateUserEmail: jest.fn(),
     getUserProjects: jest.fn(),
     createUser: jest.fn(),
-    updateUserDetails: jest.fn(),
+    updateUserProjectDetails: jest.fn(),
     deleteUser: jest.fn(),
     getUserProjectDetails: jest.fn(),
     getUserProjectDetailsByEmail: jest.fn(),

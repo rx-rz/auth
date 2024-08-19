@@ -2,14 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { CreateUserDto } from './schema';
+type ReturnedUser = {
+  email: string;
+  id: string;
+};
 
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUser(data: CreateUserDto) {
-    const user = await this.prisma.$transaction(async (prisma) => {
-      const userCreated = await prisma.user.create({
+    let user: ReturnedUser | undefined;
+    await this.prisma.$transaction(async (prisma) => {
+      user = await prisma.user.create({
         data: { email: data.email },
         select: {
           email: true,
@@ -24,7 +29,7 @@ export class UserRepository {
               firstName: data.firstName,
               lastName: data.lastName,
               projectId: data.projectId,
-              userId: userCreated.id,
+              userId: user.id,
               roleId: data.roleId,
               password: data.password,
             }
@@ -32,7 +37,7 @@ export class UserRepository {
               firstName: data.firstName,
               lastName: data.lastName,
               projectId: data.projectId,
-              userId: userCreated.id,
+              userId: user.id,
               password: data.password,
             },
         select: {
@@ -43,7 +48,11 @@ export class UserRepository {
     return user;
   }
 
-  async updateUserDetails(userId: string, projectId: string, data: Prisma.UserProjectUpdateInput) {
+  async updateUserProjectDetails(
+    userId: string,
+    projectId: string,
+    data: Prisma.UserProjectUpdateInput,
+  ) {
     const user = await this.prisma.userProject.update({
       data,
       where: {

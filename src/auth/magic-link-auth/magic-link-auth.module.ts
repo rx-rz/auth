@@ -4,8 +4,9 @@ import { MagicLinkAuthController } from './magic-link-auth.controller';
 import { ProjectRepository } from 'src/project/project.repository';
 import { UserRepository } from 'src/user/user.repository';
 import { Mailer } from 'src/infra/mail/mail.service';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 @Module({
   controllers: [MagicLinkAuthController],
-  providers: [MagicLinkAuthService, ProjectRepository, UserRepository, Mailer],
+  providers: [MagicLinkAuthService, ProjectRepository, UserRepository, Mailer, AppEventEmitter],
 })
 export class MagicLinkAuthModule {}

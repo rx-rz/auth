@@ -14,7 +14,7 @@ describe('OtpService', () => {
 
   const mockUserRepository = {
     getUserByEmail: jest.fn(),
-    updateUserDetails: jest.fn(),
+    updateUserProjectDetails: jest.fn(),
   };
 
   const mockAdminRepository = {
@@ -226,9 +226,13 @@ describe('OtpService', () => {
 
       expect(mockOtpRepository.getOTPDetails).toHaveBeenCalledWith(dto.email);
       expect(mockUserRepository.getUserByEmail).toHaveBeenCalledWith(dto.email);
-      expect(mockUserRepository.updateUserDetails).toHaveBeenCalledWith(dto.userId, dto.projectId, {
-        isVerified: true,
-      });
+      expect(mockUserRepository.updateUserProjectDetails).toHaveBeenCalledWith(
+        dto.userId,
+        dto.projectId,
+        {
+          isVerified: true,
+        },
+      );
       expect(mockOtpRepository.deleteOTP).toHaveBeenCalledWith(dto.email);
       expect(result.success).toBe(true);
       expect(result.message).toBe('OTP verified successfully');

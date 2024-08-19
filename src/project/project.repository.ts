@@ -152,6 +152,16 @@ export class ProjectRepository {
     return deletedProject;
   }
 
+  async getUserFromProject(email: string, projectId: string) {
+    const user = await this.prisma.userProject.findFirst({
+      where: {
+        user: { email },
+        projectId,
+      },
+    });
+    return user;
+  }
+
   async addUserToProject(data: AddUserToProjectDto) {
     const user = await this.prisma.userProject.create({
       data,

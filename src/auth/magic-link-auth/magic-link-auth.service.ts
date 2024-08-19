@@ -5,6 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import { Mailer } from 'src/infra/mail/mail.service';
 import { ProjectRepository } from 'src/project/project.repository';
 import { UserRepository } from 'src/user/user.repository';
+import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { AuthMethod } from '@prisma/client';
+
+type DecodedMagicLink = {
+  userEmail: string;
+  projectId: string;
+};
 
 @Injectable()
 export class MagicLinkAuthService {
@@ -14,6 +22,7 @@ export class MagicLinkAuthService {
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
     private readonly mailer: Mailer,
+    private readonly emitter: AppEventEmitter,
   ) {}
 
   async checkIfProjectExists(projectId: string) {
@@ -52,9 +61,50 @@ export class MagicLinkAuthService {
   }
 
   async verifyMagicLink({ token }: TokenDto) {
-    const decodedToken = await this.jwtService.verifyAsync(token, {
+    const { projectId, userEmail }: DecodedMagicLink = await this.jwtService.verifyAsync(token, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
     });
-    return { success: true, decodedToken };
+    await this.checkIfProjectExists(projectId);
+
+    let existingUser = await this.projectRepository.getUserFromProject(userEmail, projectId);
+
+    const newUser = existingUser
+      ? null
+      : await this.userRepository.createUser({
+          email: userEmail,
+          firstName: '',
+          lastName: '',
+          isVerified: true,
+          projectId,
+        });
+    if (existingUser?.isVerified === false) {
+      await this.userRepository.updateUserProjectDetails(existingUser.userId, projectId, {
+        isVerified: true,
+      });
+    }
+    const payload = {
+      email: userEmail,
+      firstName: existingUser?.firstName ?? '',
+      lastName: existingUser?.lastName ?? '',
+      isVerified: true,
+      id: existingUser?.userId ?? newUser?.id,
+      role: 'user',
+    };
+
+    const [accessToken, refreshToken] = [
+      await this.jwtService.signAsync(payload, {
+        secret: this.configService.get('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      }),
+      await generateHashedRefreshToken(),
+    ];
+
+    this.emitter.emit('refresh-token.created', {
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      userId: existingUser?.userId ?? newUser?.id,
+      authMethod: AuthMethod.MAGICLINK,
+    });
+    return { success: true, accessToken };
   }
 }
