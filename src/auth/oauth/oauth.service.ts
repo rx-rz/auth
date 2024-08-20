@@ -3,6 +3,7 @@ import { OAuthProviders } from '@prisma/client';
 
 @Injectable()
 export class OauthService {
+  constructor(private readonly oauthProviderRepository: ){}
   // private strategy: OAuthStrategy;
   // constructor(
   //   private readonly oauthFactory: OAuthStrategyFactory,
