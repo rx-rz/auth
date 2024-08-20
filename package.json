@@ -24,9 +24,6 @@
     "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json",
     "prepare": "husky"
   },
-  "husky": {
-    "hooks": {}
-  },
   "dependencies": {
     "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "^10.0.0",
@@ -104,8 +101,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
   }
 }
