@@ -19,6 +19,12 @@ export class OAuthRepository {
           projectId,
         },
       },
+      select: {
+        name: true,
+        id: true,
+        clientId: true,
+        clientSecret: true,
+      },
     });
     return provider;
   }
@@ -30,5 +36,19 @@ export class OAuthRepository {
       },
     });
     return provider;
+  }
+  async createOauthState(data: Prisma.OAuthStateCreateInput) {
+    const state = await this.prisma.oAuthState.create({ data });
+    return state;
+  }
+
+  async deleteOauthState(id: string) {
+    const state = await this.prisma.oAuthState.delete({ where: { id } });
+    return state;
+  }
+
+  async getOauthState(id: string) {
+    const state = await this.prisma.oAuthState.findUnique({ where: { id } });
+    return state; 
   }
 }

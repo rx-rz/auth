@@ -1,29 +1,33 @@
+import { ConfigService } from '@nestjs/config';
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 
 export class EncryptionService {
-  private algorithm = 'aes-256-cbc';
+  private algorithm = 'aes-192-cbc';
   private key: Buffer;
-  private iv: Buffer;
 
   constructor(encryptionKey: string) {
-    this.key = scryptSync(encryptionKey, randomBytes(12), 32);
-    this.iv = randomBytes(16);
+    encryptionKey = process.env.MASTER_KEY ?? '';
+    if (encryptionKey.length !== 32) {
+      throw new Error('Encryption key must be 32 bytes long');
+    }
+    this.key = scryptSync(encryptionKey, 'salt', 24);
+  }
+
+  generateIV() {
+    return randomBytes(16);
   }
 
   encrypt(text: string) {
-    const cipher = createCipheriv(this.algorithm, this.key, this.iv);
-    let encrypted = cipher.update(text, 'utf-8', 'hex');
-    encrypted = cipher.final('hex');
-    return this.iv.toString('hex') + ':' + encrypted;
+    const iv = this.generateIV();
+    const cipher = createCipheriv(this.algorithm, this.key, iv);
+    const encrypted = cipher.update(text, 'utf8', 'hex');
+    return [encrypted + cipher.final('hex'), Buffer.from(iv).toString('hex')].join('|');
   }
 
-  decrypt(text: string) {
-    const textParts = text.split(':');
-    const iv = Buffer.from(textParts.shift()!, 'hex');
-    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const decipher = createDecipheriv(this.algorithm, this.key, iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+  decrypt(encryptedText: string) {
+    const [encrypted, iv] = encryptedText.split('|');
+    if (!iv) throw new Error('IV not found');
+    const decipher = createDecipheriv(this.algorithm, this.key, Buffer.from(iv, 'hex'));
+    return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
 }

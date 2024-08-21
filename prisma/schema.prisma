@@ -140,6 +140,12 @@ model OAuthProvider {
   @@map("oauth_providers")
 }
 
+model OAuthState {
+  id           String         @id @unique() @default(cuid())
+  providerId   String
+  providerName OAuthProviders
+}
+
 // UserOauthAccount model
 model UserOauthAccount {
   id                    String        @id @unique() @default(cuid())
@@ -161,7 +167,6 @@ model UserOauthAccount {
   @@index([providerId])
   @@map("user_oauth_accounts")
 }
-
 
 // OTP model
 model Otp {

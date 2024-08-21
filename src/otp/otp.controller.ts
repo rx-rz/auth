@@ -11,6 +11,7 @@ import {
 } from './schema';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 import { VerifyProject } from 'src/utils/interceptors/project-verification.interceptor';
+import { randomBytes } from 'crypto';
 
 @Controller(OTP_ROUTES.BASE)
 export class OtpController {
