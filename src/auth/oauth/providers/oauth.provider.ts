@@ -12,6 +12,7 @@ export abstract class OAuthProvider {
   abstract getName(): OAuthProviders;
   abstract getAuthorizationUrl(state: string): string;
   abstract getTokens(code: string): any;
+  abstract getUserInfo(accessToken: string): any;
   getClientId(): string {
     return this.oauthProviderData.clientId;
   }
@@ -21,7 +22,9 @@ export abstract class OAuthProvider {
   getTokenUrl() {
     return 'https://oauth2.googleapis.com/token';
   }
-
+  getUserInfoUrl() {
+    return 'https://www.googleapis.com/oauth2/v2/userinfo';
+  }
   getScopes() {
     return ['profile', 'email'];
   }

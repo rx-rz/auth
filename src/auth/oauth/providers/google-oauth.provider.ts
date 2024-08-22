@@ -43,4 +43,14 @@ export class GoogleOauthProvider extends OAuthProvider {
     console.log(response.json());
     return response.json();
   }
+
+  async getUserInfo(accessToken: string) {
+    const { json } = await fetch(this.getUserInfoUrl(), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    console.log(json);
+    return json;
+  }
 }
