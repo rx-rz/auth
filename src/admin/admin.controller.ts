@@ -30,7 +30,9 @@ import {
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('admin')
 @Controller(ADMIN_ROUTES.BASE)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
