@@ -30,19 +30,40 @@ import {
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  openApiDeleteAdminOpts,
+  openApiGetAdminProjectByNameOpts,
+  openApiGetAdminProjectsOpts,
+  openApiLoginAdminOpts,
+  openApiRegisterAdminOpts,
+  openApiUpdateAdminEmailOpts,
+  openApiUpdateAdminOpts,
+  openApiUpdateAdminPasswordOpts,
+} from './open-api';
 
 @ApiTags('admin')
 @Controller(ADMIN_ROUTES.BASE)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @ApiOperation({
+    ...openApiRegisterAdminOpts.options,
+  })
+  @ApiResponse({ ...openApiRegisterAdminOpts.successResponse })
+  @ApiResponse({ ...openApiRegisterAdminOpts.conflictResponse })
   @UsePipes(new ZodPipe(RegisterAdminSchema))
   @Post(ADMIN_ROUTES.REGISTER)
   async registerAdmin(@Body() body: RegisterAdminDto) {
     return this.adminService.registerAdmin(body);
   }
 
+  @ApiOperation({
+    ...openApiLoginAdminOpts.options,
+  })
+  @ApiResponse({ ...openApiLoginAdminOpts.successResponse })
+  @ApiResponse({ ...openApiLoginAdminOpts.unauthorizedResponse })
+  @ApiResponse({ ...openApiLoginAdminOpts.notFoundResponse })
   @UsePipes(new ZodPipe(LoginAdminSchema))
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(@Body() body: LoginAdminDto, @Res({ passthrough: true }) response: Response) {
@@ -65,6 +86,10 @@ export class AdminController {
     return { success, message: 'Login successful', accessToken };
   }
 
+  @ApiOperation({ ...openApiUpdateAdminOpts.options })
+  @ApiResponse({ ...openApiUpdateAdminOpts.successResponse })
+  @ApiResponse({ ...openApiUpdateAdminOpts.badRequestResponse })
+  @ApiResponse({ ...openApiUpdateAdminOpts.notFoundResponse })
   @UsePipes(new ZodPipe(UpdateAdminSchema))
   @Put(ADMIN_ROUTES.UPDATE_DETAILS)
   @UseGuards(AdminGuard)
@@ -72,6 +97,11 @@ export class AdminController {
     return this.adminService.updateAdmin(body);
   }
 
+  @ApiOperation({ ...openApiUpdateAdminEmailOpts.options })
+  @ApiResponse({ ...openApiUpdateAdminEmailOpts.successResponse })
+  @ApiResponse({ ...openApiUpdateAdminEmailOpts.conflictResponse })
+  @ApiResponse({ ...openApiUpdateAdminEmailOpts.badRequestResponse })
+  @ApiResponse({ ...openApiUpdateAdminEmailOpts.notFoundResponse })
   @UsePipes(new ZodPipe(UpdateAdminEmailSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
   @UseGuards(AdminGuard)
@@ -79,6 +109,10 @@ export class AdminController {
     return this.adminService.updateAdminEmail(body);
   }
 
+  @ApiOperation({ ...openApiUpdateAdminPasswordOpts.options })
+  @ApiResponse({ ...openApiUpdateAdminPasswordOpts.successResponse })
+  @ApiResponse({ ...openApiUpdateAdminPasswordOpts.badRequestResponse })
+  @ApiResponse({ ...openApiUpdateAdminPasswordOpts.notFoundResponse })
   @UsePipes(new ZodPipe(UpdateAdminPasswordSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
   @UseGuards(AdminGuard)
@@ -86,12 +120,18 @@ export class AdminController {
     return this.adminService.updateAdminPassword(body);
   }
 
+  @ApiOperation({ ...openApiGetAdminProjectsOpts.options })
+  @ApiOperation({ ...openApiGetAdminProjectsOpts.successResponse })
+  @ApiOperation({ ...openApiGetAdminProjectsOpts.notFoundResponse })
   @Get(ADMIN_ROUTES.GET_PROJECTS)
   @UseGuards(AdminGuard)
   async getAdminProjects(@Query() query: AdminEmailDto) {
     return this.adminService.getAdminProjects(query);
   }
 
+  @ApiOperation({ ...openApiGetAdminProjectByNameOpts.options })
+  @ApiOperation({ ...openApiGetAdminProjectByNameOpts.successResponse })
+  @ApiOperation({ ...openApiGetAdminProjectByNameOpts.notFoundResponse })
   @UsePipes(new ZodPipe(GetAdminProjectSchema))
   @Get(ADMIN_ROUTES.GET_PROJECT_BY_NAME)
   @UseGuards(AdminGuard)
@@ -99,6 +139,9 @@ export class AdminController {
     return this.adminService.getAdminProjectByName(body);
   }
 
+  @ApiOperation({ ...openApiDeleteAdminOpts.options })
+  @ApiOperation({ ...openApiDeleteAdminOpts.successResponse })
+  @ApiOperation({ ...openApiDeleteAdminOpts.notFoundResponse })
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
   @UseGuards(AdminGuard)
   async deleteAdmin(@Query() query: AdminEmailDto) {
