@@ -51,7 +51,7 @@ export class AdminService {
   private async verifyPassword(email: string, password: string) {
     const existingPasswordInDB = await this.adminRepository.getAdminPassword(email);
     const passwordsMatch = await compare(password, existingPasswordInDB);
-    if (!passwordsMatch) throw new BadRequestException('Invalid details provided');
+    if (!passwordsMatch) throw new BadRequestException('Password is incorrect');
     return passwordsMatch;
   }
 
@@ -102,7 +102,20 @@ export class AdminService {
   async updateAdmin({ email, ...details }: UpdateAdminDto) {
     await this.getAdminByEmail(email);
     const admin = await this.adminRepository.updateAdmin(email, details);
-    return { success: true, admin };
+    const payload = {
+      email: admin.email,
+      firstName: admin.firstName,
+      isVerified: admin.isVerified,
+      lastName: admin.lastName,
+      id: admin.id,
+      role: 'admin',
+      mfaEnabled: admin.mfaEnabled,
+    };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: '10d',
+    });
+    return { success: true, admin, accessToken };
   }
 
   async updateAdminEmail({ currentEmail, newEmail, password }: UpdateAdminEmailDto) {
@@ -111,10 +124,24 @@ export class AdminService {
       throw new ConflictException(
         'An email with the provided new email already exists. Please choose another.',
       );
+
     await this.getAdminByEmail(currentEmail);
     await this.verifyPassword(currentEmail, password);
     const admin = await this.adminRepository.updateAdminEmail(currentEmail, newEmail);
-    return { success: true, admin };
+    const payload = {
+      email: admin.email,
+      firstName: admin.firstName,
+      isVerified: admin.isVerified,
+      lastName: admin.lastName,
+      id: admin.id,
+      role: 'admin',
+      mfaEnabled: admin.mfaEnabled,
+    };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: '10d',
+    });
+    return { success: true, admin, accessToken };
   }
 
   async updateAdminPassword({ currentPassword, email, newPassword }: UpdateAdminPasswordDto) {

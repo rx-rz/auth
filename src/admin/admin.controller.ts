@@ -93,8 +93,16 @@ export class AdminController {
   @UsePipes(new ZodPipe(UpdateAdminSchema))
   @Put(ADMIN_ROUTES.UPDATE_DETAILS)
   @UseGuards(AdminGuard)
-  async updateAdmin(@Body() body: UpdateAdminDto) {
-    return this.adminService.updateAdmin(body);
+  async updateAdmin(@Body() body: UpdateAdminDto, @Res({ passthrough: true }) response: Response) {
+    const { accessToken, success } = await this.adminService.updateAdmin(body);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return { success, message: 'Admin details updated successfully' };
   }
 
   @ApiOperation({ ...openApiUpdateAdminEmailOpts.options })
@@ -105,8 +113,19 @@ export class AdminController {
   @UsePipes(new ZodPipe(UpdateAdminEmailSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
   @UseGuards(AdminGuard)
-  async updateAdminEmail(@Body() body: UpdateAdminEmailDto) {
-    return this.adminService.updateAdminEmail(body);
+  async updateAdminEmail(
+    @Body() body: UpdateAdminEmailDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, success } = await this.adminService.updateAdminEmail(body);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return { success, message: 'Admin email updated successfully' };
   }
 
   @ApiOperation({ ...openApiUpdateAdminPasswordOpts.options })
@@ -147,4 +166,5 @@ export class AdminController {
   async deleteAdmin(@Query() query: AdminEmailDto) {
     return this.adminService.deleteAdmin(query);
   }
+
 }
