@@ -30,7 +30,7 @@ import {
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   openApiDeleteAdminOpts,
   openApiGetAdminProjectByNameOpts,
@@ -73,21 +73,7 @@ export class AdminController {
   @Post(ADMIN_ROUTES.LOGIN)
   async loginAdmin(@Body() body: LoginAdminDto, @Res({ passthrough: true }) response: Response) {
     const { accessToken, refreshToken, success } = await this.adminService.loginAdmin(body);
-    // Set refresh token cookie
-    response.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    response.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    this.setCookies(response, accessToken, refreshToken);
     return { success, message: 'Login successful', accessToken };
   }
 
@@ -104,13 +90,7 @@ export class AdminController {
   @UseGuards(AdminGuard)
   async updateAdmin(@Body() body: UpdateAdminDto, @Res({ passthrough: true }) response: Response) {
     const { accessToken, success } = await this.adminService.updateAdmin(body);
-    response.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    this.setAccessTokenCookie(response, accessToken);
     return { success, message: 'Admin details updated successfully' };
   }
 
@@ -131,13 +111,7 @@ export class AdminController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const { accessToken, success } = await this.adminService.updateAdminEmail(body);
-    response.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    this.setAccessTokenCookie(response, accessToken);
     return { success, message: 'Admin email updated successfully' };
   }
 
@@ -199,5 +173,27 @@ export class AdminController {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
     return { success: true, message: 'Admin logged out successfully' };
+  }
+
+  private setCookies(response: Response, accessToken: string, refreshToken: string) {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+    response.cookie('refreshToken', refreshToken, cookieOptions);
+    response.cookie('accessToken', accessToken, cookieOptions);
+  }
+
+  private setAccessTokenCookie(response: Response, accessToken: string) {
+    return response.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
   }
 }

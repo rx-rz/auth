@@ -23,6 +23,15 @@ import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.de
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { JwtService } from '@nestjs/jwt';
 
+type Admin = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isVerified: boolean;
+  mfaEnabled: boolean;
+};
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -55,12 +64,13 @@ export class AdminService {
     return passwordsMatch;
   }
 
-  async registerAdmin(dto: RegisterAdminDto) {
-    const admin = await this.adminRepository.getAdminByEmail(dto.email);
+  async registerAdmin({ email, password, ...dto }: RegisterAdminDto) {
+    const admin = await this.adminRepository.getAdminByEmail(email);
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
       ...dto,
-      password: await hashValue(dto.password),
+      email,
+      password: await hashValue(password),
     });
     return { success: true, message: 'Admin registered successfully.' };
   }
@@ -72,24 +82,12 @@ export class AdminService {
       throw new NotFoundException('Admin with the provided details does not exist.');
     }
     await this.verifyPassword(email, password);
-    const payload = {
-      email: admin.email,
-      firstName: admin.firstName,
-      isVerified: admin.isVerified,
-      lastName: admin.lastName,
-      id: admin.id,
-      role: 'admin',
-      mfaEnabled: admin.mfaEnabled,
-    };
+    const payload = this.getAdminPayload(admin);
     const [accessToken, refreshToken] = [
-      await this.jwtService.signAsync(payload, {
-        secret: this.configService.get('JWT_ACCESS_SECRET'),
-        expiresIn: '10d',
-      }),
+      await this.getAccessToken(payload),
       await generateHashedRefreshToken(),
     ];
 
-    // emit event to save the refresh token instance in the DB
     await this.emitter.emit('refresh-token.created', {
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -99,22 +97,11 @@ export class AdminService {
     return { success: true, accessToken: `Bearer ${accessToken}`, refreshToken };
   }
 
-  async updateAdmin({ email, ...details }: UpdateAdminDto) {
+  async updateAdmin({ email, ...dto }: UpdateAdminDto) {
     await this.getAdminByEmail(email);
-    const admin = await this.adminRepository.updateAdmin(email, details);
-    const payload = {
-      email: admin.email,
-      firstName: admin.firstName,
-      isVerified: admin.isVerified,
-      lastName: admin.lastName,
-      id: admin.id,
-      role: 'admin',
-      mfaEnabled: admin.mfaEnabled,
-    };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get('JWT_ACCESS_SECRET'),
-      expiresIn: '10d',
-    });
+    const admin = await this.adminRepository.updateAdmin(email, dto);
+    const payload = this.getAdminPayload(admin);
+    const accessToken = await this.getAccessToken(payload);
     return { success: true, admin, accessToken: `Bearer ${accessToken}` };
   }
 
@@ -128,19 +115,8 @@ export class AdminService {
     await this.getAdminByEmail(currentEmail);
     await this.verifyPassword(currentEmail, password);
     const admin = await this.adminRepository.updateAdminEmail(currentEmail, newEmail);
-    const payload = {
-      email: admin.email,
-      firstName: admin.firstName,
-      isVerified: admin.isVerified,
-      lastName: admin.lastName,
-      id: admin.id,
-      role: 'admin',
-      mfaEnabled: admin.mfaEnabled,
-    };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get('JWT_ACCESS_SECRET'),
-      expiresIn: '10d',
-    });
+    const payload = this.getAdminPayload(admin);
+    const accessToken = await this.getAccessToken(payload);
     return { success: true, admin, accessToken: `Bearer ${accessToken}` };
   }
 
@@ -167,5 +143,25 @@ export class AdminService {
     await this.getAdminByEmail(email);
     const admin = await this.adminRepository.deleteAdmin(email);
     return { success: true, admin };
+  }
+
+  private getAdminPayload(admin: Admin) {
+    return {
+      email: admin.email,
+      firstName: admin.firstName,
+      isVerified: admin.isVerified,
+      lastName: admin.lastName,
+      id: admin.id,
+      role: 'admin',
+      mfaEnabled: admin.mfaEnabled,
+    };
+  }
+
+  private async getAccessToken(payload: any) {
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: '10d',
+    });
+    return accessToken;
   }
 }
