@@ -19,6 +19,8 @@ export class RoleService {
       name,
       projectId,
     );
+    if (name === 'rollo-admin')
+      throw new ConflictException('Cannot create a role with this name as it is already in use.');
     if (existingRole)
       throw new ConflictException('Role with same name is already attached to this project.');
     const role = await this.rbacRepository.createRole({

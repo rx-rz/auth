@@ -19,7 +19,7 @@ export type AdminPayload = {
   isVerified: boolean;
   lastName: string;
   id: string;
-  role: 'admin';
+  role: 'rollo-admin';
   mfaEnabled: boolean;
 };
 export async function createTestingApp(): Promise<INestApplication> {

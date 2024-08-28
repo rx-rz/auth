@@ -152,7 +152,7 @@ export class AdminService {
       isVerified: admin.isVerified,
       lastName: admin.lastName,
       id: admin.id,
-      role: 'admin',
+      role: 'rollo-admin',
       mfaEnabled: admin.mfaEnabled,
     };
   }

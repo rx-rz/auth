@@ -42,7 +42,7 @@ export class ProjectVerificationInterceptor implements NestInterceptor {
     // api key verification is meant for users who will access the endpoints
     // from an external app. admins will use MFA to authenticate requests in
     // the custom auth management app frontend.
-    if (user && user.role === 'admin') {
+    if (user && user.role === 'rollo-admin') {
       return next.handle();
     }
     if (!apiKey || !clientKey)
@@ -66,6 +66,6 @@ type User = {
   firstName: string;
   lastName: string;
   id: string;
-  role: 'admin' | 'user';
+  role: 'rollo-admin' | 'user';
   mfaEnabled: boolean;
 };

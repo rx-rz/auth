@@ -13,7 +13,7 @@ type User = {
   firstName: string;
   lastName: string;
   id: string;
-  role: 'admin' | string;
+  role: 'rollo-admin' | string;
   mfaEnabled: boolean;
 };
 
@@ -34,7 +34,7 @@ export class AdminGuard implements CanActivate {
       const payload: User = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get('JWT_ACCESS_SECRET'),
       });
-      if (payload && payload.role !== 'admin') {
+      if (payload && payload.role !== 'rollo-admin') {
         throw new ForbiddenException('Admin access required.');
       }
     } catch (err) {
