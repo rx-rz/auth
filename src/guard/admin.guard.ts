@@ -26,6 +26,7 @@ export class AdminGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromCookies(request);
+    console.log({ token });
     if (!token) {
       throw new UnauthorizedException('Invalid token provided.');
     }
@@ -36,13 +37,15 @@ export class AdminGuard implements CanActivate {
       if (payload && payload.role !== 'admin') {
         throw new ForbiddenException('Admin access required.');
       }
-    } catch {
+    } catch (err) {
+      console.log(err);
       throw new UnauthorizedException('Invalid token provided.');
     }
     return true;
   }
 
   private extractTokenFromCookies(request: any): string | undefined {
+    console.log(request.cookies);
     const [type, token] = request.cookies.accessToken?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }

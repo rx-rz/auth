@@ -115,7 +115,7 @@ export class AdminService {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
       expiresIn: '10d',
     });
-    return { success: true, admin, accessToken };
+    return { success: true, admin, accessToken: `Bearer ${accessToken}` };
   }
 
   async updateAdminEmail({ currentEmail, newEmail, password }: UpdateAdminEmailDto) {
@@ -141,7 +141,7 @@ export class AdminService {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
       expiresIn: '10d',
     });
-    return { success: true, admin, accessToken };
+    return { success: true, admin, accessToken: `Bearer ${accessToken}` };
   }
 
   async updateAdminPassword({ currentPassword, email, newPassword }: UpdateAdminPasswordDto) {
