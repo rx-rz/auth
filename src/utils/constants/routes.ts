@@ -6,6 +6,7 @@ export const ADMIN_ROUTES = {
   UPDATE_ADMIN_PASSWORD: 'update-password',
   DELETE_ACCOUNT: 'delete',
   LOGIN: 'login',
+  LOGOUT: 'logout',
   GET_PROJECTS: 'get-projects',
   GET_PROJECT_BY_NAME: 'get-project-by-name',
 };

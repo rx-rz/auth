@@ -167,4 +167,11 @@ export class AdminController {
     return this.adminService.deleteAdmin(query);
   }
 
+  @Get(ADMIN_ROUTES.LOGOUT)
+  @UseGuards(AdminGuard)
+  async logoutAdmin(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('accessToken');
+    response.clearCookie('refreshToken');
+    return { success: true, message: 'Admin logged out successfully' };
+  }
 }
