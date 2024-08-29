@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { AdminRepository } from './admin.repository';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import { generateHashedRefreshToken } from 'src/utils/helper-functions/generate-hashed-refresh-token';
 import {
   RegisterAdminDto,
   UpdateAdminDto,
@@ -22,8 +21,9 @@ import { ConfigService } from '@nestjs/config';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
 
-type Admin = {
+export type Admin = {
   id: string;
   email: string;
   firstName: string;
@@ -39,6 +39,7 @@ export class AdminService {
     private readonly emitter: AppEventEmitter,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   private async getAdminByEmail(email: string) {
@@ -79,13 +80,13 @@ export class AdminService {
   async loginAdmin({ email, password }: LoginAdminDto) {
     const admin = await this.adminRepository.getAdminByEmail(email);
     if (!admin) {
-      throw new NotFoundException('Admin with the provided details does not exist.');
+      throw new NotFoundException('Invalid email or password.');
     }
     await this.verifyPassword(email, password);
     const payload = this.getAdminPayload(admin);
     const [accessToken, refreshToken] = [
       await this.getAccessToken(payload),
-      await generateHashedRefreshToken(),
+      this.refreshTokenService.generateRefreshToken(),
     ];
 
     await this.emitter.emit('refresh-token.created', {
@@ -160,7 +161,7 @@ export class AdminService {
   private async getAccessToken(payload: any) {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
-      expiresIn: '10d',
+      expiresIn: '15m',
     });
     return accessToken;
   }

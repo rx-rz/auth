@@ -31,6 +31,19 @@ export class RefreshTokenRepository {
     return refreshToken;
   }
 
+  async getRefreshTokenByTokenValue(token: string) {
+    const refreshToken = await this.prisma.refreshToken.findUnique({
+      where: { token },
+      select: {
+        token: true,
+        expiresAt: true,
+        state: true,
+        authMethod: true,
+      },
+    });
+    return refreshToken;
+  }
+
   async getRefreshTokens(args: Prisma.RefreshTokenFindManyArgs) {
     const refreshTokens = await this.prisma.refreshToken.findMany({
       ...args,

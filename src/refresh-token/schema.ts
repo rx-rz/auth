@@ -27,3 +27,9 @@ export const UpdateRefreshTokenStateSchema = z.object({
 });
 
 export type UpdateRefreshTokenStateDto = z.infer<typeof UpdateRefreshTokenStateSchema>;
+
+export const GetRefreshTokenByTokenValueSchema = z.object({
+  token: z.string({ required_error: 'Token value is required.' }),
+});
+
+export type GetRefreshTokenByTokenValueDto = z.infer<typeof GetRefreshTokenByTokenValueSchema>;
