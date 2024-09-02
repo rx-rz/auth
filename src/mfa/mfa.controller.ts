@@ -10,7 +10,6 @@ import {
   VerifyMfaRegistrationDto,
   VerifyMfaRegistrationSchema,
 } from './schema';
-import { Response } from 'express';
 
 @Controller(MFA_ROUTES.BASE)
 export class MfaController {

@@ -48,7 +48,7 @@ export class OtpService {
     };
     const { error, response } = await this.mailer.sendEmail(mailOptions);
     if (error) throw error;
-    return { success: true, otpDetails, error, response };
+    return { success: true, otpDetails, mailError: error, mailResponse: response };
   }
 
   async verifyAdminOTP({ code, email }: VerifyAdminOtpDto) {

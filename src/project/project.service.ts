@@ -31,12 +31,6 @@ export class ProjectService {
     private readonly userRepository: UserRepository,
     private readonly adminRepository: AdminRepository,
   ) {}
-  async generateKey() {
-    const buffer = randomBytes(32);
-    const key = buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-    const hashedKey = await hashValue(key);
-    return { hashedKey, key };
-  }
 
   private async checkIfProjectExists(projectId: string) {
     const existingProject = await this.projectRepository.getProject(projectId);
@@ -53,9 +47,12 @@ export class ProjectService {
   }
 
   async createProject({ adminId, name }: CreateProjectDto) {
-    const projectWithGivenName = await this.adminRepository.getAdminProjectByName(adminId, name);
+    const projectThatHasProvidedName = await this.adminRepository.getAdminProjectByName(
+      adminId,
+      name,
+    );
     const { hashedKey: apiKey, key: clientKey } = await this.generateKey();
-    if (projectWithGivenName)
+    if (projectThatHasProvidedName)
       throw new ConflictException(
         'Another project already exists with the same name. Please choose a different name.',
       );
@@ -106,22 +103,21 @@ export class ProjectService {
   }
 
   async getProjectDetails({ projectId }: IdDto) {
-    await this.checkIfProjectExists(projectId);
-    const project = await this.projectRepository.getProject(projectId);
+    const project = await this.checkIfProjectExists(projectId);
     return { success: true, project };
   }
 
   async getProjectRefreshTokens({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
-    const project = await this.projectRepository.getProjectRefreshTokens(projectId);
-    return { success: true, project };
+    const refreshTokens = await this.projectRepository.getProjectRefreshTokens(projectId);
+    return { success: true, refreshTokens };
   }
 
   async getAllProjectsCreatedByAdmin({ adminId }: AdminIdDto) {
     const admin = await this.adminRepository.getAdminByID(adminId);
     if (!admin) throw new NotFoundException('Admin with provided details could not be found');
-    const project = await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
-    return { success: true, project };
+    const projects = await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
+    return { success: true, projects };
   }
 
   async deleteProject({ projectId }: IdDto) {
@@ -167,5 +163,12 @@ export class ProjectService {
       roleId,
     );
     return { success: true, userAssignedARole };
+  }
+
+  private async generateKey() {
+    const buffer = randomBytes(32);
+    const key = buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    const hashedKey = await hashValue(key);
+    return { hashedKey, key };
   }
 }

@@ -14,6 +14,7 @@ import {
   UpdateAdminEmailDto,
   UpdateAdminPasswordDto,
   AdminEmailDto,
+  ResetAdminPasswordDto,
 } from './schema';
 import { AuthMethod } from '@prisma/client';
 import { compare } from 'bcryptjs';
@@ -124,6 +125,12 @@ export class AdminService {
   async updateAdminPassword({ currentPassword, email, newPassword }: UpdateAdminPasswordDto) {
     await this.getAdminByEmail(email);
     await this.verifyPassword(email, currentPassword);
+    const admin = await this.adminRepository.updateAdminPassword(email, newPassword);
+    return { success: true, admin };
+  }
+
+  async resetAdminPassword({ email, newPassword }: ResetAdminPasswordDto) {
+    await this.getAdminByEmail(email);
     const admin = await this.adminRepository.updateAdminPassword(email, newPassword);
     return { success: true, admin };
   }

@@ -8,6 +8,7 @@ export const ADMIN_ROUTES = {
   LOGIN: 'login',
   LOGOUT: 'logout',
   GET_PROJECTS: 'get-projects',
+  RESET_PASSWORD: 'reset-password',
   GET_PROJECT_BY_NAME: 'get-project-by-name',
 };
 
@@ -34,7 +35,7 @@ export const PROJECT_ROUTES = {
   GET_PROJECT: 'get-project',
   GET_MAGIC_LINKS: 'get-magic-links',
   GET_REFRESH_TOKENS: 'get-refresh-tokens',
-  GET_ALL_BY_ADMIN: 'get-all-by-admin',
+  GET_ADMIN_PROJECTS: 'get-admin-projects',
   DELETE: 'delete',
   ADD_USER_TO_PROJECT: 'add-user-to-project',
   REMOVE_USER_FROM_PROJECT: 'remove-user-from-project',

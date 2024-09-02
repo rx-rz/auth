@@ -65,15 +65,10 @@ export class OauthService {
   }
 
   async getOauthCallback({ code, state: id }: GetTokensDto) {
-    console.log({ code, id });
     const state = await this.oauthProviderRepository.getOauthState(id);
     if (!state) throw new NotFoundException('Oauth State not found');
     const provider = await this.getProvider(state.providerId, state.providerName);
     const { accessToken } = await provider.getTokens(code);
     const userInfo = await provider.getUserInfo(accessToken);
-    console.log({ accessToken, userInfo });
   }
-
-
-
 }

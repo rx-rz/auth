@@ -27,6 +27,8 @@ import {
   GetAdminProjectSchema,
   LoginAdminSchema,
   AdminEmailDto,
+  ResetAdminPasswordDto,
+  ResetAdminPasswordSchema,
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
@@ -130,6 +132,12 @@ export class AdminController {
     return this.adminService.updateAdminPassword(body);
   }
 
+  @UsePipes(new ZodPipe(ResetAdminPasswordSchema))
+  @Put(ADMIN_ROUTES.RESET_PASSWORD)
+  async resetAdminPassword(@Body() body: ResetAdminPasswordDto) {
+    return this.adminService.resetAdminPassword(body);
+  }
+
   @OpenApiEndpoint({
     options: openApiGetAdminProjectsOpts.options,
     responses: [
@@ -168,7 +176,6 @@ export class AdminController {
   }
 
   @Get(ADMIN_ROUTES.LOGOUT)
-  @UseGuards(AdminGuard)
   async logoutAdmin(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');

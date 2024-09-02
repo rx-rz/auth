@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
-import { CreateUserDto } from 'src/user/schema';
 import { AddUserToProjectDto } from './schema';
 
 @Injectable()
@@ -115,31 +114,30 @@ export class ProjectRepository {
   }
 
   async getProjectRefreshTokens(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
+    const refreshTokens = await this.prisma.refreshToken.findMany({
+      where: { projectId: id },
       select: {
+        authMethod: true,
+        createdAt: true,
         id: true,
-        name: true,
-        adminId: true,
-        refreshTokens: {
-          select: {
-            token: true,
-            expiresAt: true,
-            createdAt: true,
-            userId: true,
-            state: true,
-            authMethod: true,
-          },
-        },
+        state: true,
+        token: true,
+        userId: true,
       },
     });
-    return project;
+    return refreshTokens;
   }
 
   async getAllProjectsCreatedByAdmin(adminId: string, args?: Prisma.ProjectFindManyArgs) {
     const projects = await this.prisma.project.findMany({
       ...args,
       where: { adminId },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return projects;
   }
@@ -200,22 +198,19 @@ export class ProjectRepository {
   }
 
   async getProjectRoles(projectId: string) {
-    const projectRoles = await this.prisma.project.findUnique({
-      where: { id: projectId },
+    const roles = await this.prisma.role.findMany({
+      where: { projectId },
       select: {
         name: true,
         id: true,
-        createdAt: true,
-        roles: {
+        rolePermissions: {
           select: {
-            name: true,
-            id: true,
-            createdAt: true,
+            permission: true,
           },
         },
       },
     });
-    return projectRoles;
+    return roles;
   }
 
   async assignUserProjectRole(userId: string, projectId: string, roleId: string) {

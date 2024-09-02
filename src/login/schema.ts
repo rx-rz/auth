@@ -1,5 +1,3 @@
-import { AuthMethod, LoginStatus } from '@prisma/client';
-import { createEnumSchema } from 'src/utils/helper-functions/create-enum-schema';
 import { z } from 'zod';
 
 export const CreateLoginInstanceSchema = z

@@ -51,8 +51,8 @@ export class EmailAndPasswordAuthService {
     // used in getUserProjectDetails allows undefined values for
     // projectId, it has to be checked
     const user = await this.checkIfUserExists(email);
-
     await this.checkIfPasswordsMatch(email, password, projectId);
+    
     const { firstName, lastName, role, isVerified } = await this.getUserProjectDetails(
       email,
       projectId,

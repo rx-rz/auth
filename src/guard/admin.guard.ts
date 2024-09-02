@@ -56,7 +56,6 @@ export class AdminGuard implements CanActivate {
   }
 
   private extractTokenFromCookies(request: any) {
-    console.log(request.cookies);
     const [type, token] = request.cookies.accessToken?.split(' ') ?? [];
     if (!token) {
       throw new UnauthorizedException('No token provided.');

@@ -71,7 +71,7 @@ export class ProjectController {
     return this.projectService.getProjectRefreshTokens(query);
   }
 
-  @Get(PROJECT_ROUTES.GET_ALL_BY_ADMIN)
+  @Get(PROJECT_ROUTES.GET_ADMIN_PROJECTS)
   @UsePipes(new ZodPipe(AdminIdSchema))
   @UseGuards(AdminGuard)
   async getAllProjectsCreatedByAdmin(@Query() query: AdminIdDto) {
