@@ -56,7 +56,6 @@ export class AdminGuard implements CanActivate {
 
   private extractTokenFromCookies(request: any) {
     const [type, token] = request.cookies.accessToken?.split(' ') ?? [];
-    console.log({cookies: request.cookies});
     if (!token) {
       throw new UnauthorizedException('No token provided.');
     }
@@ -99,14 +98,14 @@ export class AdminGuard implements CanActivate {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 15 * 60 * 60 * 1000,
     });
   }
 
   private async getAccessToken(payload: any) {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
-      expiresIn: '15m',
+      expiresIn: '15h',
     });
     return accessToken;
   }
