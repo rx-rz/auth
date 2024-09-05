@@ -29,6 +29,7 @@ import {
   AdminEmailDto,
   ResetAdminPasswordDto,
   ResetAdminPasswordSchema,
+  AdminEmailSchema,
 } from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
@@ -146,6 +147,7 @@ export class AdminController {
     ],
   })
   @Get(ADMIN_ROUTES.GET_PROJECTS)
+  @UsePipes(new ZodPipe(AdminEmailSchema))
   @UseGuards(AdminGuard)
   async getAdminProjects(@Query() query: AdminEmailDto) {
     return this.adminService.getAdminProjects(query);
@@ -195,7 +197,7 @@ export class AdminController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as const,
       path: '/',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 
@@ -205,7 +207,7 @@ export class AdminController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }

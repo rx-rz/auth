@@ -64,6 +64,13 @@ export class ProjectController {
     return this.projectService.getProjectDetails(query);
   }
 
+  @Get(PROJECT_ROUTES.GET_PROJECT_ROLES)
+  @UsePipes(new ZodPipe(IdSchema))
+  @UseGuards(AdminGuard)
+  async getProjectRoles(@Query() query: IdDto) {
+    return this.projectService.getProjectRoles(query);
+  }
+
   @Get(PROJECT_ROUTES.GET_REFRESH_TOKENS)
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)

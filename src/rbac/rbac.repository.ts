@@ -12,7 +12,9 @@ export class RoleBasedAccessControlRepository {
       select: {
         id: true,
         name: true,
+        projectId: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
     return role;
@@ -76,6 +78,13 @@ export class RoleBasedAccessControlRepository {
     const role = await this.prisma.role.update({
       where: { id: roleId },
       data: { name },
+      select: {
+        id: true,
+        name: true,
+        projectId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return role;
   }
@@ -87,6 +96,8 @@ export class RoleBasedAccessControlRepository {
         id: true,
         name: true,
         projectId: true,
+        createdAt: true,
+        updatedAt: true,
         rolePermissions: true,
       },
     });
@@ -96,6 +107,13 @@ export class RoleBasedAccessControlRepository {
   async getRoleDetailsByNameAndProjectId(name: string, projectId: string) {
     const role = await this.prisma.role.findUnique({
       where: { name_projectId: { name, projectId } },
+      select: {
+        id: true,
+        name: true,
+        projectId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return role;
   }

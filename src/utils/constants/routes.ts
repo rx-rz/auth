@@ -33,10 +33,11 @@ export const PROJECT_ROUTES = {
   UPDATE_PROJECT_NAME: 'update-project-name',
   GET_KEYS: 'get-keys',
   GET_PROJECT: 'get-project',
+  GET_PROJECT_ROLES: 'get-project-roles',
   GET_MAGIC_LINKS: 'get-magic-links',
   GET_REFRESH_TOKENS: 'get-refresh-tokens',
   GET_ADMIN_PROJECTS: 'get-admin-projects',
-  DELETE: 'delete',
+  DELETE: 'delete-project',
   ADD_USER_TO_PROJECT: 'add-user-to-project',
   REMOVE_USER_FROM_PROJECT: 'remove-user-from-project',
   ASSIGN_USER_PROJECT_ROLE: 'assign-user-project-role',
@@ -58,9 +59,9 @@ export const USER_ROUTES = {
 export const ROLE_ROUTES = {
   BASE: 'role',
   CREATE_ROLE: 'create-role',
-  GET_ROLE: 'get-details',
+  GET_ROLE: 'get-role-details',
   UPDATE_ROLE_NAME: 'update-role-name',
-  DELETE_ROLE: 'delete',
+  DELETE_ROLE: 'delete-role',
 };
 
 export const PERMISSION_ROUTES = {

@@ -5,7 +5,6 @@ import {
   HttpException,
   Injectable,
   NotFoundException,
-  Redirect,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -57,6 +56,7 @@ export class AdminGuard implements CanActivate {
 
   private extractTokenFromCookies(request: any) {
     const [type, token] = request.cookies.accessToken?.split(' ') ?? [];
+    console.log({cookies: request.cookies});
     if (!token) {
       throw new UnauthorizedException('No token provided.');
     }
@@ -94,7 +94,7 @@ export class AdminGuard implements CanActivate {
       mfaEnabled: user.mfaEnabled,
     };
     const accessToken = await this.getAccessToken(payload);
-    response.cookie('accessToken', accessToken, {
+    response.cookie('accessToken', `Bearer ${accessToken}`, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

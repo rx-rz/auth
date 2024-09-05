@@ -81,6 +81,7 @@ export class AdminRepository {
       select: {
         id: true,
         name: true,
+        updatedAt: true,
         createdAt: true,
       },
     });

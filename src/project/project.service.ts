@@ -107,6 +107,12 @@ export class ProjectService {
     return { success: true, project };
   }
 
+  async getProjectRoles({ projectId }: IdDto) {
+    await this.checkIfProjectExists(projectId);
+    const roles = await this.projectRepository.getProjectRoles(projectId);
+    return { success: true, roles };
+  }
+
   async getProjectRefreshTokens({ projectId }: IdDto) {
     await this.checkIfProjectExists(projectId);
     const refreshTokens = await this.projectRepository.getProjectRefreshTokens(projectId);

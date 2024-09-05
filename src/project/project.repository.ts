@@ -203,6 +203,8 @@ export class ProjectRepository {
       select: {
         name: true,
         id: true,
+        createdAt: true,
+        updatedAt: true,
         rolePermissions: {
           select: {
             permission: true,
