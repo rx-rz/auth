@@ -67,10 +67,11 @@ export const ROLE_ROUTES = {
 export const PERMISSION_ROUTES = {
   BASE: 'permission',
   CREATE_PERMISSION: 'create-permission',
-  ASSIGN_TO_ROLE: 'assign-to-role',
+  ASSIGN_TO_ROLE: 'assign-permission-to-role',
   GET_DETAILS: 'get-details',
+  GET_PROJECT_PERMISSIONS: 'get-project-permissions',
   UPDATE_PERMISSION: 'update-permission',
-  DELETE_PERMISSION: 'delete',
+  DELETE_PERMISSION: 'delete-permission',
 };
 
 export const MAGIC_LINK_ROUTES = {
@@ -79,10 +80,3 @@ export const MAGIC_LINK_ROUTES = {
   DELETE_MAGIC_LINK: 'delete',
   VERIFY_MAGIC_LINK: 'verify',
 };
-
-type RouteObject =
-  | typeof ADMIN_ROUTES
-  | typeof OTP_ROUTES
-  | typeof PROJECT_ROUTES
-  | typeof USER_ROUTES
-  | typeof ROLE_ROUTES;

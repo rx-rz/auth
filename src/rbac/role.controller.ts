@@ -3,11 +3,9 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
   Delete,
   Query,
   UseGuards,
-  Param,
   UsePipes,
   Put,
 } from '@nestjs/common';

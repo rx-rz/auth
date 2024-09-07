@@ -6,10 +6,22 @@ import {
   PermissionIdDo,
   UpdatePermissionDto,
 } from './schema';
+import { IdDto as ProjectIdDto } from 'src/project/schema';
+import { ProjectRepository } from 'src/project/project.repository';
 
 @Injectable()
 export class PermissionService {
-  constructor(private readonly rbacRepository: RoleBasedAccessControlRepository) {}
+  constructor(
+    private readonly rbacRepository: RoleBasedAccessControlRepository,
+    private readonly projectRepository: ProjectRepository,
+  ) {}
+  private async checkIfProjectExists(projectId: string) {
+    const existingProject = await this.projectRepository.getProject(projectId);
+    if (!existingProject) {
+      throw new NotFoundException('Project with specified ID does not exist.');
+    }
+    return existingProject;
+  }
 
   async checkIfPermissionExists(permissionId: string) {
     const permission = await this.rbacRepository.getPermissionDetails(permissionId);
@@ -37,6 +49,12 @@ export class PermissionService {
     await this.checkIfPermissionExists(permissionId);
     const permission = await this.rbacRepository.getPermissionDetails(permissionId);
     return { success: true, permission };
+  }
+
+  async getProjectPermissions({ projectId }: ProjectIdDto) {
+    await this.checkIfProjectExists(projectId);
+    const permissions = await this.rbacRepository.getProjectPermissions(projectId);
+    return { success: true, permissions };
   }
 
   async updatePermission({ permissionId, ...data }: UpdatePermissionDto) {

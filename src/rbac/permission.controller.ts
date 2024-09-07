@@ -23,6 +23,7 @@ import {
 } from './schema';
 import { AdminGuard } from 'src/guard/admin.guard';
 import { PERMISSION_ROUTES } from 'src/utils/constants/routes';
+import { IdSchema as ProjectIdSchema, IdDto as ProjectIdDto } from 'src/project/schema';
 
 @Controller(PERMISSION_ROUTES.BASE)
 export class PermissionController {
@@ -47,6 +48,13 @@ export class PermissionController {
   @UsePipes(new ZodPipe(PermissionIdSchema))
   async getPermission(@Query() query: PermissionIdDo) {
     return this.permissionService.getPermissionDetails(query);
+  }
+
+  @Get(PERMISSION_ROUTES.GET_PROJECT_PERMISSIONS)
+  @UseGuards(AdminGuard)
+  @UsePipes(new ZodPipe(ProjectIdSchema))
+  async getProjectPermissions(@Query() query: ProjectIdDto) {
+    return this.permissionService.getProjectPermissions(query);
   }
 
   @Put(PERMISSION_ROUTES.UPDATE_PERMISSION)
