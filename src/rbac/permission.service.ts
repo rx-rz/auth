@@ -4,6 +4,7 @@ import {
   AssignPermissionToRoleDto,
   CreatePermissionDto,
   PermissionIdDo,
+  RemovePermissionFromRoleDto,
   UpdatePermissionDto,
 } from './schema';
 import { IdDto as ProjectIdDto } from 'src/project/schema';
@@ -31,6 +32,14 @@ export class PermissionService {
     return permission;
   }
 
+  async checkIfRoleExists(roleId: string) {
+    const role = await this.rbacRepository.getRoleDetails(roleId);
+    if (!role) {
+      throw new NotFoundException('Role with provided details not found.');
+    }
+    return role;
+  }
+
   async createPermission({ name, description }: CreatePermissionDto) {
     const permission = await this.rbacRepository.createPermission({
       name,
@@ -41,7 +50,15 @@ export class PermissionService {
 
   async assignPermissionToRole({ permissionId, roleId }: AssignPermissionToRoleDto) {
     await this.checkIfPermissionExists(permissionId);
+    await this.checkIfRoleExists(roleId);
     const permission = await this.rbacRepository.assignPermissionToARole(permissionId, roleId);
+    return { success: true, permission };
+  }
+
+  async removePermissionFromRole({ permissionId, roleId }: RemovePermissionFromRoleDto) {
+    await this.checkIfPermissionExists(permissionId);
+    await this.checkIfRoleExists(roleId);
+    const permission = await this.rbacRepository.removePermissionFromRole(permissionId, roleId);
     return { success: true, permission };
   }
 

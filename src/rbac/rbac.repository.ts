@@ -43,6 +43,13 @@ export class RoleBasedAccessControlRepository {
     return assignedPermission;
   }
 
+  async removePermissionFromRole(permissionId: string, roleId: string) {
+    const removedPermission = await this.prisma.rolePermission.delete({
+      where: { roleId_permissionId: { roleId, permissionId } },
+    });
+    return removedPermission;
+  }
+
   async getPermissionDetails(permissionId: string) {
     const permission = await this.prisma.permission.findUnique({
       select: {

@@ -68,6 +68,7 @@ export const PERMISSION_ROUTES = {
   BASE: 'permission',
   CREATE_PERMISSION: 'create-permission',
   ASSIGN_TO_ROLE: 'assign-permission-to-role',
+  REMOVE_FROM_ROLE: 'remove-permission-from-role',
   GET_DETAILS: 'get-details',
   GET_PROJECT_PERMISSIONS: 'get-project-permissions',
   UPDATE_PERMISSION: 'update-permission',
