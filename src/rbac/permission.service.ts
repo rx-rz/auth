@@ -40,10 +40,15 @@ export class PermissionService {
     return role;
   }
 
-  async createPermission({ name, description }: CreatePermissionDto) {
+  async createPermission({ name, description, projectId }: CreatePermissionDto) {
     const permission = await this.rbacRepository.createPermission({
       name,
       description,
+      project: {
+        connect: {
+          id: projectId,
+        },
+      },
     });
     return { success: true, permission };
   }

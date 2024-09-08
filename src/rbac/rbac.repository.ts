@@ -126,11 +126,8 @@ export class RoleBasedAccessControlRepository {
   }
 
   async getProjectPermissions(projectId: string) {
-    const permissions = await this.prisma.rolePermission.findMany({
-      where: { role: { projectId } },
-      select: {
-        permission: true,
-      },
+    const permissions = await this.prisma.permission.findMany({
+      where: { projectId },
     });
     return permissions;
   }

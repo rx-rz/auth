@@ -29,6 +29,7 @@ export const CreatePermissionSchema = z.object({
     message: 'Permission name cannot be longer than 200 characters',
   }),
   description: z.string().optional(),
+  projectId: z.string({ required_error: 'Project ID is required' }),
 });
 
 export type CreatePermissionDto = z.infer<typeof CreatePermissionSchema>;

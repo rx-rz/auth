@@ -18,6 +18,7 @@ import {
   CreatePermissionSchema,
   PermissionIdDo,
   PermissionIdSchema,
+  RemovePermissionFromRoleDto,
   RemovePermissionFromRoleSchema,
   UpdatePermissionDto,
   UpdatePermissionSchema,
@@ -44,11 +45,11 @@ export class PermissionController {
     return this.permissionService.assignPermissionToRole(body);
   }
 
-  @Post(PERMISSION_ROUTES.REMOVE_FROM_ROLE)
+  @Delete(PERMISSION_ROUTES.REMOVE_FROM_ROLE)
   @UseGuards(AdminGuard)
   @UsePipes(new ZodPipe(RemovePermissionFromRoleSchema))
-  async removePermissionFromRole(@Body() body: AssignPermissionToRoleDto) {
-    return this.permissionService.removePermissionFromRole(body);
+  async removePermissionFromRole(@Query() query: RemovePermissionFromRoleDto) {
+    return this.permissionService.removePermissionFromRole(query);
   }
 
   @Get(PERMISSION_ROUTES.GET_DETAILS)
