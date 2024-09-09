@@ -16,8 +16,12 @@ export class OtpService {
     private readonly mailer: Mailer,
   ) {}
 
-  private async checkIfUserHasOtpInstanceInDB(email: string) {
-    return await this.otpRepository.getOTPDetails(email);
+  private async getOTPDetailsForUser(email: string) {
+    const otpDetails = await this.otpRepository.getOTPDetails(email);
+    if (!otpDetails) {
+      throw new NotFoundException('An OTP has not been provided for this user');
+    }
+    return otpDetails;
   }
 
   async sendOTP(dto: CreateOtpDto) {
@@ -52,10 +56,8 @@ export class OtpService {
   }
 
   async verifyAdminOTP({ code, email }: VerifyAdminOtpDto) {
-    const otpDetails = await this.checkIfUserHasOtpInstanceInDB(email);
-    if (!otpDetails) {
-      throw new NotFoundException('An OTP has not been provided for this user');
-    }
+    const otpDetails = await this.getOTPDetailsForUser(email);
+
     const admin = await this.adminRepository.getAdminByEmail(email);
     if (!admin) {
       throw new NotFoundException('User with provided details does not exist.');
@@ -67,6 +69,7 @@ export class OtpService {
       await this.otpRepository.deleteOTP(email);
       throw new GoneException('Provided OTP has expired.');
     }
+
     await Promise.all([
       this.adminRepository.updateAdmin(email, { isVerified: true }),
       this.otpRepository.deleteOTP(email),
@@ -76,10 +79,7 @@ export class OtpService {
   }
 
   async verifyOTP({ code, email, projectId, userId }: VerifyOtpDto) {
-    const otpDetails = await this.checkIfUserHasOtpInstanceInDB(email);
-    if (!otpDetails) {
-      throw new NotFoundException('An OTP has not been provided for this user.');
-    }
+    const otpDetails = await this.getOTPDetailsForUser(email);
     const user = await this.userRepository.getUserByEmail(email);
     if (!user) {
       throw new NotFoundException('User with provided details does not exist.');
