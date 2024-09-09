@@ -108,7 +108,7 @@ export class AdminService {
   }
 
   async updateAdminEmail({ currentEmail, newEmail, password }: UpdateAdminEmailDto) {
-    const existingAdmin = await this.adminRepository.getAdminByEmail(newEmail);
+    const existingAdmin = await this.getAdminByEmail(newEmail);
     if (existingAdmin)
       throw new ConflictException(
         'An email with the provided new email already exists. Please choose another.',
@@ -123,10 +123,13 @@ export class AdminService {
   }
 
   async updateAdminPassword({ currentPassword, email, newPassword }: UpdateAdminPasswordDto) {
-    await this.getAdminByEmail(email);
+    const admin = await this.getAdminByEmail(email);
     await this.verifyPassword(email, currentPassword);
-    const admin = await this.adminRepository.updateAdminPassword(email, newPassword);
-    return { success: true, admin };
+    const hashedPassword = await hashValue(newPassword);
+    await this.adminRepository.updateAdminPassword(email, hashedPassword);
+    const payload = this.getAdminPayload(admin);
+    const accessToken = await this.getAccessToken(payload);
+    return { success: true, accessToken };
   }
 
   async resetAdminPassword({ email, newPassword }: ResetAdminPasswordDto) {

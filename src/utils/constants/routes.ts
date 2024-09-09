@@ -1,15 +1,15 @@
 export const ADMIN_ROUTES = {
-  BASE: 'admin',
-  REGISTER: 'register',
-  UPDATE_DETAILS: 'update-details',
-  UPDATE_ADMIN_EMAIL: 'update-email',
-  UPDATE_ADMIN_PASSWORD: 'update-password',
-  DELETE_ACCOUNT: 'delete',
-  LOGIN: 'login',
-  LOGOUT: 'logout',
-  GET_PROJECTS: 'get-projects',
-  RESET_PASSWORD: 'reset-password',
-  GET_PROJECT_BY_NAME: 'get-project-by-name',
+  BASE: 'admins',
+  REGISTER: 'register-admin',
+  UPDATE_ADMIN_DETAILS: 'update-admin-details',
+  UPDATE_ADMIN_EMAIL: 'update-admin-email',
+  UPDATE_ADMIN_PASSWORD: 'update-admin-password',
+  DELETE_ACCOUNT: 'delete-admin',
+  LOGIN: 'login-admin',
+  LOGOUT: 'logout-admin',
+  GET_PROJECTS: 'get-admin-projects',
+  RESET_PASSWORD: 'reset-admin-password',
+  GET_PROJECT_BY_NAME: 'get-admin-project-by-name',
 };
 
 export const MFA_ROUTES = {

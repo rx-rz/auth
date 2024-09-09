@@ -89,7 +89,7 @@ export class AdminController {
     ],
   })
   @UsePipes(new ZodPipe(UpdateAdminSchema))
-  @Put(ADMIN_ROUTES.UPDATE_DETAILS)
+  @Put(ADMIN_ROUTES.UPDATE_ADMIN_DETAILS)
   @UseGuards(AdminGuard)
   async updateAdmin(@Body() body: UpdateAdminDto, @Res({ passthrough: true }) response: Response) {
     const { accessToken, success } = await this.adminService.updateAdmin(body);
@@ -129,8 +129,13 @@ export class AdminController {
   @UsePipes(new ZodPipe(UpdateAdminPasswordSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
   @UseGuards(AdminGuard)
-  async updateAdminPassword(@Body() body: UpdateAdminPasswordDto) {
-    return this.adminService.updateAdminPassword(body);
+  async updateAdminPassword(
+    @Body() body: UpdateAdminPasswordDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { success, accessToken } = await this.adminService.updateAdminPassword(body);
+    this.setAccessTokenCookie(response, accessToken);
+    return { success, message: 'Admin password updated successfully' };
   }
 
   @UsePipes(new ZodPipe(ResetAdminPasswordSchema))
