@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ROLE_ROUTES } from 'src/utils/constants/routes';
-import { AdminGuard } from 'src/guard/admin.guard';
+import { UserGuard } from 'src/guard/user.guard';
 import {
   CreateRoleDto,
   CreateRoleSchema,
@@ -27,28 +27,28 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post(ROLE_ROUTES.CREATE_ROLE)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(CreateRoleSchema))
   async createRole(@Body() body: CreateRoleDto) {
     return this.roleService.createRole(body);
   }
 
   @Get(ROLE_ROUTES.GET_ROLE)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(RoleIDSchema))
   async getRole(@Query() query: RoleIdDto) {
     return this.roleService.getRoleDetails(query);
   }
 
   @Put(ROLE_ROUTES.UPDATE_ROLE_NAME)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(UpdateRoleNameSchema))
   async updateRoleName(@Body() body: UpdateRoleNameDto) {
     return this.roleService.updateRoleName(body);
   }
 
   @Delete(ROLE_ROUTES.DELETE_ROLE)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(RoleIDSchema))
   async deleteRole(@Query() query: RoleIdDto) {
     return this.roleService.deleteRole(query);

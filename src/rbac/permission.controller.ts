@@ -23,7 +23,7 @@ import {
   UpdatePermissionDto,
   UpdatePermissionSchema,
 } from './schema';
-import { AdminGuard } from 'src/guard/admin.guard';
+import { UserGuard } from 'src/guard/user.guard';
 import { PERMISSION_ROUTES } from 'src/utils/constants/routes';
 import { IdSchema as ProjectIdSchema, IdDto as ProjectIdDto } from 'src/project/schema';
 
@@ -32,49 +32,49 @@ export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   @Post(PERMISSION_ROUTES.CREATE_PERMISSION)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(CreatePermissionSchema))
   async createPermission(@Body() body: CreatePermissionDto) {
     return this.permissionService.createPermission(body);
   }
 
   @Post(PERMISSION_ROUTES.ASSIGN_TO_ROLE)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(AssignPermissionToRoleSchema))
   async assignPermissionToRole(@Body() body: AssignPermissionToRoleDto) {
     return this.permissionService.assignPermissionToRole(body);
   }
 
   @Delete(PERMISSION_ROUTES.REMOVE_FROM_ROLE)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(RemovePermissionFromRoleSchema))
   async removePermissionFromRole(@Query() query: RemovePermissionFromRoleDto) {
     return this.permissionService.removePermissionFromRole(query);
   }
 
   @Get(PERMISSION_ROUTES.GET_DETAILS)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(PermissionIdSchema))
   async getPermission(@Query() query: PermissionIdDto) {
     return this.permissionService.getPermissionDetails(query);
   }
 
   @Get(PERMISSION_ROUTES.GET_PROJECT_PERMISSIONS)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(ProjectIdSchema))
   async getProjectPermissions(@Query() query: ProjectIdDto) {
     return this.permissionService.getProjectPermissions(query);
   }
 
   @Put(PERMISSION_ROUTES.UPDATE_PERMISSION)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(UpdatePermissionSchema))
   async updatePermission(@Body() body: UpdatePermissionDto) {
     return this.permissionService.updatePermission(body);
   }
 
   @Delete(PERMISSION_ROUTES.DELETE_PERMISSION)
-  @UseGuards(AdminGuard)
+  @UseGuards(UserGuard)
   @UsePipes(new ZodPipe(PermissionIdSchema))
   async deletePermission(@Query() query: PermissionIdDto) {
     return this.permissionService.deletePermission(query);

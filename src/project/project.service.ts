@@ -41,6 +41,11 @@ export class ProjectService {
     return existingProject;
   }
 
+  private async getProjectSettings(projectId: string) {
+    const projectSettings = await this.projectRepository.getProjectSettings(projectId);
+    return projectSettings;
+  }
+
   private async checkIfUserExists(userId: string) {
     const user = await this.userRepository.getUserById(userId);
     if (!user) throw new NotFoundException('User with provided details does not exist.');

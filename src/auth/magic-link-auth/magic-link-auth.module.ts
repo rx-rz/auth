@@ -7,6 +7,6 @@ import { Mailer } from 'src/infra/mail/mail.service';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 @Module({
   controllers: [MagicLinkAuthController],
-  providers: [MagicLinkAuthService, ProjectRepository, UserRepository, Mailer, AppEventEmitter],
+  providers: [MagicLinkAuthService, UserRepository, Mailer, AppEventEmitter],
 })
 export class MagicLinkAuthModule {}

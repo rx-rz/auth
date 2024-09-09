@@ -38,24 +38,24 @@ model AdminRefreshToken {
 
 // Project model
 model Project {
-  id               String             @id @unique() @default(cuid())
-  name             String             @db.VarChar(255)
-  apiKey           String             @unique() @map("api_key") @db.VarChar(64)
-  clientKey        String             @unique() @default(cuid()) @map("client_key") @db.VarChar(64)
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
-  adminId          String             @map("admin_id")
-  admin            Admin              @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  users            User[]
-  oauthProviders   OAuthProvider[]
-  userProjects     UserProject[]
-  refreshTokens    RefreshToken[]
-  roles            Role[]
-  permissions      Permission[]
-  logins           Login[]
+  id                String             @id @unique() @default(cuid())
+  name              String             @db.VarChar(255)
+  apiKey            String             @unique() @map("api_key") @db.VarChar(64)
+  clientKey         String             @unique() @default(cuid()) @map("client_key") @db.VarChar(64)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  adminId           String             @map("admin_id")
+  admin             Admin              @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  users             User[]
+  oauthProviders    OAuthProvider[]
+  userProjects      UserProject[]
+  refreshTokens     RefreshToken[]
+  roles             Role[]
+  permissions       Permission[]
+  logins            Login[]
   userOauthAccounts UserOauthAccount[]
   magicLinks        MagicLink[]
-  projectSettings  ProjectSettings?
+  projectSettings   ProjectSettings?
 
   @@unique([name, adminId], name: "project_name_admin_id_unique")
   @@map("projects")
@@ -73,7 +73,7 @@ model ProjectSettings {
   clearLoginsAfterDays        Int?    @map("clear_logins_after_days")
   allowMultipleCredentials    Boolean @default(false) @map("allow_multiple_credentials")
   allowUsername               Boolean @default(false) @map("allow_username")
-  preventPreviousPasswords    Int     @default(3) @map("prevent_previous_passwords")
+  preventPreviousPasswords    Boolean @default(false) @map("prevent_previous_passwords")
   allowPasskeyVerification    Boolean @default(false) @map("allow_passkey_verification")
   maxLoginAttempts            Int     @default(5) @map("max_login_attempts")
   lockoutDurationMinutes      Int     @default(30) @map("lockout_duration_minutes")
@@ -84,15 +84,15 @@ model ProjectSettings {
 
 // User model
 model User {
-  id                 String               @id @unique() @default(cuid())
-  email              String               @unique() @db.VarChar(255)
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  projects           Project[]
-  userProjects       UserProject[]
-  oauthAccounts      UserOauthAccount[]
-  refreshTokens      RefreshToken[]
-  logins             Login[]
+  id                  String               @id @unique() @default(cuid())
+  email               String               @unique() @db.VarChar(255)
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  projects            Project[]
+  userProjects        UserProject[]
+  oauthAccounts       UserOauthAccount[]
+  refreshTokens       RefreshToken[]
+  logins              Login[]
   magicLinks          MagicLink[]
   webAuthnCredentials WebAuthnCredential[]
   challenges          Challenge?
@@ -145,8 +145,9 @@ model UserProject {
   userId     String   @map("user_id")
   user       User     @relation(fields: [userId], references: [id])
   password   String?  @db.Text
-  firstName  String   @map("first_name") @db.VarChar(255)
-  lastName   String   @map("last_name") @db.VarChar(255)
+  firstName  String?  @map("first_name") @db.VarChar(255)
+  lastName   String?  @map("last_name") @db.VarChar(255)
+  username   String?  @map("user_name") @db.VarChar(255)
   projectId  String   @map("project_id")
   isVerified Boolean  @default(false)
   project    Project  @relation(fields: [projectId], references: [id])

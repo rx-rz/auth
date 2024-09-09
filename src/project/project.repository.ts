@@ -35,6 +35,13 @@ export class ProjectRepository {
     return projectSettings;
   }
 
+  async getProjectSettings(projectId: string) {
+    const projectSettings = await this.prisma.projectSettings.findUnique({
+      where: { projectId },
+    });
+    return projectSettings;
+  }
+
   async updateProject(id: string, data: Prisma.ProjectUpdateInput) {
     const updatedProject = await this.prisma.project.update({
       data,
@@ -101,8 +108,19 @@ export class ProjectRepository {
   async getProjectDetails(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      include: {
-        admin: true,
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        admin: {
+          select: {
+            email: true,
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
         oauthProviders: true,
         roles: true,
         permissions: true,

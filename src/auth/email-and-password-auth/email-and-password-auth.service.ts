@@ -7,8 +7,6 @@ import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { LoginWithEmailAndPasswordDto, RegisterWithEmailAndPasswordDto } from './schema';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { AuthMethod } from '@prisma/client';
-import { ProjectRepository } from 'src/project/project.repository';
-
 @Injectable()
 export class EmailAndPasswordAuthService {
   constructor(
@@ -60,9 +58,9 @@ export class EmailAndPasswordAuthService {
     const [accessToken, refreshToken] = [
       generateAccessToken({
         email,
-        firstName,
+        firstName: firstName ?? '',
         isVerified,
-        lastName,
+        lastName: lastName ?? '',
         id: user.id,
         role: role?.name || '',
       }),
