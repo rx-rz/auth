@@ -37,14 +37,12 @@ export class MagicLinkAuthService {
   }
 
   async createMagicLink({ projectId, referralLink, userEmail }: CreateMagicLinkDto) {
-    const project = await this.checkIfProjectExists(projectId);
+    await this.checkIfProjectExists(projectId);
     const payload = { userEmail, projectId };
-
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: '10m',
       secret: this.configService.get('JWT_ACCESS_SECRET'),
     });
-
     const link = `${referralLink}/verify?token=${token}`;
 
     const { error, response } = await this.mailer.sendEmail({
@@ -66,28 +64,19 @@ export class MagicLinkAuthService {
     });
     await this.checkIfProjectExists(projectId);
 
-    let existingUser = await this.projectRepository.getUserFromProject(userEmail, projectId);
+    let user = await this.projectRepository.getUserFromProject(userEmail, projectId);
 
-    const newUser = existingUser
-      ? null
-      : await this.userRepository.createUser({
-          email: userEmail,
-          firstName: '',
-          lastName: '',
-          isVerified: true,
-          projectId,
-        });
-    if (existingUser?.isVerified === false) {
-      await this.userRepository.updateUserProjectDetails(existingUser.userId, projectId, {
+    if (user?.isVerified === false) {
+      await this.userRepository.updateUserProjectDetails(user.userId, projectId, {
         isVerified: true,
       });
     }
     const payload = {
       email: userEmail,
-      firstName: existingUser?.firstName ?? '',
-      lastName: existingUser?.lastName ?? '',
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
       isVerified: true,
-      id: existingUser?.userId ?? newUser?.id,
+      id: user?.userId,
       role: 'user',
     };
 
@@ -102,7 +91,7 @@ export class MagicLinkAuthService {
     this.emitter.emit('refresh-token.created', {
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      userId: existingUser?.userId ?? newUser?.id,
+      userId: user?.userId,
       authMethod: AuthMethod.MAGICLINK,
     });
     return { success: true, accessToken };

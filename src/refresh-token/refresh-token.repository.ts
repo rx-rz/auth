@@ -6,12 +6,26 @@ import { PrismaService } from 'src/infra/db/prisma.service';
 export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async storeRefreshToken(data: Prisma.RefreshTokenCreateInput) {
-    await this.prisma.refreshToken.create({
-      data: {
-        ...data,
-      },
+  async storeAdminRefreshToken(data: Prisma.AdminRefreshTokenCreateInput) {
+    await this.prisma.adminRefreshToken.create({ data });
+  }
+
+  async getAdminRefreshTokenByValue(token: string) {
+    const refreshToken = await this.prisma.adminRefreshToken.findUnique({
+      where: { token },
     });
+    return refreshToken;
+  }
+
+  async deleteAllRefreshTokensAssociatedToAdmin(email: string) {
+    const deletedRefreshTokens = this.prisma.adminRefreshToken.deleteMany({
+      where: { admin: { email } },
+    });
+    return deletedRefreshTokens;
+  }
+
+  async storeRefreshToken(data: Prisma.RefreshTokenCreateInput) {
+    await this.prisma.refreshToken.create({ data });
   }
 
   async updateRefreshTokenStatus(id: string, status: TokenState) {
@@ -57,13 +71,6 @@ export class RefreshTokenRepository {
       include: { user: { where: { email } } },
     });
     return userRefreshTokens;
-  }
-
-  async deleteAllRefreshTokensAssociatedToAdmin(email: string) {
-    const deletedRefreshTokens = this.prisma.refreshToken.deleteMany({
-      where: { admin: { email } },
-    });
-    return deletedRefreshTokens;
   }
 
   async deleteAllRefreshTokensAssociatedToUser(email: string) {

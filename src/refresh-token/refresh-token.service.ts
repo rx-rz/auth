@@ -8,7 +8,7 @@ import {
   UpdateRefreshTokenStateDto,
 } from './schema';
 import { randomBytes } from 'crypto';
-import { hashValue } from 'src/utils/helper-functions';
+
 
 @Injectable()
 export class RefreshTokenService {

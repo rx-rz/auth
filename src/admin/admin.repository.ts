@@ -123,4 +123,12 @@ export class AdminRepository {
     });
     return admin;
   }
+
+  async getAdminRefreshTokens(adminId: string) {
+    const refreshTokens = await this.prisma.adminRefreshToken.findMany({
+      where: { adminId },
+      select: { token: true, adminId: true, expiresAt: true, createdAt: true },
+    });
+    return refreshTokens;
+  }
 }
