@@ -132,6 +132,13 @@ export class RoleBasedAccessControlRepository {
     return permissions;
   }
 
+  async getProjectRoles(projectId: string) {
+    const roles = await this.prisma.role.findMany({
+      where: { projectId },
+    });
+    return roles;
+  }
+
   async deleteRole(roleId: string) {
     let role;
     await this.prisma.$transaction(async (prisma) => {

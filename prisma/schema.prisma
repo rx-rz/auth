@@ -53,9 +53,9 @@ model Project {
   roles            Role[]
   permissions      Permission[]
   logins           Login[]
-  UserOauthAccount UserOauthAccount[]
-  MagicLink        MagicLink[]
-  ProjectSettings  ProjectSettings?
+  userOauthAccounts UserOauthAccount[]
+  magicLinks        MagicLink[]
+  projectSettings  ProjectSettings?
 
   @@unique([name, adminId], name: "project_name_admin_id_unique")
   @@map("projects")
@@ -78,6 +78,8 @@ model ProjectSettings {
   maxLoginAttempts            Int     @default(5) @map("max_login_attempts")
   lockoutDurationMinutes      Int     @default(30) @map("lockout_duration_minutes")
   project                     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("project_settings")
 }
 
 // User model
@@ -91,9 +93,9 @@ model User {
   oauthAccounts      UserOauthAccount[]
   refreshTokens      RefreshToken[]
   logins             Login[]
-  MagicLink          MagicLink[]
-  WebAuthnCredential WebAuthnCredential[]
-  Challenge          Challenge?
+  magicLinks          MagicLink[]
+  webAuthnCredentials WebAuthnCredential[]
+  challenges          Challenge?
 
   @@map("users")
 }

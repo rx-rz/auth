@@ -3,7 +3,7 @@ import { RoleBasedAccessControlRepository } from './rbac.repository';
 import {
   AssignPermissionToRoleDto,
   CreatePermissionDto,
-  PermissionIdDo,
+  PermissionIdDto,
   RemovePermissionFromRoleDto,
   UpdatePermissionDto,
 } from './schema';
@@ -67,7 +67,7 @@ export class PermissionService {
     return { success: true, permission };
   }
 
-  async getPermissionDetails({ permissionId }: PermissionIdDo) {
+  async getPermissionDetails({ permissionId }: PermissionIdDto) {
     await this.checkIfPermissionExists(permissionId);
     const permission = await this.rbacRepository.getPermissionDetails(permissionId);
     return { success: true, permission };
@@ -85,7 +85,7 @@ export class PermissionService {
     return { success: true, permission };
   }
 
-  async deletePermission({ permissionId }: PermissionIdDo) {
+  async deletePermission({ permissionId }: PermissionIdDto) {
     await this.checkIfPermissionExists(permissionId);
     const permission = await this.rbacRepository.deletePermission(permissionId);
     return { success: true, permission };

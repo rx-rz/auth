@@ -50,9 +50,9 @@ export class OtpService {
       html: `<h1>Hello ${user.email},Your OTP is: <br/> <span style="font-size:60px;">${code}</span></h1><p>It expires in <span style="color:red;">10 minutes.</span></p>`,
       from: 'adeleyetemiloluwa.work@gmail.com',
     };
-    const { error, response } = await this.mailer.sendEmail(mailOptions);
+    const { error } = await this.mailer.sendEmail(mailOptions);
     if (error) throw error;
-    return { success: true, otpDetails, mailError: error, mailResponse: response };
+    return { success: true, otpDetails };
   }
 
   async verifyAdminOTP({ code, email }: VerifyAdminOtpDto) {

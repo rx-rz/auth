@@ -64,6 +64,7 @@ export class ProjectService {
       apiKey,
       clientKey,
     });
+    await this.projectRepository.createProjectSettings(project.id);
     return { success: true, project };
   }
 
@@ -103,7 +104,7 @@ export class ProjectService {
   }
 
   async getProjectDetails({ projectId }: IdDto) {
-    const project = await this.checkIfProjectExists(projectId);
+    const project = await this.projectRepository.getProjectDetails(projectId);
     return { success: true, project };
   }
 

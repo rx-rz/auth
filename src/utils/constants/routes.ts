@@ -21,14 +21,14 @@ export const MFA_ROUTES = {
 };
 
 export const OTP_ROUTES = {
-  BASE: 'otp',
+  BASE: 'otps',
   SEND: 'send-otp',
   VERIFY: 'verify-otp',
   VERIFY_ADMIN_OTP: 'verify-admin-otp',
 };
 
 export const PROJECT_ROUTES = {
-  BASE: 'project',
+  BASE: 'projects',
   CREATE: 'create-project',
   UPDATE_PROJECT_NAME: 'update-project-name',
   GET_KEYS: 'get-keys',

@@ -44,7 +44,7 @@ export type RemovePermissionFromRoleDto = AssignPermissionToRoleDto;
 export const PermissionIdSchema = z.object({
   permissionId: z.string({ required_error: 'Permission ID is required' }),
 });
-export type PermissionIdDo = z.infer<typeof PermissionIdSchema>;
+export type PermissionIdDto = z.infer<typeof PermissionIdSchema>;
 
 export const UpdatePermissionSchema = z.object({
   permissionId: z.string({ required_error: 'Permission ID is required!' }),

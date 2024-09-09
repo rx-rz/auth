@@ -20,6 +20,21 @@ export class ProjectRepository {
     return project;
   }
 
+  async updateProjectSettings(projectId: string, data: Prisma.ProjectSettingsUpdateInput) {
+    const projectSettings = await this.prisma.projectSettings.update({
+      where: { projectId },
+      data,
+    });
+    return projectSettings;
+  }
+
+  async createProjectSettings(projectId: string) {
+    const projectSettings = await this.prisma.projectSettings.create({
+      data: { projectId },
+    });
+    return projectSettings;
+  }
+
   async updateProject(id: string, data: Prisma.ProjectUpdateInput) {
     const updatedProject = await this.prisma.project.update({
       data,
@@ -78,6 +93,20 @@ export class ProjectRepository {
         adminId: true,
         createdAt: true,
         updatedAt: true,
+      },
+    });
+    return project;
+  }
+
+  async getProjectDetails(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        admin: true,
+        oauthProviders: true,
+        roles: true,
+        permissions: true,
+        projectSettings: true,
       },
     });
     return project;

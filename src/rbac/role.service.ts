@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { RoleBasedAccessControlRepository } from './rbac.repository';
 import { CreateRoleDto, RoleIdDto, UpdateRoleNameDto } from './schema';
+import { IdSchema as ProjectIdSchema, IdDto as ProjectIdDto } from 'src/project/schema';
 
 @Injectable()
 export class RoleService {
@@ -30,6 +31,12 @@ export class RoleService {
       },
     });
     return { success: true, role };
+  }
+
+  async getProjectRoles({ projectId }: ProjectIdDto) {
+    await this.checkIfRoleExists(projectId);
+    const roles = await this.rbacRepository.getProjectRoles(projectId);
+    return { success: true, roles };
   }
 
   async updateRoleName({ name, roleId }: UpdateRoleNameDto) {

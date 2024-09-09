@@ -16,7 +16,7 @@ import {
   AssignPermissionToRoleSchema,
   CreatePermissionDto,
   CreatePermissionSchema,
-  PermissionIdDo,
+  PermissionIdDto,
   PermissionIdSchema,
   RemovePermissionFromRoleDto,
   RemovePermissionFromRoleSchema,
@@ -55,7 +55,7 @@ export class PermissionController {
   @Get(PERMISSION_ROUTES.GET_DETAILS)
   @UseGuards(AdminGuard)
   @UsePipes(new ZodPipe(PermissionIdSchema))
-  async getPermission(@Query() query: PermissionIdDo) {
+  async getPermission(@Query() query: PermissionIdDto) {
     return this.permissionService.getPermissionDetails(query);
   }
 
@@ -76,7 +76,7 @@ export class PermissionController {
   @Delete(PERMISSION_ROUTES.DELETE_PERMISSION)
   @UseGuards(AdminGuard)
   @UsePipes(new ZodPipe(PermissionIdSchema))
-  async deletePermission(@Query() query: PermissionIdDo) {
+  async deletePermission(@Query() query: PermissionIdDto) {
     return this.permissionService.deletePermission(query);
   }
 }
