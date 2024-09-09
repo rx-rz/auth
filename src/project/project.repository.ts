@@ -245,24 +245,31 @@ export class ProjectRepository {
   }
 
   async assignUserProjectRole(userId: string, projectId: string, roleId: string) {
-    const userAssignedARole = await this.prisma.userProject.upsert({
+    const userAssignedARole = await this.prisma.userProject.update({
       where: {
         userId_projectId: {
-          userId,
-          projectId,
+          userId: userId,
+          projectId: projectId,
         },
       },
-      update: {
+      data: {
         roleId,
-      },
-      create: {
-        userId,
-        projectId,
-        roleId,
-        firstName: '',
-        lastName: '',
       },
     });
     return userAssignedARole;
+  }
+
+  async removeUserProjectRole(userId: string, projectId: string, roleId: string) {
+    const userRemovedFromRole = await this.prisma.userProject.update({
+      where: { userId_projectId: { userId, projectId }, roleId },
+      data: {
+        roleId: null,
+      },
+      select: {
+        projectId: true,
+        user: { select: { email: true } },
+      },
+    });
+    return userRemovedFromRole;
   }
 }

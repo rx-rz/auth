@@ -26,9 +26,9 @@ import {
   IdSchema,
   RemoveUserFromProjectDto,
   RemoveUserFromProjectSchema,
+  RemoveUserProjectRoleDto,
   UpdateProjectNameDto,
   UpdateProjectNameSchema,
-  VerifyProjectApiKeysSchema,
 } from './schema';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 
@@ -99,17 +99,24 @@ export class ProjectController {
     return this.projectService.addUserToProject(body);
   }
 
+  @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)
+  @UsePipes(new ZodPipe(AssignUserProjectRoleSchema))
+  @UseGuards(AdminGuard)
+  async assignUserProjectRole(@Body() body: AssignUserToProjectRoleDto) {
+    return this.projectService.assignUserProjectRole(body);
+  }
+
+  @Post(PROJECT_ROUTES.REMOVE_USER_FROM_PROJECT_ROLE)
+  @UsePipes(new ZodPipe(RemoveUserFromProjectSchema))
+  @UseGuards(AdminGuard)
+  async removeUserFromProjectRole(@Body() body: RemoveUserProjectRoleDto) {
+    return this.projectService.removeUserProjectRole(body);
+  }
+
   @Delete(PROJECT_ROUTES.REMOVE_USER_FROM_PROJECT)
   @UsePipes(new ZodPipe(RemoveUserFromProjectSchema))
   @UseGuards(AdminGuard)
   async removeUserFromProject(@Body() body: RemoveUserFromProjectDto) {
     return this.projectService.removeUserFromProject(body);
   }
-
-  // @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)
-  // @UsePipes(new ZodPipe(AssignUserProjectRoleSchema))
-  // @UseGuards(AdminGuard)
-  // async assignUserProjectRole(@Body() data: AssignUserToProjectRoleDto) {
-  //   return this.projectService.assignUserProjectRole(data);
-  // }
 }

@@ -20,6 +20,7 @@ import {
   CreateProjectDto,
   IdDto,
   RemoveUserFromProjectDto,
+  RemoveUserProjectRoleDto,
   UpdateProjectNameDto,
   VerifyProjectApiKeysDto,
 } from './schema';
@@ -170,6 +171,17 @@ export class ProjectService {
       roleId,
     );
     return { success: true, userAssignedARole };
+  }
+
+  async removeUserProjectRole({ projectId, userId, roleId }: RemoveUserProjectRoleDto) {
+    await this.checkIfProjectExists(projectId);
+    await this.checkIfUserExists(userId);
+    const userRemovedFromRole = await this.projectRepository.removeUserProjectRole(
+      userId,
+      projectId,
+      roleId,
+    );
+    return { success: true, userRemovedFromRole };
   }
 
   private async generateKey() {

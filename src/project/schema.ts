@@ -28,6 +28,8 @@ export const AssignUserProjectRoleSchema = z.object({
 });
 
 export type AssignUserToProjectRoleDto = z.infer<typeof AssignUserProjectRoleSchema>;
+export const RemoveUserProjectRoleSchema = AssignUserProjectRoleSchema;
+export type RemoveUserProjectRoleDto = z.infer<typeof RemoveUserProjectRoleSchema>;
 
 export const CreateProjectSchema = z.object({
   name: z.string().max(255, { message: 'Name cannot be longer than 255 characters' }),
