@@ -74,3 +74,22 @@ export const VerifyProjectApiKeysSchema = z.object({
 });
 
 export type VerifyProjectApiKeysDto = z.infer<typeof VerifyProjectApiKeysSchema>;
+
+export const ProjectSettingsSchema = z.object({
+  projectId: z.string({ required_error: 'Project ID is required' }),
+  refreshTokenDays: z.number().int().positive().default(30).optional(),
+  allowNames: z.boolean().default(true).optional(),
+  passwordMinLength: z.number().int().positive().default(8).optional(),
+  passwordRequireUppercase: z.boolean().default(true).optional(),
+  passwordRequireLowercase: z.boolean().default(true).optional(),
+  passwordRequireNumbers: z.boolean().default(true).optional(),
+  passwordRequireSpecialChars: z.boolean().default(true).optional(),
+  clearLoginsAfterDays: z.number().int().positive().nullable().optional(),
+  allowMultipleCredentials: z.boolean().default(false).optional(),
+  allowUsername: z.boolean().default(false).optional(),
+  preventPreviousPasswords: z.boolean().default(false).optional(),
+  allowPasskeyVerification: z.boolean().default(false).optional(),
+  maxLoginAttempts: z.number().int().positive().default(5).optional(),
+  lockoutDurationMinutes: z.number().int().positive().default(30).optional(),
+});
+export type ProjectSettingsDto = z.infer<typeof ProjectSettingsSchema>;

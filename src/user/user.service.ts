@@ -45,7 +45,7 @@ export class UserService {
   }
 
   private async checkIfPasswordsMatch(email: string, password: string, projectId: string) {
-    const userPasswordInDB = await this.userRepository.getUserPassword(email, projectId);
+    const userPasswordInDB = await this.userRepository.getUserPasswordByEmail(email, projectId);
     if (!userPasswordInDB) throw new BadRequestException('Invalid details provided');
     const passwordsMatch = await compare(password, userPasswordInDB);
     if (!passwordsMatch) throw new BadRequestException('Invalid details provided');
@@ -54,7 +54,7 @@ export class UserService {
 
   @OnEvent('user-create.email-password')
   @CatchEmitterErrors()
-  async createUser({ email, firstName, lastName, password, projectId }: CreateUserDto) {
+  async createUser({ email, projectId, ...body }: CreateUserDto) {
     const existingUser = await this.userRepository.getUserByEmail(email);
     const project = await this.projectRepository.getProject(projectId);
     if (!project) throw new NotFoundException('Project with provided ID does not exist');
@@ -65,21 +65,36 @@ export class UserService {
     }
     if (existingUser && !userIsAssignedToProject) {
       await this.projectRepository.addUserToProject({
-        firstName,
-        lastName,
-        password,
-        projectId,
-        userId: existingUser.id,
+        project: {
+          connect: {
+            id: projectId,
+          },
+        },
+        user: {
+          connect: {
+            email,
+          },
+        },
+        ...body,
       });
     }
     if (!existingUser) {
-      await this.userRepository.createUser({
-        email,
-        firstName,
-        lastName,
-        projectId,
-        password: password ? await hashValue(password) : undefined,
-      });
+      await Promise.all([
+        this.userRepository.createUser(email),
+        this.projectRepository.addUserToProject({
+          project: {
+            connect: {
+              id: projectId,
+            },
+          },
+          user: {
+            connect: {
+              email,
+            },
+          },
+          ...body,
+        }),
+      ]);
     }
   }
 

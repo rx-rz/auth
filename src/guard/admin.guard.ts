@@ -22,7 +22,7 @@ type User = {
 };
 
 @Injectable()
-export class UserGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,

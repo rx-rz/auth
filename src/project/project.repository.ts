@@ -207,7 +207,7 @@ export class ProjectRepository {
     return user;
   }
 
-  async addUserToProject(data: AddUserToProjectDto) {
+  async addUserToProject(data: Prisma.UserProjectCreateInput) {
     const user = await this.prisma.userProject.create({
       data,
       select: {

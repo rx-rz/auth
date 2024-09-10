@@ -5,6 +5,8 @@ import { Response } from 'express';
 import {
   LoginWithEmailAndPasswordDto,
   LoginWithEmailAndPasswordSchema,
+  LoginWithUsernameAndPasswordDto,
+  LoginWithUsernameAndPasswordSchema,
   RegisterWithEmailAndPasswordDto,
   RegisterWithEmailAndPasswordSchema,
 } from './schema';
@@ -29,14 +31,33 @@ export class EmailAndPasswordAuthController {
     @Body() body: LoginWithEmailAndPasswordDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { accessToken, refreshToken, success } =
+    const { accessToken, refreshToken, refreshTokenDays, success } =
       await this.emailAndPasswordAuthService.loginWithEmailAndPassword(body);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000,
+    });
+    return { success, accessToken };
+  }
+
+  @Post(USER_ROUTES.SIGNIN_WITH_USERNAME_AND_PASSWORD)
+  @VerifyProject()
+  @UsePipes(new ZodPipe(LoginWithUsernameAndPasswordSchema))
+  async signInWithUsernameAndPasssword(
+    @Body() body: LoginWithUsernameAndPasswordDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken, refreshTokenDays, success } =
+      await this.emailAndPasswordAuthService.loginWithUsernameAndPassword(body);
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000,
     });
     return { success, accessToken };
   }

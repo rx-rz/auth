@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
-import { UserGuard } from 'src/guard/user.guard';
+import { AdminGuard } from 'src/guard/admin.guard';
 import {
   RegisterAdminDto,
   UpdateAdminDto,
@@ -90,7 +90,7 @@ export class AdminController {
   })
   @UsePipes(new ZodPipe(UpdateAdminSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_DETAILS)
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async updateAdmin(@Body() body: UpdateAdminDto, @Res({ passthrough: true }) response: Response) {
     const { accessToken, success } = await this.adminService.updateAdmin(body);
     this.setAccessTokenCookie(response, accessToken);
@@ -108,7 +108,7 @@ export class AdminController {
   })
   @UsePipes(new ZodPipe(UpdateAdminEmailSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async updateAdminEmail(
     @Body() body: UpdateAdminEmailDto,
     @Res({ passthrough: true }) response: Response,
@@ -128,7 +128,7 @@ export class AdminController {
   })
   @UsePipes(new ZodPipe(UpdateAdminPasswordSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async updateAdminPassword(
     @Body() body: UpdateAdminPasswordDto,
     @Res({ passthrough: true }) response: Response,
@@ -153,7 +153,7 @@ export class AdminController {
   })
   @Get(ADMIN_ROUTES.GET_PROJECTS)
   @UsePipes(new ZodPipe(AdminEmailSchema))
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async getAdminProjects(@Query() query: AdminEmailDto) {
     return this.adminService.getAdminProjects(query);
   }
@@ -167,7 +167,7 @@ export class AdminController {
   })
   @UsePipes(new ZodPipe(GetAdminProjectSchema))
   @Get(ADMIN_ROUTES.GET_PROJECT_BY_NAME)
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async getAdminProjectByName(@Body() body: GetAdminProjectDto) {
     return this.adminService.getAdminProjectByName(body);
   }
@@ -177,7 +177,7 @@ export class AdminController {
     responses: [openApiDeleteAdminOpts.successResponse, openApiDeleteAdminOpts.notFoundResponse],
   })
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
-  @UseGuards(UserGuard)
+  @UseGuards(AdminGuard)
   async deleteAdmin(@Query() query: AdminEmailDto) {
     return this.adminService.deleteAdmin(query);
   }

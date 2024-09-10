@@ -19,6 +19,7 @@ import {
   AssignUserToProjectRoleDto,
   CreateProjectDto,
   IdDto,
+  ProjectSettingsDto,
   RemoveUserFromProjectDto,
   RemoveUserProjectRoleDto,
   UpdateProjectNameDto,
@@ -41,7 +42,7 @@ export class ProjectService {
     return existingProject;
   }
 
-  private async getProjectSettings(projectId: string) {
+  async getProjectSettings(projectId: string) {
     const projectSettings = await this.projectRepository.getProjectSettings(projectId);
     return projectSettings;
   }
@@ -72,6 +73,12 @@ export class ProjectService {
     });
     await this.projectRepository.createProjectSettings(project.id);
     return { success: true, project };
+  }
+
+  async updateProjectSettings(dto: ProjectSettingsDto) {
+    const { projectId, ...data } = dto;
+    const projectSettings = await this.projectRepository.updateProjectSettings(projectId, data);
+    return projectSettings;
   }
 
   async updateProjectName({ projectId, name }: UpdateProjectNameDto) {
@@ -153,8 +160,16 @@ export class ProjectService {
     const userAddedToProject = await this.projectRepository.addUserToProject({
       firstName,
       lastName,
-      userId,
-      projectId,
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      project: {
+        connect: {
+          id: projectId,
+        },
+      },
       password,
     });
     return { success: true, userAddedToProject };

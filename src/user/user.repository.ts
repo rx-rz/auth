@@ -11,42 +11,18 @@ type ReturnedUser = {
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(data: CreateUserDto) {
-    let user: ReturnedUser | undefined;
-    await this.prisma.$transaction(async (prisma) => {
-      user = await prisma.user.create({
-        data: { email: data.email },
-        select: {
-          email: true,
-          id: true,
-        },
-      });
-      await prisma.userProject.create({
-        // if a role id is specified during user creation
-        // assign user a role immediately
-        data: data.roleId
-          ? {
-              firstName: data.firstName,
-              lastName: data.lastName,
-              projectId: data.projectId,
-              userId: user.id,
-              roleId: data.roleId,
-              password: data.password,
-            }
-          : {
-              firstName: data.firstName,
-              lastName: data.lastName,
-              projectId: data.projectId,
-              userId: user.id,
-              password: data.password,
-            },
-        select: {
-          firstName: true,
-        },
-      });
+  async createUser(email: string) {
+    const user = await this.prisma.user.create({
+      data: { email },
+      select: {
+        email: true,
+        id: true,
+      },
     });
     return user;
   }
+
+
 
   async updateUserProjectDetails(
     userId: string,
@@ -137,6 +113,35 @@ export class UserRepository {
         user: {
           select: {
             email: true,
+            id: true,
+          },
+        },
+        role: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
+    return user;
+  }
+
+  async getUserProjectDetailsByUsername(username: string, projectId: string) {
+    const user = await this.prisma.userProject.findFirst({
+      where: {
+        username,
+        projectId,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        createdAt: true,
+        isVerified: true,
+        user: {
+          select: {
+            email: true,
+            id: true,
           },
         },
         role: {
@@ -183,12 +188,22 @@ export class UserRepository {
     return user;
   }
 
-  async getUserPassword(email: string, projectId: string) {
+  async getUserPasswordByEmail(email: string, projectId: string) {
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
           email,
         },
+        projectId,
+      },
+    });
+    return user?.password || '';
+  }
+
+  async getUserPasswordByUsername(username: string, projectId: string) {
+    const user = await this.prisma.userProject.findUnique({
+      where: {
+        username,
         projectId,
       },
     });

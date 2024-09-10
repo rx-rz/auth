@@ -314,7 +314,7 @@ describe('UserRepository', () => {
         password: faker.internet.password(),
       };
       (prismaService.userProject.findFirst as jest.Mock).mockResolvedValue(mockUserProject);
-      const result = await userRepository.getUserPassword(mockEmail, mockProjectId);
+      const result = await userRepository.getUserPasswordByEmail(mockEmail, mockProjectId);
       expect(prismaService.userProject.findFirst).toHaveBeenCalledWith({
         where: {
           user: {

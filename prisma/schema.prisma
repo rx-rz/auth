@@ -64,13 +64,14 @@ model Project {
 model ProjectSettings {
   id                          String  @id @unique @default(cuid())
   projectId                   String  @unique @map("project_id")
-  refreshTokenDays            Int     @default(30) @map("refresh_token_days")
+  refreshTokenDays            Int     @default(7) @map("refresh_token_days")
+  allowNames                  Boolean @default(true) @map("allow_names")
   passwordMinLength           Int     @default(8) @map("password_min_length")
   passwordRequireUppercase    Boolean @default(true) @map("password_require_uppercase")
   passwordRequireLowercase    Boolean @default(true) @map("password_require_lowercase")
   passwordRequireNumbers      Boolean @default(true) @map("password_require_numbers")
   passwordRequireSpecialChars Boolean @default(true) @map("password_require_special_chars")
-  clearLoginsAfterDays        Int?    @map("clear_logins_after_days")
+  clearLoginsAfterDays        Int?    @default(1) @map("clear_logins_after_days")
   allowMultipleCredentials    Boolean @default(false) @map("allow_multiple_credentials")
   allowUsername               Boolean @default(false) @map("allow_username")
   preventPreviousPasswords    Boolean @default(false) @map("prevent_previous_passwords")
@@ -147,7 +148,7 @@ model UserProject {
   password   String?  @db.Text
   firstName  String?  @map("first_name") @db.VarChar(255)
   lastName   String?  @map("last_name") @db.VarChar(255)
-  username   String?  @map("user_name") @db.VarChar(255)
+  username   String?  @unique() @map("user_name") @db.VarChar(255)
   projectId  String   @map("project_id")
   isVerified Boolean  @default(false)
   project    Project  @relation(fields: [projectId], references: [id])
@@ -310,6 +311,7 @@ enum AuthMethod {
   GITHUB_OAUTH
   FACEBOOK_OAUTH
   EMAIL_AND_PASSWORD_SIGNIN
+  USERNAME_AND_PASSWORD_SIGNIN
   MAGICLINK
 }
 

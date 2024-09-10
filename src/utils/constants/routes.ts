@@ -31,6 +31,7 @@ export const PROJECT_ROUTES = {
   BASE: 'projects',
   CREATE: 'create-project',
   UPDATE_PROJECT_NAME: 'update-project-name',
+  UPDATE_PROJECT_SETTINGS: 'update-project-settings',
   GET_KEYS: 'get-keys',
   GET_PROJECT: 'get-project',
   ASSIGN_USER_PROJECT_ROLE: 'assign-user-project-role',
@@ -45,7 +46,7 @@ export const PROJECT_ROUTES = {
 };
 
 export const USER_ROUTES = {
-  BASE: 'user',
+  BASE: 'users',
   CREATE: 'create',
   UPDATE_USER_PROJECT_DETAILS: 'update-project-details',
   UPDATE_PASSWORD: 'update-password',
@@ -55,6 +56,7 @@ export const USER_ROUTES = {
   DELETE: 'delete',
   REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
   SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
+  SIGNIN_WITH_USERNAME_AND_PASSWORD: 'signin-with-username'
 };
 
 export const ROLE_ROUTES = {
