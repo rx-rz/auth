@@ -73,6 +73,15 @@ export const VerifyProjectApiKeysSchema = z.object({
     .max(64, 'Client Key cannot be longer than 64 characters'),
 });
 
+export const AddUserToBlocklistSchema = z.object({
+  userId: z.string(),
+  projectId: z.string(),
+});
+
+export type AddUserToBlocklistDto = z.infer<typeof AddUserToBlocklistSchema>;
+export const RemoveUserFromBlocklistSchema = AddUserToBlocklistSchema;
+export type RemoveUserFromBlocklistDto = z.infer<typeof RemoveUserFromBlocklistSchema>;
+
 export type VerifyProjectApiKeysDto = z.infer<typeof VerifyProjectApiKeysSchema>;
 
 export const ProjectSettingsSchema = z.object({

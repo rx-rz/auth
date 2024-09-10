@@ -14,12 +14,14 @@ import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
 
 import {
+  AddUserToBlocklistDto,
   AddUserToProjectDto,
   AdminIdDto,
   AssignUserToProjectRoleDto,
   CreateProjectDto,
   IdDto,
   ProjectSettingsDto,
+  RemoveUserFromBlocklistDto,
   RemoveUserFromProjectDto,
   RemoveUserProjectRoleDto,
   UpdateProjectNameDto,
@@ -191,6 +193,32 @@ export class ProjectService {
       roleId,
     );
     return { success: true, userAssignedARole };
+  }
+
+  async addUserToBlocklist({ projectId, userId }: AddUserToBlocklistDto) {
+    await this.checkIfProjectExists(projectId);
+    await this.checkIfUserExists(userId);
+    const userAddedToBlocklist = await this.projectRepository.addUserToBlocklist({
+      project: { connect: { id: projectId } },
+      user: { connect: { id: userId } },
+    });
+    return { success: true, userAddedToBlocklist };
+  }
+
+  async removeUserFromBlocklist({ userId, projectId }: RemoveUserFromBlocklistDto) {
+    await this.checkIfProjectExists(projectId);
+    await this.checkIfUserExists(userId);
+    const userRemovedFromBlocklist = await this.projectRepository.removeUserFromBlocklist(
+      userId,
+      projectId,
+    );
+    return userRemovedFromBlocklist;
+  }
+
+  async getProjectBlocklist({ projectId }: IdDto) {
+    await this.checkIfProjectExists(projectId);
+    const blocklist = await this.projectRepository.getProjectBlocklist(projectId);
+    return blocklist;
   }
 
   async removeUserProjectRole({ projectId, userId, roleId }: RemoveUserProjectRoleDto) {

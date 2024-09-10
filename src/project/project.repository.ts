@@ -105,6 +105,27 @@ export class ProjectRepository {
     return project;
   }
 
+  async addUserToBlocklist(data: Prisma.BlockListCreateInput) {
+    const userAddedToBlocklist = await this.prisma.blockList.create({ data });
+    return userAddedToBlocklist;
+  }
+
+  async removeUserFromBlocklist(userId: string, projectId: string) {
+    const userRemovedFromBlocklist = await this.prisma.blockList.delete({
+      where: { userId_projectId: { userId, projectId } },
+    });
+    return userRemovedFromBlocklist;
+  }
+
+  async getProjectBlocklist(projectId: string) {
+    const blocklist = await this.prisma.blockList.findMany({
+      where: {
+        projectId,
+      },
+    });
+    return blocklist;
+  }
+
   async getProjectDetails(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
