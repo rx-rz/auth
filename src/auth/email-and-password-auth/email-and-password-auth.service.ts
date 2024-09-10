@@ -21,6 +21,9 @@ import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.de
 import { AuthMethod } from '@prisma/client';
 import { ProjectRepository } from 'src/project/project.repository';
 import { hashValue } from 'src/utils/helper-functions';
+import { Request } from 'express';
+import { CreateLoginInstanceDto } from 'src/login/schema';
+import { StoreRefreshTokenDto } from 'src/refresh-token/schema';
 @Injectable()
 export class EmailAndPasswordAuthService {
   constructor(
@@ -35,46 +38,73 @@ export class EmailAndPasswordAuthService {
     return { ...projectSettings };
   }
 
-  private async checkIfUserWithEmailExists(email: string, projectId: string) {
-    const userDetails = await this.userRepository.getUserProjectDetailsByEmail(email, projectId);
-    if (!userDetails) throw new NotFoundException('Invalid details provided.');
+  private async checkIfUserExists(
+    identifier: { email?: string; username?: string },
+    projectId: string,
+    request?: Request,
+  ) {
+    let userDetails;
+
+    if (identifier.email) {
+      userDetails = await this.userRepository.getUserProjectDetailsByEmail(
+        identifier.email,
+        projectId,
+      );
+    }
+    if (identifier.username) {
+      userDetails = await this.userRepository.getUserProjectDetailsByUsername(
+        identifier.username,
+        projectId,
+      );
+    }
+    if (!userDetails) {
+      await this.emitLoginInstanceCreationEvent({
+        authMethod: identifier.email
+          ? AuthMethod.EMAIL_AND_PASSWORD_SIGNIN
+          : AuthMethod.USERNAME_AND_PASSWORD_SIGNIN,
+        ipAddress: request?.ip ?? '',
+        projectId,
+        status: 'FAILURE',
+        userAgent: request?.headers['user-agent'] ?? '',
+        email: identifier.email ?? '',
+        username: identifier.username ?? '',
+      });
+      throw new NotFoundException('Invalid user details provided');
+    }
+
     return userDetails;
   }
 
-  private async checkIfUserWithUsernameExists(username: string, projectId: string) {
-    const user = await this.userRepository.getUserProjectDetailsByUsername(username, projectId);
-    if (!user) throw new NotFoundException('User with provided details does not exist.');
-    return user;
-  }
-
-  private async checkIfPasswordsMatchUsingEmail(
-    email: string,
+  private async checkIfPasswordsMatch(
+    identifier: { email?: string; username?: string },
     password: string,
     projectId: string,
+    request?: Request,
   ) {
-    const userPasswordInDB = await this.userRepository.getUserPasswordByEmail(email, projectId);
-    if (!userPasswordInDB) throw new BadRequestException('Invalid user details provided.');
-    const passwordsMatch = await compare(password, userPasswordInDB);
-    if (passwordsMatch === false) {
-      throw new BadRequestException('Invalid user details provided');
-    }
-    return true;
-  }
+    const { email, username } = identifier;
+    let userPasswordInDB: string | null = null;
 
-  private async checkIfPasswordsMatchUsingUsername(
-    username: string,
-    password: string,
-    projectId: string,
-  ) {
-    const userPasswordInDB = await this.userRepository.getUserPasswordByUsername(
-      username,
-      projectId,
-    );
-    if (!userPasswordInDB) throw new BadRequestException('Invalid user details provided.');
-    const passwordsMatch = await compare(password, userPasswordInDB);
-    if (passwordsMatch === false) {
-      throw new BadRequestException('Invalid user details provided');
+    if (email) {
+      userPasswordInDB = await this.userRepository.getUserPasswordByEmail(email, projectId);
+    } else if (username) {
+      userPasswordInDB = await this.userRepository.getUserPasswordByUsername(username, projectId);
     }
+
+    if (!userPasswordInDB || !(await compare(password, userPasswordInDB))) {
+      await this.emitLoginInstanceCreationEvent({
+        authMethod: identifier.email
+          ? AuthMethod.EMAIL_AND_PASSWORD_SIGNIN
+          : AuthMethod.USERNAME_AND_PASSWORD_SIGNIN,
+        ipAddress: request?.ip ?? '',
+        projectId,
+        status: 'FAILURE',
+        userAgent: request?.headers['user-agent'] ?? '',
+        email: identifier.email ?? '',
+        username: identifier.username ?? '',
+      });
+      throw new BadRequestException('Invalid user details provided.');
+    }
+
     return true;
   }
 
@@ -118,11 +148,15 @@ export class EmailAndPasswordAuthService {
   }
 
   @CatchEmitterErrors()
-  async loginWithEmailAndPassword({ email, password, projectId }: LoginWithEmailAndPasswordDto) {
-    await this.checkIfPasswordsMatchUsingEmail(email, password, projectId);
-    const { firstName, lastName, role, isVerified, user } = await this.checkIfUserWithEmailExists(
-      email,
+  async loginWithEmailAndPassword(
+    { email, password, projectId }: LoginWithEmailAndPasswordDto,
+    request: Request,
+  ) {
+    await this.checkIfPasswordsMatch({ email }, password, projectId, request);
+    const { firstName, lastName, role, isVerified, user } = await this.checkIfUserExists(
+      { email },
       projectId,
+      request,
     );
     const [accessToken, refreshToken] = [
       generateAccessToken({
@@ -136,23 +170,35 @@ export class EmailAndPasswordAuthService {
       generateHashedRefreshToken(),
     ];
     const { refreshTokenDays } = await this.getProjectSettings(projectId);
-    await this.emitter.emit('refresh-token.created', {
+    await this.emitRefreshTokenInstanceCreationEvent({
       token: refreshToken,
       expiresAt: new Date(Date.now() + (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000),
       userId: user.id,
+      authMethod: AuthMethod.USERNAME_AND_PASSWORD_SIGNIN,
+    });
+    await this.emitLoginInstanceCreationEvent({
       authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
+      ipAddress: request.ip ?? '',
+      projectId,
+      status: 'SUCCESS',
+      userAgent: request?.headers['user-agent'] ?? '',
+      email,
+      username: '',
     });
     return { success: true, accessToken: `Bearer ${accessToken}`, refreshToken, refreshTokenDays };
   }
 
-  async loginWithUsernameAndPassword({
-    password,
-    projectId,
-    username,
-  }: LoginWithUsernameAndPasswordDto) {
-    await this.checkIfPasswordsMatchUsingUsername(username, password, projectId);
-    const { firstName, lastName, role, isVerified, user } =
-      await this.checkIfUserWithUsernameExists(username, projectId);
+  @CatchEmitterErrors()
+  async loginWithUsernameAndPassword(
+    { password, projectId, username }: LoginWithUsernameAndPasswordDto,
+    request: Request,
+  ) {
+    await this.checkIfPasswordsMatch({ username }, password, projectId, request);
+    const { firstName, lastName, role, isVerified, user } = await this.checkIfUserExists(
+      { username },
+      projectId,
+      request,
+    );
     const [accessToken, refreshToken] = [
       generateAccessToken({
         email: user.email,
@@ -166,12 +212,28 @@ export class EmailAndPasswordAuthService {
       generateHashedRefreshToken(),
     ];
     const { refreshTokenDays } = await this.getProjectSettings(projectId);
-    await this.emitter.emit('refresh-token.created', {
+    await this.emitRefreshTokenInstanceCreationEvent({
       token: refreshToken,
       expiresAt: new Date(Date.now() + (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000),
       userId: user.id,
-      authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
+      authMethod: AuthMethod.USERNAME_AND_PASSWORD_SIGNIN,
+    });
+    await this.emitLoginInstanceCreationEvent({
+      authMethod: AuthMethod.USERNAME_AND_PASSWORD_SIGNIN,
+      ipAddress: request.ip ?? '',
+      projectId,
+      status: 'SUCCESS',
+      userAgent: request?.headers['user-agent'] ?? '',
+      email: '',
+      username,
     });
     return { success: true, accessToken: `Bearer ${accessToken}`, refreshToken, refreshTokenDays };
+  }
+
+  private async emitLoginInstanceCreationEvent(dto: CreateLoginInstanceDto) {
+    await this.emitter.emit('login.create-login-instance', dto);
+  }
+  private async emitRefreshTokenInstanceCreationEvent(dto: StoreRefreshTokenDto) {
+    await this.emitter.emit('refresh-token.created', dto);
   }
 }

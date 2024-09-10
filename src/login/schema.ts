@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const CreateLoginInstanceSchema = z
   .object({
-    userId: z.string().min(1, 'User ID must not be empty'),
+    email: z.string().email('User Email must not be empty').optional(),
+    username: z.string().optional(),
     projectId: z.string().min(1, 'Project ID must not be empty'),
     ipAddress: z.string().min(1, 'IP Address must not be empty'),
     userAgent: z.string().min(1, 'User Agent must not be empty'),
@@ -11,10 +12,10 @@ export const CreateLoginInstanceSchema = z
       'GITHUB_OAUTH',
       'FACEBOOK_OAUTH',
       'EMAIL_AND_PASSWORD_SIGNIN',
+      'USERNAME_AND_PASSWORD_SIGNIN',
       'MAGICLINK',
     ]),
     status: z.enum(['SUCCESS', 'FAILURE']),
-    failureReason: z.string().optional(),
   })
   .required();
 

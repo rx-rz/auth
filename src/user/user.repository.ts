@@ -22,8 +22,6 @@ export class UserRepository {
     return user;
   }
 
-
-
   async updateUserProjectDetails(
     userId: string,
     projectId: string,
@@ -109,6 +107,7 @@ export class UserRepository {
         firstName: true,
         lastName: true,
         createdAt: true,
+
         isVerified: true,
         user: {
           select: {

@@ -5,7 +5,14 @@ export const StoreRefreshTokenSchema = z.object({
   expiresAt: z.date().min(new Date(), { message: 'Expiration date must be in the future' }),
   userId: z.string(),
   authMethod: z.enum(
-    ['GOOGLE_OAUTH', 'GITHUB_OAUTH', 'FACEBOOK_OAUTH', 'EMAIL_AND_PASSWORD_SIGNIN', 'MAGICLINK'],
+    [
+      'GOOGLE_OAUTH',
+      'GITHUB_OAUTH',
+      'FACEBOOK_OAUTH',
+      'EMAIL_AND_PASSWORD_SIGNIN',
+      'USERNAME_AND_PASSWORD_SIGNIN',
+      'MAGICLINK',
+    ],
     {
       message: 'Invalid authentication method',
     },

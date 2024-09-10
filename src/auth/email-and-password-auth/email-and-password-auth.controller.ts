@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Res, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UsePipes } from '@nestjs/common';
 import { EmailAndPasswordAuthService } from './email-and-password-auth.service';
 import { USER_ROUTES } from 'src/utils/constants/routes';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import {
   LoginWithEmailAndPasswordDto,
   LoginWithEmailAndPasswordSchema,
@@ -28,11 +28,13 @@ export class EmailAndPasswordAuthController {
   @VerifyProject()
   @UsePipes(new ZodPipe(LoginWithEmailAndPasswordSchema))
   async signInWithEmailAndPassword(
+    @Req() request: Request,
     @Body() body: LoginWithEmailAndPasswordDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     const { accessToken, refreshToken, refreshTokenDays, success } =
-      await this.emailAndPasswordAuthService.loginWithEmailAndPassword(body);
+      await this.emailAndPasswordAuthService.loginWithEmailAndPassword(body, request);
+    request.headers['user-agent'];
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -47,11 +49,12 @@ export class EmailAndPasswordAuthController {
   @VerifyProject()
   @UsePipes(new ZodPipe(LoginWithUsernameAndPasswordSchema))
   async signInWithUsernameAndPasssword(
+    @Req() request: Request,
     @Body() body: LoginWithUsernameAndPasswordDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     const { accessToken, refreshToken, refreshTokenDays, success } =
-      await this.emailAndPasswordAuthService.loginWithUsernameAndPassword(body);
+      await this.emailAndPasswordAuthService.loginWithUsernameAndPassword(body, request);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
