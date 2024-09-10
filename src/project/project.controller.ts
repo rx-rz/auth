@@ -14,6 +14,7 @@ import { AdminGuard } from 'src/guard/admin.guard';
 
 import { PROJECT_ROUTES } from 'src/utils/constants/routes';
 import {
+  AddUserToBlocklistDto,
   AddUserToProjectDto,
   AddUserToProjectSchema,
   AdminIdDto,
@@ -26,6 +27,8 @@ import {
   IdSchema,
   ProjectSettingsDto,
   ProjectSettingsSchema,
+  RemoveUserFromBlocklistDto,
+  RemoveUserFromBlocklistSchema,
   RemoveUserFromProjectDto,
   RemoveUserFromProjectSchema,
   RemoveUserProjectRoleDto,
@@ -106,6 +109,27 @@ export class ProjectController {
   @UseGuards(AdminGuard)
   async addUserToProject(@Body() body: AddUserToProjectDto) {
     return this.projectService.addUserToProject(body);
+  }
+
+  @Post(PROJECT_ROUTES.ADD_USER_TO_BLOCKLIST)
+  @UsePipes(new ZodPipe(AddUserToProjectSchema))
+  @UseGuards(AdminGuard)
+  async addUserToBlocklist(@Body() body: AddUserToBlocklistDto) {
+    return this.projectService.addUserToBlocklist(body);
+  }
+
+  @Post(PROJECT_ROUTES.REMOVE_USER_FROM_BLOCKLIST)
+  @UsePipes(new ZodPipe(RemoveUserFromBlocklistSchema))
+  @UseGuards(AdminGuard)
+  async removeUserFromBlocklist(@Body() body: RemoveUserFromBlocklistDto) {
+    return this.projectService.removeUserFromBlocklist(body);
+  }
+
+  @Get(PROJECT_ROUTES.GET_PROJECT_BLOCKLIST)
+  @UsePipes(new ZodPipe(IdSchema))
+  @UseGuards(AdminGuard)
+  async getProjectBlocklist(@Body() body: RemoveUserFromBlocklistDto) {
+    return this.projectService.getProjectBlocklist(body);
   }
 
   @Post(PROJECT_ROUTES.ASSIGN_USER_PROJECT_ROLE)

@@ -36,6 +36,9 @@ export const PROJECT_ROUTES = {
   GET_PROJECT: 'get-project',
   ASSIGN_USER_PROJECT_ROLE: 'assign-user-project-role',
   REMOVE_USER_FROM_PROJECT_ROLE: 'remove-user-from-project-role',
+  REMOVE_USER_FROM_BLOCKLIST: 'remove-user-from-blocklist',
+  ADD_USER_TO_BLOCKLIST: 'add-user-to-blocklist',
+  GET_PROJECT_BLOCKLIST: 'get-project-blocklist',
   GET_PROJECT_ROLES: 'get-project-roles',
   GET_MAGIC_LINKS: 'get-magic-links',
   GET_REFRESH_TOKENS: 'get-refresh-tokens',
@@ -56,7 +59,7 @@ export const USER_ROUTES = {
   DELETE: 'delete',
   REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
   SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
-  SIGNIN_WITH_USERNAME_AND_PASSWORD: 'signin-with-username'
+  SIGNIN_WITH_USERNAME_AND_PASSWORD: 'signin-with-username',
 };
 
 export const ROLE_ROUTES = {
