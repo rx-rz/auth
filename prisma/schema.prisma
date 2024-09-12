@@ -63,22 +63,23 @@ model Project {
 }
 
 model ProjectSettings {
-  id                          String  @id @unique @default(cuid())
-  projectId                   String  @unique @map("project_id")
-  refreshTokenDays            Int     @default(7) @map("refresh_token_days")
-  allowNames                  Boolean @default(true) @map("allow_names")
-  passwordMinLength           Int     @default(8) @map("password_min_length")
-  passwordRequireUppercase    Boolean @default(true) @map("password_require_uppercase")
-  passwordRequireLowercase    Boolean @default(true) @map("password_require_lowercase")
-  passwordRequireNumbers      Boolean @default(true) @map("password_require_numbers")
-  passwordRequireSpecialChars Boolean @default(true) @map("password_require_special_chars")
-  clearLoginsAfterDays        Int?    @default(1) @map("clear_logins_after_days")
-  allowMultipleCredentials    Boolean @default(false) @map("allow_multiple_credentials")
-  preventPreviousPasswords    Boolean @default(false) @map("prevent_previous_passwords")
-  allowPasskeyVerification    Boolean @default(false) @map("allow_passkey_verification")
-  maxLoginAttempts            Int     @default(5) @map("max_login_attempts")
-  lockoutDurationMinutes      Int     @default(30) @map("lockout_duration_minutes")
-  project                     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id                                String  @id @unique @default(cuid())
+  projectId                         String  @unique @map("project_id")
+  refreshTokenDays                  Int     @default(7) @map("refresh_token_days")
+  magicLinkTokenAvailabilityMinutes Int     @default(10) @map("magiclink_token_availability_minutes")
+  allowNames                        Boolean @default(true) @map("allow_names")
+  passwordMinLength                 Int     @default(8) @map("password_min_length")
+  passwordRequireUppercase          Boolean @default(true) @map("password_require_uppercase")
+  passwordRequireLowercase          Boolean @default(true) @map("password_require_lowercase")
+  passwordRequireNumbers            Boolean @default(true) @map("password_require_numbers")
+  passwordRequireSpecialChars       Boolean @default(true) @map("password_require_special_chars")
+  clearLoginsAfterDays              Int?    @default(1) @map("clear_logins_after_days")
+  allowMultipleCredentials          Boolean @default(false) @map("allow_multiple_credentials")
+  preventPreviousPasswords          Boolean @default(false) @map("prevent_previous_passwords")
+  allowPasskeyVerification          Boolean @default(false) @map("allow_passkey_verification")
+  maxLoginAttempts                  Int     @default(5) @map("max_login_attempts")
+  lockoutDurationMinutes            Int     @default(30) @map("lockout_duration_minutes")
+  project                           Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("project_settings")
 }
@@ -291,7 +292,7 @@ model Login {
   projectId  String      @map("project_id")
   ipAddress  String      @map("ip_address")
   userAgent  String      @map("user_agent")
-  attempts   Int        @default(1) @map("attempts")
+  attempts   Int         @default(1) @map("attempts")
   authMethod AuthMethod
   status     LoginStatus
   createdAt  DateTime    @default(now()) @map("created_at")

@@ -129,7 +129,7 @@ export class EmailAndPasswordAuthService {
         maxLoginAttempts,
       );
       throw new BadRequestException(
-        `'Invalid user details provided. You have ${maxLoginAttempts - login.attempts} attempt(s) left.'`,
+        `'Invalid user details provided. You have ${maxLoginAttempts - login.attempts > 0 ? maxLoginAttempts - login.attempts : 0} attempt(s) left.'`,
       );
     }
     const [accessToken, refreshToken] = [
