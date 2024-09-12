@@ -12,7 +12,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
-
 import {
   AddUserToBlocklistDto,
   AddUserToProjectDto,
@@ -198,21 +197,15 @@ export class ProjectService {
   async addUserToBlocklist({ projectId, userId }: AddUserToBlocklistDto) {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExists(userId);
-    const userAddedToBlocklist = await this.projectRepository.addUserToBlocklist({
-      project: { connect: { id: projectId } },
-      user: { connect: { id: userId } },
-    });
-    return { success: true, userAddedToBlocklist };
+    await this.projectRepository.addUserToBlocklist(userId, projectId);
+    return { success: true, message: 'User added to blocklist successfully' };
   }
 
   async removeUserFromBlocklist({ userId, projectId }: RemoveUserFromBlocklistDto) {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExists(userId);
-    const userRemovedFromBlocklist = await this.projectRepository.removeUserFromBlocklist(
-      userId,
-      projectId,
-    );
-    return userRemovedFromBlocklist;
+    await this.projectRepository.removeUserFromBlocklist(userId, projectId);
+    return { success: true, message: 'User added to blocklist successfully' };
   }
 
   async getProjectBlocklist({ projectId }: IdDto) {

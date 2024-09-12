@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
-import { AddUserToProjectDto } from './schema';
+import { AddUserToBlocklistDto } from './schema';
 
 @Injectable()
 export class ProjectRepository {
@@ -105,16 +105,66 @@ export class ProjectRepository {
     return project;
   }
 
-  async addUserToBlocklist(data: Prisma.BlockListCreateInput) {
-    const userAddedToBlocklist = await this.prisma.blockList.create({ data });
-    return userAddedToBlocklist;
+  async addUserToBlocklist(userId: string, projectId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userProject.update({
+        where: {
+          userId_projectId: {
+            userId,
+            projectId,
+          },
+        },
+        data: {
+          userStatus: 'BLOCKED',
+        },
+      });
+      await tx.blockList.create({
+        data: {
+          userId,
+          projectId,
+        },
+      });
+    });
   }
 
   async removeUserFromBlocklist(userId: string, projectId: string) {
-    const userRemovedFromBlocklist = await this.prisma.blockList.delete({
-      where: { userId_projectId: { userId, projectId } },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userProject.update({
+        where: {
+          userId_projectId: {
+            userId,
+            projectId,
+          },
+        },
+        data: {
+          userStatus: 'ACTIVE',
+        },
+      });
+      await tx.blockList.delete({
+        where: {
+          userId_projectId: {
+            userId,
+            projectId,
+          },
+        },
+      });
     });
-    return userRemovedFromBlocklist;
+  }
+
+  async getUserFromProjectBlocklist(userId: string, projectId: string) {
+    const user = await this.prisma.blockList.findUnique({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId,
+        },
+      },
+      select: {
+        userId: true,
+        createdAt: true,
+      },
+    });
+    return user;
   }
 
   async getProjectBlocklist(projectId: string) {

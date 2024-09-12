@@ -5,8 +5,6 @@ import { Request, Response } from 'express';
 import {
   LoginWithEmailAndPasswordDto,
   LoginWithEmailAndPasswordSchema,
-  LoginWithUsernameAndPasswordDto,
-  LoginWithUsernameAndPasswordSchema,
   RegisterWithEmailAndPasswordDto,
   RegisterWithEmailAndPasswordSchema,
 } from './schema';
@@ -35,26 +33,6 @@ export class EmailAndPasswordAuthController {
     const { accessToken, refreshToken, refreshTokenDays, success } =
       await this.emailAndPasswordAuthService.loginWithEmailAndPassword(body, request);
     request.headers['user-agent'];
-    response.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000,
-    });
-    return { success, accessToken };
-  }
-
-  @Post(USER_ROUTES.SIGNIN_WITH_USERNAME_AND_PASSWORD)
-  @VerifyProject()
-  @UsePipes(new ZodPipe(LoginWithUsernameAndPasswordSchema))
-  async signInWithUsernameAndPasssword(
-    @Req() request: Request,
-    @Body() body: LoginWithUsernameAndPasswordDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const { accessToken, refreshToken, refreshTokenDays, success } =
-      await this.emailAndPasswordAuthService.loginWithUsernameAndPassword(body, request);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

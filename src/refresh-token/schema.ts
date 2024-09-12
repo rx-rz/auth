@@ -10,7 +10,6 @@ export const StoreRefreshTokenSchema = z.object({
       'GITHUB_OAUTH',
       'FACEBOOK_OAUTH',
       'EMAIL_AND_PASSWORD_SIGNIN',
-      'USERNAME_AND_PASSWORD_SIGNIN',
       'MAGICLINK',
     ],
     {

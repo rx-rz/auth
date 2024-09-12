@@ -95,7 +95,6 @@ export const ProjectSettingsSchema = z.object({
   passwordRequireSpecialChars: z.boolean().default(true).optional(),
   clearLoginsAfterDays: z.number().int().positive().nullable().optional(),
   allowMultipleCredentials: z.boolean().default(false).optional(),
-  allowUsername: z.boolean().default(false).optional(),
   preventPreviousPasswords: z.boolean().default(false).optional(),
   allowPasskeyVerification: z.boolean().default(false).optional(),
   maxLoginAttempts: z.number().int().positive().default(5).optional(),

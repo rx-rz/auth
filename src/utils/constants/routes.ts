@@ -59,7 +59,6 @@ export const USER_ROUTES = {
   DELETE: 'delete',
   REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
   SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
-  SIGNIN_WITH_USERNAME_AND_PASSWORD: 'signin-with-username',
 };
 
 export const ROLE_ROUTES = {

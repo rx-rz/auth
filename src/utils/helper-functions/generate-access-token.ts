@@ -8,7 +8,6 @@ export type User = {
   isVerified: boolean;
   role: 'rollo-admin' | string;
   mfaEnabled?: boolean;
-  username?: string;
 };
 
 export function generateAccessToken(payload: User) {

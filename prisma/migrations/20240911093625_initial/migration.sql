@@ -51,24 +51,24 @@ CREATE TABLE "projects" (
 );
 
 -- CreateTable
-CREATE TABLE "ProjectSettings" (
+CREATE TABLE "project_settings" (
     "id" TEXT NOT NULL,
     "project_id" TEXT NOT NULL,
-    "refresh_token_days" INTEGER NOT NULL DEFAULT 30,
+    "refresh_token_days" INTEGER NOT NULL DEFAULT 7,
+    "allow_names" BOOLEAN NOT NULL DEFAULT true,
     "password_min_length" INTEGER NOT NULL DEFAULT 8,
     "password_require_uppercase" BOOLEAN NOT NULL DEFAULT true,
     "password_require_lowercase" BOOLEAN NOT NULL DEFAULT true,
     "password_require_numbers" BOOLEAN NOT NULL DEFAULT true,
     "password_require_special_chars" BOOLEAN NOT NULL DEFAULT true,
-    "clear_logins_after_days" INTEGER,
+    "clear_logins_after_days" INTEGER DEFAULT 1,
     "allow_multiple_credentials" BOOLEAN NOT NULL DEFAULT false,
-    "allow_username" BOOLEAN NOT NULL DEFAULT false,
-    "prevent_previous_passwords" INTEGER NOT NULL DEFAULT 3,
+    "prevent_previous_passwords" BOOLEAN NOT NULL DEFAULT false,
     "allow_passkey_verification" BOOLEAN NOT NULL DEFAULT false,
     "max_login_attempts" INTEGER NOT NULL DEFAULT 5,
     "lockout_duration_minutes" INTEGER NOT NULL DEFAULT 30,
 
-    CONSTRAINT "ProjectSettings_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "project_settings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -116,8 +116,8 @@ CREATE TABLE "role_permissions" (
 CREATE TABLE "user_projects" (
     "user_id" TEXT NOT NULL,
     "password" TEXT,
-    "first_name" VARCHAR(255) NOT NULL,
-    "last_name" VARCHAR(255) NOT NULL,
+    "first_name" VARCHAR(255),
+    "last_name" VARCHAR(255),
     "project_id" TEXT NOT NULL,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "role_id" TEXT,
@@ -240,11 +240,22 @@ CREATE TABLE "login" (
     "project_id" TEXT NOT NULL,
     "ip_address" TEXT NOT NULL,
     "user_agent" TEXT NOT NULL,
+    "attempts" INTEGER,
     "authMethod" "AuthMethod" NOT NULL,
     "status" "LoginStatus" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "login_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "blocklist" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT,
+    "project_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "blocklist_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -278,10 +289,10 @@ CREATE UNIQUE INDEX "projects_client_key_key" ON "projects"("client_key");
 CREATE UNIQUE INDEX "projects_name_admin_id_key" ON "projects"("name", "admin_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProjectSettings_id_key" ON "ProjectSettings"("id");
+CREATE UNIQUE INDEX "project_settings_id_key" ON "project_settings"("id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProjectSettings_project_id_key" ON "ProjectSettings"("project_id");
+CREATE UNIQUE INDEX "project_settings_project_id_key" ON "project_settings"("project_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_id_key" ON "users"("id");
@@ -380,6 +391,15 @@ CREATE UNIQUE INDEX "webauthn_credentials_user_id_webauthn_userid_key" ON "webau
 CREATE UNIQUE INDEX "login_id_key" ON "login"("id");
 
 -- CreateIndex
+CREATE INDEX "login_user_id_idx" ON "login"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "blocklist_id_key" ON "blocklist"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "blocklist_user_id_project_id_key" ON "blocklist"("user_id", "project_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_ProjectToUser_AB_unique" ON "_ProjectToUser"("A", "B");
 
 -- CreateIndex
@@ -392,7 +412,7 @@ ALTER TABLE "AdminRefreshToken" ADD CONSTRAINT "AdminRefreshToken_admin_id_fkey"
 ALTER TABLE "projects" ADD CONSTRAINT "projects_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admins"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProjectSettings" ADD CONSTRAINT "ProjectSettings_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "project_settings" ADD CONSTRAINT "project_settings_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "roles" ADD CONSTRAINT "roles_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -456,6 +476,12 @@ ALTER TABLE "login" ADD CONSTRAINT "login_user_id_fkey" FOREIGN KEY ("user_id") 
 
 -- AddForeignKey
 ALTER TABLE "login" ADD CONSTRAINT "login_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "blocklist" ADD CONSTRAINT "blocklist_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "blocklist" ADD CONSTRAINT "blocklist_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ProjectToUser" ADD CONSTRAINT "_ProjectToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;

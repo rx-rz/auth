@@ -107,7 +107,7 @@ export class UserRepository {
         firstName: true,
         lastName: true,
         createdAt: true,
-
+        userStatus: true,
         isVerified: true,
         user: {
           select: {
@@ -126,33 +126,6 @@ export class UserRepository {
     return user;
   }
 
-  async getUserProjectDetailsByUsername(username: string, projectId: string) {
-    const user = await this.prisma.userProject.findFirst({
-      where: {
-        username,
-        projectId,
-      },
-      select: {
-        firstName: true,
-        lastName: true,
-        createdAt: true,
-        isVerified: true,
-        user: {
-          select: {
-            email: true,
-            id: true,
-          },
-        },
-        role: {
-          select: {
-            name: true,
-            id: true,
-          },
-        },
-      },
-    });
-    return user;
-  }
 
   async getUserById(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -187,22 +160,13 @@ export class UserRepository {
     return user;
   }
 
+
   async getUserPasswordByEmail(email: string, projectId: string) {
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
           email,
         },
-        projectId,
-      },
-    });
-    return user?.password || '';
-  }
-
-  async getUserPasswordByUsername(username: string, projectId: string) {
-    const user = await this.prisma.userProject.findUnique({
-      where: {
-        username,
         projectId,
       },
     });

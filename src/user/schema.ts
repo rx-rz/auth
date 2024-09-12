@@ -7,7 +7,6 @@ export const CreateUserSchema = z.object({
     .min(1, 'Email is required')
     .max(255, 'Email must be at most 255 characters'),
   password: z.string().optional(),
-  username: z.string().optional(),
   projectId: z.string().min(1, 'Project ID is required'),
   roleId: z.string().optional(),
   firstName: z

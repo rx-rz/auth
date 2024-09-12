@@ -74,7 +74,6 @@ model ProjectSettings {
   passwordRequireSpecialChars Boolean @default(true) @map("password_require_special_chars")
   clearLoginsAfterDays        Int?    @default(1) @map("clear_logins_after_days")
   allowMultipleCredentials    Boolean @default(false) @map("allow_multiple_credentials")
-  allowUsername               Boolean @default(false) @map("allow_username")
   preventPreviousPasswords    Boolean @default(false) @map("prevent_previous_passwords")
   allowPasskeyVerification    Boolean @default(false) @map("allow_passkey_verification")
   maxLoginAttempts            Int     @default(5) @map("max_login_attempts")
@@ -145,20 +144,19 @@ model RolePermission {
 
 // UserProject model
 model UserProject {
-  userId     String   @map("user_id")
-  user       User     @relation(fields: [userId], references: [id])
-  password   String?  @db.Text
-  firstName  String?  @map("first_name") @db.VarChar(255)
-  lastName   String?  @map("last_name") @db.VarChar(255)
-  username   String?  @unique() @map("user_name") @db.VarChar(255)
-  projectId  String   @map("project_id")
-  isVerified Boolean  @default(false)
-  project    Project  @relation(fields: [projectId], references: [id])
-  roleId     String?  @map("role_id")
-  role       Role?    @relation(fields: [roleId], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  Login      Login[]
+  userId     String     @map("user_id")
+  user       User       @relation(fields: [userId], references: [id])
+  password   String?    @db.Text
+  firstName  String?    @map("first_name") @db.VarChar(255)
+  lastName   String?    @map("last_name") @db.VarChar(255)
+  projectId  String     @map("project_id")
+  userStatus UserStatus @default(ACTIVE) @map("user_status")
+  isVerified Boolean    @default(false)
+  project    Project    @relation(fields: [projectId], references: [id])
+  roleId     String?    @map("role_id")
+  role       Role?      @relation(fields: [roleId], references: [id])
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
 
   @@id([userId, projectId])
   @@index([userId])
@@ -288,21 +286,19 @@ model WebAuthnCredential {
 }
 
 model Login {
-  id          String       @id @unique() @default(cuid())
-  email       String?      @map("email")
-  username    String?      @map("username")
-  projectId   String       @map("project_id")
-  ipAddress   String       @map("ip_address")
-  userAgent   String       @map("user_agent")
-  authMethod  AuthMethod
-  status      LoginStatus
-  createdAt   DateTime     @default(now()) @map("created_at")
-  user        User?        @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: Cascade)
-  userProject UserProject? @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
-  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id         String      @id @unique() @default(cuid())
+  userId     String      @map("user_id")
+  projectId  String      @map("project_id")
+  ipAddress  String      @map("ip_address")
+  userAgent  String      @map("user_agent")
+  attempts   Int        @default(1) @map("attempts")
+  authMethod AuthMethod
+  status     LoginStatus
+  createdAt  DateTime    @default(now()) @map("created_at")
+  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project    Project?    @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([username])
-  @@index([email])
+  @@index([userId])
   @@map("login")
 }
 
@@ -313,6 +309,7 @@ model BlockList {
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
+
   @@unique([userId, projectId])
   @@map("blocklist")
 }
@@ -329,7 +326,6 @@ enum AuthMethod {
   GITHUB_OAUTH
   FACEBOOK_OAUTH
   EMAIL_AND_PASSWORD_SIGNIN
-  USERNAME_AND_PASSWORD_SIGNIN
   MAGICLINK
 }
 
@@ -338,11 +334,12 @@ enum LoginStatus {
   FAILURE
 }
 
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
 enum OAuthProviders {
   GOOGLE
   GITHUB
-}
-
-enum LoginIdentifierTypes {
-  USERNAME
 }

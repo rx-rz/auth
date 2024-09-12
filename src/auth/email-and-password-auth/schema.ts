@@ -18,17 +18,6 @@ export const LoginWithEmailAndPasswordSchema = z.object({
   projectId: z.string({ required_error: 'Project ID is required' }),
 });
 
-export const LoginWithUsernameAndPasswordSchema = z.object({
-  username: z.string({ required_error: 'Username is required' }),
-  password: z.string({
-    required_error: 'Password is required',
-    invalid_type_error: 'Password must be string',
-  }),
-  projectId: z.string({ required_error: 'Project ID is required' }),
-});
-
-export type LoginWithUsernameAndPasswordDto = z.infer<typeof LoginWithUsernameAndPasswordSchema>;
-
 export type LoginWithEmailAndPasswordDto = z.infer<typeof LoginWithEmailAndPasswordSchema>;
 
 export const RegisterWithEmailAndPasswordSchema = z.object({
@@ -37,24 +26,9 @@ export const RegisterWithEmailAndPasswordSchema = z.object({
     .email({ message: 'Invalid email provided' }),
   password: z.string(),
   projectId: z.string(),
-  username: z
-    .string()
-    .regex(/^[a-zA-Z0-9_-]{5,100}$/)
-    .optional(),
   firstName: z.string().min(1).max(100).optional(),
   lastName: z.string().min(1).max(100).optional(),
 });
-
-export const validateUsername = (username: string) => {
-  const UsernameSchema = z.object({
-    username: z
-      .string({ required_error: 'Username is required' })
-      .max(20, { message: 'Username cannot be more than 20 characters' }),
-  });
-
-  const { error } = UsernameSchema.safeParse({ username });
-  if (error) throw new BadRequestException(error.errors.map((err) => err.message).join(', '));
-};
 
 export const validateNames = (firstName: string, lastName: string) => {
   const NamesSchema = z.object({

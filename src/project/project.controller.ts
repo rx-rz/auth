@@ -76,7 +76,7 @@ export class ProjectController {
     return this.projectService.getProjectDetails(query);
   }
 
-  @Get(PROJECT_ROUTES.GET_PROJECT_ROLES)
+  @Get(PROJECT_ROUTES.GET_PROJECT_ROLES) 
   @UsePipes(new ZodPipe(IdSchema))
   @UseGuards(AdminGuard)
   async getProjectRoles(@Query() query: IdDto) {
