@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { USER_ROUTES } from 'src/utils/constants/routes';
 import {
   EmailDto,
-  UpdateUserDto,
+  UpdateUserProjectDetailsDto,
   UpdateUserEmailDto,
   UpdateUserPasswordDto,
   UserIdDto,
@@ -13,7 +13,7 @@ import {
   UpdateUserEmailSchema,
   UpdateUserPasswordSchema,
   EmailSchema,
-  UpdateUserSchema,
+  UpdateUserProjectDetailsSchema,
 } from './schema';
 import { VerifyProject } from 'src/utils/interceptors/project-verification.interceptor';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
@@ -37,9 +37,9 @@ export class UserController {
 
   @VerifyProject()
   @Put(USER_ROUTES.UPDATE_USER_PROJECT_DETAILS)
-  @UsePipes(new ZodPipe(UpdateUserSchema))
-  async updateUser(@Body() body: UpdateUserDto) {
-    return this.userService.updateUser(body);
+  @UsePipes(new ZodPipe(UpdateUserProjectDetailsSchema))
+  async updateUser(@Body() body: UpdateUserProjectDetailsDto) {
+    return this.userService.updateUserProjectDetails(body);
   }
 
   @VerifyProject()
@@ -52,8 +52,8 @@ export class UserController {
   @VerifyProject()
   @Put(USER_ROUTES.UPDATE_PASSWORD)
   @UsePipes(new ZodPipe(UpdateUserPasswordSchema))
-  async updateUserPassword(@Body() body: UpdateUserPasswordDto) {
-    return this.userService.updateUserPassword(body);
+  async updateUserProjectPassword(@Body() body: UpdateUserPasswordDto) {
+    return this.userService.updateUserProjectPassword(body);
   }
 
   @VerifyProject()

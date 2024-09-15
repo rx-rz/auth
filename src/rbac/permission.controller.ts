@@ -25,8 +25,7 @@ import {
 } from './schema';
 import { AdminGuard } from 'src/guard/admin.guard';
 import { PERMISSION_ROUTES } from 'src/utils/constants/routes';
-import { IdSchema as ProjectIdSchema, IdDto as ProjectIdDto } from 'src/project/schema';
-
+import { ProjectIdDto, ProjectIdSchema } from 'src/project/schema';
 @Controller(PERMISSION_ROUTES.BASE)
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}

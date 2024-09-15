@@ -7,7 +7,6 @@ export const CreateOtpSchema = z.object({
     .max(255, { message: 'Email length cannot be more than 255 characters' }),
   isAdmin: z.boolean().optional(),
 });
-
 export type CreateOtpDto = z.infer<typeof CreateOtpSchema>;
 
 export const VerifyOtpSchema = z.object({
@@ -25,7 +24,6 @@ export const VerifyOtpSchema = z.object({
     .min(10, { message: 'Project ID must be at least 10 characters long' })
     .max(50, { message: 'Project ID cannot exceed 50 characters' }),
 });
-
 export type VerifyOtpDto = z.infer<typeof VerifyOtpSchema>;
 
 export const VerifyAdminOtpSchema = z.object({
@@ -35,5 +33,4 @@ export const VerifyAdminOtpSchema = z.object({
     .email({ message: 'Invalid email format' })
     .max(255, { message: 'Email length cannot be more than 255 characters' }),
 });
-
 export type VerifyAdminOtpDto = z.infer<typeof VerifyAdminOtpSchema>;

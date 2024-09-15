@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { RoleBasedAccessControlRepository } from './rbac.repository';
 import { CreateRoleDto, RoleIdDto, UpdateRoleNameDto } from './schema';
-import { IdSchema as ProjectIdSchema, IdDto as ProjectIdDto } from 'src/project/schema';
+import { ProjectIdDto } from 'src/project/schema';
 
 @Injectable()
 export class RoleService {

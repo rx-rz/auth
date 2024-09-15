@@ -10,17 +10,19 @@ import {
   GetTokensDto,
 } from './schema';
 import { EncryptionService } from 'src/infra/encryption/encryption.service';
-import { ProjectRepository } from 'src/project/project.repository';
 import { OAuthFactory } from './oauth.factory';
 import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
+import { GoogleOauthUserInfo } from './providers/google-oauth.provider';
+import { GitHubOauthUserInfo } from './providers/github-oauth.provider';
+import { ProjectService } from 'src/project/project.service';
 
 @Injectable()
 export class OauthService {
   constructor(
     private readonly oauthProviderRepository: OAuthRepository,
     private readonly oauthFactory: OAuthFactory,
+    private readonly projectService: ProjectService,
     private readonly encryptionService: EncryptionService,
-    private readonly projectRepository: ProjectRepository,
     private readonly emitter: AppEventEmitter,
   ) {}
 
@@ -36,11 +38,6 @@ export class OauthService {
     });
   }
 
-  async checkIfProjectExists(projectId: string) {
-    const project = await this.projectRepository.getProject(projectId);
-    if (!project) throw new NotFoundException('Project not found.');
-  }
-
   async addOauthProviderToProject({
     clientId,
     clientSecret,
@@ -48,7 +45,7 @@ export class OauthService {
     projectId,
     redirectUri,
   }: AddOauthProviderToProjectDto) {
-    await this.checkIfProjectExists(projectId);
+    await this.projectService.checkIfProjectExists(projectId);
     const existingProvider =
       await this.oauthProviderRepository.getOauthProviderForSpecificProject(
         name,
@@ -98,26 +95,31 @@ export class OauthService {
     const provider = await this.getProvider(state.providerId);
     const { access_token } = await provider.getTokens(code);
     const userInfo = await provider.getUserInfo(access_token);
+
     return { success: true, userInfo };
   }
 
-  async saveUserToDatabase(user: GoogleOauthUserInfo, projectId: string) {
-    await this.emitter.emit('user-create.email-password', {
-      email: user.email,
-      firstName: user.given_name,
-      lastName: user.family_name,
-      projectId,
-      isVerified: user.verified_email,
-      authMethod: 'GOOGLE_OAUTH',
-    });
+  async saveUserToDatabase(
+    user: GoogleOauthUserInfo | GitHubOauthUserInfo,
+    projectId: string,
+  ) {
+    if (user instanceof GoogleOauthUserInfo)
+      await this.emitter.emit('user-create.email-password', {
+        email: user.email,
+        firstName: user.given_name,
+        lastName: user.family_name,
+        projectId,
+        isVerified: user.verified_email,
+        authMethod: 'GOOGLE_OAUTH',
+      });
+    if (user instanceof GitHubOauthUserInfo) {
+      await this.emitter.emit('user-create.email-password', {
+        email: user.email,
+        firstName: user.name,
+        projectId,
+        isVerified: true,
+        authMethod: 'GITHUB_OAUTH',
+      });
+    }
   }
 }
-
-type GoogleOauthUserInfo = {
-  id: string;
-  email: string;
-  verified_email: boolean;
-  name: string;
-  given_name: string;
-  family_name: string;
-};

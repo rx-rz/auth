@@ -1,6 +1,6 @@
-import { OAuthProviders } from "@prisma/client";
-import { OAuthProvider, OAuthProviderData } from "./oauth.provider";
-import { InternalServerErrorException } from "@nestjs/common";
+import { OAuthProviders } from '@prisma/client';
+import { OAuthProvider, OAuthProviderData } from './oauth.provider';
+import { InternalServerErrorException } from '@nestjs/common';
 
 type GitHubOauthTokenResponse = {
   access_token: string;
@@ -8,12 +8,12 @@ type GitHubOauthTokenResponse = {
   scope: string;
 };
 
-type GitHubOauthUserInfo = {
+export class GitHubOauthUserInfo {
   id: number;
   login: string;
   name: string;
   email: string;
-};
+}
 
 export class GithubOauthProvider extends OAuthProvider {
   constructor(oauthProviderData: OAuthProviderData) {

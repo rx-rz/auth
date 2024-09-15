@@ -1,4 +1,9 @@
-import { BadRequestException, GoneException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  GoneException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { OTPRepository } from './otp.repository';
 import { generateOtp } from 'src/utils/helper-functions/generate-otp';
 import { AdminRepository } from 'src/admin/admin.repository';
@@ -6,13 +11,15 @@ import { UserRepository } from 'src/user/user.repository';
 import { CreateOtpDto, VerifyAdminOtpDto, VerifyOtpDto } from './schema';
 import { Mailer } from 'src/infra/mail/mail.service';
 import { SendEmailDto } from 'src/infra/mail/schema';
+import { UserService } from 'src/user/user.service';
+import { AdminService } from 'src/admin/admin.service';
 
 @Injectable()
 export class OtpService {
   constructor(
     private readonly otpRepository: OTPRepository,
-    private readonly adminRepository: AdminRepository,
-    private readonly userRepository: UserRepository,
+    private readonly userService: UserService,
+    private readonly adminService: AdminService,
     private readonly mailer: Mailer,
   ) {}
 
@@ -29,9 +36,9 @@ export class OtpService {
     let user;
 
     if (dto.isAdmin) {
-      user = await this.adminRepository.getAdminByEmail(dto.email);
+      user = await this.adminService.checkIfAdminExists({ email: dto.email });
     } else {
-      user = await this.userRepository.getUserByEmail(dto.email);
+      user = await this.userService.checkIfUserExists({ email: dto.email });
     }
     if (!user) {
       throw new NotFoundException('User with provided details does not exist.');
@@ -58,7 +65,7 @@ export class OtpService {
   async verifyAdminOTP({ code, email }: VerifyAdminOtpDto) {
     const otpDetails = await this.getOTPDetailsForUser(email);
 
-    const admin = await this.adminRepository.getAdminByEmail(email);
+    const admin = await this.adminService.checkIfAdminExists({ email });
     if (!admin) {
       throw new NotFoundException('User with provided details does not exist.');
     }
@@ -71,7 +78,10 @@ export class OtpService {
     }
 
     await Promise.all([
-      this.adminRepository.updateAdmin(email, { isVerified: true }),
+      this.adminService.updateAdmin({
+        email,
+        isVerified: true,
+      }),
       this.otpRepository.deleteOTP(email),
     ]);
 
@@ -80,7 +90,7 @@ export class OtpService {
 
   async verifyOTP({ code, email, projectId, userId }: VerifyOtpDto) {
     const otpDetails = await this.getOTPDetailsForUser(email);
-    const user = await this.userRepository.getUserByEmail(email);
+    const user = await this.userService.checkIfUserExists({ email });
     if (!user) {
       throw new NotFoundException('User with provided details does not exist.');
     }
@@ -92,7 +102,11 @@ export class OtpService {
       throw new GoneException('Provided OTP has expired.');
     }
     await Promise.all([
-      this.userRepository.updateUserProjectDetails(userId, projectId, { isVerified: true }),
+      this.userService.updateUserProjectDetails({
+        userId,
+        projectId,
+        isVerified: true,
+      }),
       this.otpRepository.deleteOTP(email),
     ]);
     return { success: true, message: 'OTP verified successfully' };

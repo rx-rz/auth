@@ -25,7 +25,7 @@ describe('UserService', () => {
     getUserByEmail: jest.fn(),
     getUserById: jest.fn(),
     getUserPassword: jest.fn(),
-    updateUserPassword: jest.fn(),
+    updateUserProjectPassword: jest.fn(),
     updateUserEmail: jest.fn(),
     getUserProjects: jest.fn(),
     createUser: jest.fn(),

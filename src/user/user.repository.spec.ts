@@ -327,7 +327,7 @@ describe('UserRepository', () => {
     });
   });
 
-  describe('updateUserPassword', () => {
+  describe('updateUserProjectPassword', () => {
     it('should update user password by userId and projectId', async () => {
       const mockUserId = faker.string.uuid();
       const mockProjectId = faker.string.uuid();
@@ -338,7 +338,7 @@ describe('UserRepository', () => {
         },
       };
       (prismaService.userProject.update as jest.Mock).mockResolvedValue(mockUpdatedUserProject);
-      const result = await userRepository.updateUserPassword(
+      const result = await userRepository.updateUserProjectPassword(
         mockUserId,
         mockProjectId,
         mockNewPassword,

@@ -20,13 +20,15 @@ export const CreateUserSchema = z.object({
     .min(6, 'Last name must be at least 6 characters')
     .max(255, 'Last name must be at most 255 characters')
     .optional(),
-  authMethod: z.enum([
-    'GOOGLE_OAUTH',
-    'GITHUB_OAUTH',
-    'FACEBOOK_OAUTH',
-    'EMAIL_AND_PASSWORD_SIGNIN',
-    'MAGICLINK',
-  ]).optional(),
+  authMethod: z
+    .enum([
+      'GOOGLE_OAUTH',
+      'GITHUB_OAUTH',
+      'FACEBOOK_OAUTH',
+      'EMAIL_AND_PASSWORD_SIGNIN',
+      'MAGICLINK',
+    ])
+    .optional(),
 });
 
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
@@ -57,13 +59,16 @@ export type EmailDto = z.infer<typeof EmailSchema>;
 export type UserIdDto = z.infer<typeof UserIDSchema>;
 
 export const GetUserProjectDetailsSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
+  userId: z.string().min(1, 'User ID is required').optional(),
+  email: z.string().email({message: "Invalid email provided"}).optional(),
   projectId: z.string().min(1, 'Project ID is required'),
 });
 
-export type GetUserProjectDetailsDto = z.infer<typeof GetUserProjectDetailsSchema>;
+export type GetUserProjectDetailsDto = z.infer<
+  typeof GetUserProjectDetailsSchema
+>;
 
-export const UpdateUserSchema = z.object({
+export const UpdateUserProjectDetailsSchema = z.object({
   firstName: z
     .string()
     .min(6, 'First name must be at least 6 characters')
@@ -75,11 +80,14 @@ export const UpdateUserSchema = z.object({
     .max(255, 'Last name must be at most 255 characters')
     .optional(),
   isVerified: z.boolean().optional(),
+  roleId: z.string().optional(),
   userId: z.string().min(1, 'User ID is required'),
   projectId: z.string().min(1, 'Project ID is required'),
 });
 
-export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+export type UpdateUserProjectDetailsDto = z.infer<
+  typeof UpdateUserProjectDetailsSchema
+>;
 
 export const UpdateUserEmailSchema = z.object({
   currentEmail: z.string().email().min(1, 'Current Email is required'),

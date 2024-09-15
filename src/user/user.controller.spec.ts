@@ -3,7 +3,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import {
   EmailDto,
-  UpdateUserDto,
+  UpdateUserProjectDetailsDto,
   UpdateUserEmailDto,
   UpdateUserPasswordDto,
   UserIdDto,
@@ -33,7 +33,7 @@ describe('UserController', () => {
             deleteUser: jest.fn().mockImplementation(() => {
               return Promise.resolve({ success: true, user: {} });
             }),
-            updateUserPassword: jest.fn().mockImplementation(() => {
+            updateUserProjectPassword: jest.fn().mockImplementation(() => {
               return Promise.resolve({ success: true, user: {} });
             }),
             updateUserEmail: jest.fn().mockImplementation(() => {
@@ -80,7 +80,7 @@ describe('UserController', () => {
   });
 
   describe('Update user', () => {
-    const dto: UpdateUserDto = {
+    const dto: UpdateUserProjectDetailsDto = {
       userId: faker.string.uuid(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -119,7 +119,7 @@ describe('UserController', () => {
       projectId: faker.string.uuid(),
     };
     it('should successfully update a user password', async () => {
-      await expect(userController.updateUserPassword(dto)).resolves.toEqual(
+      await expect(userController.updateUserProjectPassword(dto)).resolves.toEqual(
         expect.objectContaining({
           success: true,
           user: expect.any(Object),

@@ -7,27 +7,23 @@ import {
   RemovePermissionFromRoleDto,
   UpdatePermissionDto,
 } from './schema';
-import { IdDto as ProjectIdDto } from 'src/project/schema';
-import { ProjectRepository } from 'src/project/project.repository';
+import { ProjectService } from 'src/project/project.service';
+import { ProjectIdDto } from 'src/project/schema';
 
 @Injectable()
 export class PermissionService {
   constructor(
     private readonly rbacRepository: RoleBasedAccessControlRepository,
-    private readonly projectRepository: ProjectRepository,
+    private readonly projectService: ProjectService,
   ) {}
-  private async checkIfProjectExists(projectId: string) {
-    const existingProject = await this.projectRepository.getProject(projectId);
-    if (!existingProject) {
-      throw new NotFoundException('Project with specified ID does not exist.');
-    }
-    return existingProject;
-  }
 
   async checkIfPermissionExists(permissionId: string) {
-    const permission = await this.rbacRepository.getPermissionDetails(permissionId);
+    const permission =
+      await this.rbacRepository.getPermissionDetails(permissionId);
     if (!permission) {
-      throw new NotFoundException('Permission with provided details not found.');
+      throw new NotFoundException(
+        'Permission with provided details not found.',
+      );
     }
     return permission;
   }
@@ -40,7 +36,11 @@ export class PermissionService {
     return role;
   }
 
-  async createPermission({ name, description, projectId }: CreatePermissionDto) {
+  async createPermission({
+    name,
+    description,
+    projectId,
+  }: CreatePermissionDto) {
     const permission = await this.rbacRepository.createPermission({
       name,
       description,
@@ -53,35 +53,52 @@ export class PermissionService {
     return { success: true, permission };
   }
 
-  async assignPermissionToRole({ permissionId, roleId }: AssignPermissionToRoleDto) {
+  async assignPermissionToRole({
+    permissionId,
+    roleId,
+  }: AssignPermissionToRoleDto) {
     await this.checkIfPermissionExists(permissionId);
     await this.checkIfRoleExists(roleId);
-    const permission = await this.rbacRepository.assignPermissionToARole(permissionId, roleId);
+    const permission = await this.rbacRepository.assignPermissionToARole(
+      permissionId,
+      roleId,
+    );
     return { success: true, permission };
   }
 
-  async removePermissionFromRole({ permissionId, roleId }: RemovePermissionFromRoleDto) {
+  async removePermissionFromRole({
+    permissionId,
+    roleId,
+  }: RemovePermissionFromRoleDto) {
     await this.checkIfPermissionExists(permissionId);
     await this.checkIfRoleExists(roleId);
-    const permission = await this.rbacRepository.removePermissionFromRole(permissionId, roleId);
+    const permission = await this.rbacRepository.removePermissionFromRole(
+      permissionId,
+      roleId,
+    );
     return { success: true, permission };
   }
 
   async getPermissionDetails({ permissionId }: PermissionIdDto) {
     await this.checkIfPermissionExists(permissionId);
-    const permission = await this.rbacRepository.getPermissionDetails(permissionId);
+    const permission =
+      await this.rbacRepository.getPermissionDetails(permissionId);
     return { success: true, permission };
   }
 
   async getProjectPermissions({ projectId }: ProjectIdDto) {
-    await this.checkIfProjectExists(projectId);
-    const permissions = await this.rbacRepository.getProjectPermissions(projectId);
+    await this.projectService.checkIfProjectExists(projectId);
+    const permissions =
+      await this.rbacRepository.getProjectPermissions(projectId);
     return { success: true, permissions };
   }
 
   async updatePermission({ permissionId, ...data }: UpdatePermissionDto) {
     await this.checkIfPermissionExists(permissionId);
-    const permission = await this.rbacRepository.updatePermission(permissionId, data);
+    const permission = await this.rbacRepository.updatePermission(
+      permissionId,
+      data,
+    );
     return { success: true, permission };
   }
 

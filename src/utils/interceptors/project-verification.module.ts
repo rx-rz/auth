@@ -4,6 +4,7 @@ import { ProjectService } from 'src/project/project.service';
 import { ProjectVerificationInterceptor } from './project-verification.interceptor';
 import { UserRepository } from 'src/user/user.repository';
 import { AdminRepository } from 'src/admin/admin.repository';
+import { ProjectRepository } from 'src/project/project.repository';
 
 @Module({
   providers: [
@@ -13,6 +14,7 @@ import { AdminRepository } from 'src/admin/admin.repository';
       useClass: ProjectVerificationInterceptor,
     },
     UserRepository,
+    ProjectRepository,
     AdminRepository,
   ],
 })

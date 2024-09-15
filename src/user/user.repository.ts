@@ -39,6 +39,10 @@ export class UserRepository {
         firstName: true,
         lastName: true,
         isVerified: true,
+        createdAt: true,
+        role: true,
+        project: true,
+        userStatus: true,
       },
     });
     return user;
@@ -77,7 +81,9 @@ export class UserRepository {
         firstName: true,
         lastName: true,
         createdAt: true,
+        userId: true,
         isVerified: true,
+        userStatus: true,
         user: {
           select: {
             email: true,
@@ -100,19 +106,18 @@ export class UserRepository {
         user: {
           email,
         },
-
         projectId,
       },
       select: {
         firstName: true,
         lastName: true,
+        userId: true,
         createdAt: true,
-        userStatus: true,
         isVerified: true,
+        userStatus: true,
         user: {
           select: {
             email: true,
-            id: true,
           },
         },
         role: {
@@ -126,19 +131,12 @@ export class UserRepository {
     return user;
   }
 
-
   async getUserById(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         email: true,
         id: true,
-        userProjects: {
-          select: {
-            projectId: true,
-            isVerified: true,
-          },
-        },
       },
     });
     return user;
@@ -149,19 +147,12 @@ export class UserRepository {
       select: {
         email: true,
         id: true,
-        userProjects: {
-          select: {
-            projectId: true,
-            isVerified: true,
-          },
-        },
       },
     });
     return user;
   }
 
-
-  async getUserPasswordByEmail(email: string, projectId: string) {
+  async getUserPassword(email: string, projectId: string) {
     const user = await this.prisma.userProject.findFirst({
       where: {
         user: {
@@ -173,7 +164,11 @@ export class UserRepository {
     return user?.password || '';
   }
 
-  async updateUserPassword(userId: string, projectId: string, newPassword: string) {
+  async updateUserProjectPassword(
+    userId: string,
+    projectId: string,
+    newPassword: string,
+  ) {
     const user = await this.prisma.userProject.update({
       where: {
         userId_projectId: {

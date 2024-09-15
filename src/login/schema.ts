@@ -20,8 +20,8 @@ export const CreateLoginInstanceSchema = z
 
 export type CreateLoginInstanceDto = z.infer<typeof CreateLoginInstanceSchema>;
 
-export const IDSchema = z.object({
-  id: z.string({ required_error: 'ID is required' }),
+export const LoginIdSchema = z.object({
+  loginId: z.string({ required_error: 'ID is required' }),
 });
 
-export type IdDto = z.infer<typeof IDSchema>;
+export type LoginIdDto = z.infer<typeof LoginIdSchema>;

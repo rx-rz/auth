@@ -68,6 +68,7 @@ model ProjectSettings {
   id                                String  @id @unique @default(cuid())
   projectId                         String  @unique @map("project_id")
   refreshTokenDays                  Int     @default(7) @map("refresh_token_days")
+  accessTokenMinutes                Int     @default(15) @map("access_token_minutes")
   magicLinkTokenAvailabilityMinutes Int     @default(10) @map("magiclink_token_availability_minutes")
   allowNames                        Boolean @default(true) @map("allow_names")
   passwordMinLength                 Int     @default(8) @map("password_min_length")

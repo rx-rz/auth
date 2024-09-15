@@ -23,8 +23,8 @@ import {
   AssignUserToProjectRoleDto,
   CreateProjectDto,
   CreateProjectSchema,
-  IdDto,
-  IdSchema,
+  ProjectIdDto,
+  ProjectIdSchema,
   ProjectSettingsDto,
   ProjectSettingsSchema,
   RemoveUserFromBlocklistDto,
@@ -63,30 +63,30 @@ export class ProjectController {
   }
 
   @Get(PROJECT_ROUTES.GET_KEYS)
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
-  async getProjectApiKey(@Query() query: IdDto) {
+  async getProjectApiKey(@Query() query: ProjectIdDto) {
     return this.projectService.getProjectKeys(query);
   }
 
   @Get(PROJECT_ROUTES.GET_PROJECT)
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
-  async getProject(@Query() query: IdDto) {
+  async getProject(@Query() query: ProjectIdDto) {
     return this.projectService.getProjectDetails(query);
   }
 
   @Get(PROJECT_ROUTES.GET_PROJECT_ROLES) 
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
-  async getProjectRoles(@Query() query: IdDto) {
+  async getProjectRoles(@Query() query: ProjectIdDto) {
     return this.projectService.getProjectRoles(query);
   }
 
   @Get(PROJECT_ROUTES.GET_REFRESH_TOKENS)
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
-  async getProjectRefreshTokens(@Query() query: IdDto) {
+  async getProjectRefreshTokens(@Query() query: ProjectIdDto) {
     return this.projectService.getProjectRefreshTokens(query);
   }
 
@@ -98,9 +98,9 @@ export class ProjectController {
   }
 
   @Delete(PROJECT_ROUTES.DELETE)
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
-  async deleteProject(@Query() query: IdDto) {
+  async deleteProject(@Query() query: ProjectIdDto) {
     return this.projectService.deleteProject(query);
   }
 
@@ -126,7 +126,7 @@ export class ProjectController {
   }
 
   @Get(PROJECT_ROUTES.GET_PROJECT_BLOCKLIST)
-  @UsePipes(new ZodPipe(IdSchema))
+  @UsePipes(new ZodPipe(ProjectIdSchema))
   @UseGuards(AdminGuard)
   async getProjectBlocklist(@Body() body: RemoveUserFromBlocklistDto) {
     return this.projectService.getProjectBlocklist(body);

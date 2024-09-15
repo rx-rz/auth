@@ -1,14 +1,12 @@
 import { Controller, Query, UsePipes } from '@nestjs/common';
 import { LoginService } from './login.service';
-import { IdDto } from './schema';
+import { LoginIdDto, LoginIdSchema } from './schema';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
-import { IdSchema } from 'src/project/schema';
-
 @Controller('login')
 export class LoginController {
   constructor(private readonly loginService: LoginService) {}
-  @UsePipes(new ZodPipe(IdSchema))
-  async deleteLoginInstance(@Query() query: IdDto) {
+  @UsePipes(new ZodPipe(LoginIdSchema))
+  async deleteLoginInstance(@Query() query: LoginIdDto) {
     return this.loginService.deleteLoginInstance(query);
   }
 }

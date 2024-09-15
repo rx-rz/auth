@@ -18,7 +18,6 @@ export const AddUserToProjectSchema = z.object({
   //     'Password must contain at least one letter, one number, and one special character',
   // }),
 });
-
 export type AddUserToProjectDto = z.infer<typeof AddUserToProjectSchema>;
 
 export const AssignUserProjectRoleSchema = z.object({
@@ -26,8 +25,8 @@ export const AssignUserProjectRoleSchema = z.object({
   projectId: z.string({ required_error: 'Project ID should be provided' }),
   roleId: z.string({ required_error: 'Role ID should be provided' }),
 });
-
 export type AssignUserToProjectRoleDto = z.infer<typeof AssignUserProjectRoleSchema>;
+
 export const RemoveUserProjectRoleSchema = AssignUserProjectRoleSchema;
 export type RemoveUserProjectRoleDto = z.infer<typeof RemoveUserProjectRoleSchema>;
 
@@ -35,14 +34,12 @@ export const CreateProjectSchema = z.object({
   name: z.string().max(255, { message: 'Name cannot be longer than 255 characters' }),
   adminId: z.string({ required_error: 'Admin ID should be provided' }),
 });
-
 export type CreateProjectDto = z.infer<typeof CreateProjectSchema>;
 
-export const IdSchema = z.object({
+export const ProjectIdSchema = z.object({
   projectId: z.string({ required_error: 'ID should be provided' }),
 });
-
-export type IdDto = z.infer<typeof IdSchema>;
+export type ProjectIdDto = z.infer<typeof ProjectIdSchema>;
 
 export const AdminIdSchema = z.object({
   adminId: z.string({ required_error: 'ID should be provided' }),
@@ -72,17 +69,19 @@ export const VerifyProjectApiKeysSchema = z.object({
     .string({ required_error: 'CLIENT key should be provided' })
     .max(64, 'Client Key cannot be longer than 64 characters'),
 });
+export type VerifyProjectApiKeysDto = z.infer<
+  typeof VerifyProjectApiKeysSchema
+>;
 
 export const AddUserToBlocklistSchema = z.object({
   userId: z.string(),
   projectId: z.string(),
 });
-
 export type AddUserToBlocklistDto = z.infer<typeof AddUserToBlocklistSchema>;
-export const RemoveUserFromBlocklistSchema = AddUserToBlocklistSchema;
-export type RemoveUserFromBlocklistDto = z.infer<typeof RemoveUserFromBlocklistSchema>;
 
-export type VerifyProjectApiKeysDto = z.infer<typeof VerifyProjectApiKeysSchema>;
+export type RemoveUserFromBlocklistDto = z.infer<typeof RemoveUserFromBlocklistSchema>;
+export const RemoveUserFromBlocklistSchema = AddUserToBlocklistSchema;
+
 
 export const ProjectSettingsSchema = z.object({
   projectId: z.string({ required_error: 'Project ID is required' }),

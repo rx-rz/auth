@@ -108,7 +108,7 @@ export class ProjectRepository {
     return project;
   }
 
-  async addUserToBlocklist(userId: string, projectId: string) {
+  async addUserToProjectBlocklist(userId: string, projectId: string) {
     await this.prisma.$transaction(async (tx) => {
       await tx.userProject.update({
         where: {
@@ -274,11 +274,10 @@ export class ProjectRepository {
     return deletedProject;
   }
 
-  async getUserFromProject(email: string, projectId: string) {
-    const user = await this.prisma.userProject.findFirst({
+  async getUserFromProject(userId: string, projectId: string) {
+    const user = await this.prisma.userProject.findUnique({
       where: {
-        user: { email },
-        projectId,
+        userId_projectId: { userId, projectId },
       },
     });
     return user;

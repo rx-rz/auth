@@ -13,51 +13,34 @@ import {
   CreateUserDto,
   EmailDto,
   GetUserProjectDetailsDto,
-  UpdateUserDto,
+  UpdateUserProjectDetailsDto,
   UpdateUserEmailDto,
   UpdateUserPasswordDto,
   UserIdDto,
 } from './schema';
-import { ProjectRepository } from 'src/project/project.repository';
-
+import { ProjectService } from 'src/project/project.service';
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly projectRepository: ProjectRepository,
+    private readonly projectService: ProjectService,
   ) {}
 
-  private async checkIfUserExists(userId: string) {
-    const user = await this.userRepository.getUserById(userId);
+  async checkIfUserExists({ email, id }: { id?: string; email?: string }) {
+    const user = id
+      ? await this.userRepository.getUserById(id)
+      : await this.userRepository.getUserByEmail(email ?? '');
     if (!user)
       throw new NotFoundException('User with provided details does not exist.');
     return user;
   }
 
-  private async checkIfUserWithEmailExists(email: string) {
-    const user = await this.userRepository.getUserByEmail(email);
-    if (!user)
-      throw new NotFoundException('User with provided details does not exist.');
-    return user;
-  }
-
-  private async checkIfUserIsAssignedToProject(
-    email: string,
-    projectId: string,
-  ) {
-    const userProject = await this.userRepository.getUserProjectDetailsByEmail(
-      email,
-      projectId,
-    );
-    return userProject ? true : false;
-  }
-
-  private async checkIfPasswordsMatch(
+  async checkIfPasswordsMatch(
     email: string,
     password: string,
     projectId: string,
   ) {
-    const userPasswordInDB = await this.userRepository.getUserPasswordByEmail(
+    const userPasswordInDB = await this.userRepository.getUserPassword(
       email,
       projectId,
     );
@@ -73,7 +56,7 @@ export class UserService {
   @CatchEmitterErrors()
   async createUser({ email, projectId, authMethod, ...body }: CreateUserDto) {
     const existingUser = await this.userRepository.getUserByEmail(email);
-    const project = await this.projectRepository.getProject(projectId);
+    const project = await this.projectService.checkIfProjectExists(projectId);
     if (!project)
       throw new NotFoundException('Project with provided ID does not exist');
 
@@ -89,24 +72,8 @@ export class UserService {
       }
     }
     if (existingUser && !userIsAssignedToProject) {
-      await this.projectRepository.addUserToProject({
-        project: {
-          connect: {
-            id: projectId,
-          },
-        },
-        user: {
-          connect: {
-            email,
-          },
-        },
-        ...body,
-      });
-    }
-    if (!existingUser) {
-      await Promise.all([
-        this.userRepository.createUser(email),
-        this.projectRepository.addUserToProject({
+      await this.projectService.manageUserProjectMembership('add', {
+        addProps: {
           project: {
             connect: {
               id: projectId,
@@ -118,14 +85,34 @@ export class UserService {
             },
           },
           ...body,
+        },
+      });
+    }
+    if (!existingUser) {
+      await Promise.all([
+        this.userRepository.createUser(email),
+        this.projectService.manageUserProjectMembership('add', {
+          addProps: {
+            project: {
+              connect: {
+                id: projectId,
+              },
+            },
+            user: {
+              connect: {
+                email,
+              },
+            },
+            ...body,
+          },
         }),
       ]);
     }
   }
 
-  async updateUser(updateUserDto: UpdateUserDto) {
+  async updateUserProjectDetails(updateUserDto: UpdateUserProjectDetailsDto) {
     const { userId, projectId, ...data } = updateUserDto;
-    await this.checkIfUserExists(updateUserDto.userId);
+    await this.checkIfUserExists({ id: updateUserDto.userId });
     const user = await this.userRepository.updateUserProjectDetails(
       userId,
       projectId,
@@ -135,38 +122,43 @@ export class UserService {
   }
 
   async deleteUser({ email }: EmailDto) {
-    await this.checkIfUserWithEmailExists(email);
+    await this.checkIfUserExists({ email });
     const user = await this.userRepository.deleteUser(email);
     return { success: true, user };
   }
 
   async getUserDetails({ userId }: UserIdDto) {
-    await this.checkIfUserExists(userId);
+    await this.checkIfUserExists({ id: userId });
     const user = await this.userRepository.getUserById(userId);
     return { success: true, user };
   }
 
-  async getUserProjectDetails({ userId, projectId }: GetUserProjectDetailsDto) {
-    await this.checkIfUserExists(userId);
-    const user = await this.userRepository.getUserProjectDetails(
-      userId,
-      projectId,
-    );
+  async getUserProjectDetails({
+    userId,
+    projectId,
+    email,
+  }: GetUserProjectDetailsDto) {
+    await this.checkIfUserExists({ id: userId });
+    const user = userId
+      ? await this.userRepository.getUserProjectDetails(userId, projectId)
+      : await this.userRepository.getUserProjectDetailsByEmail(
+          email ?? '',
+          projectId,
+        );
     return { success: true, user };
   }
 
-  //TODO: update user password doesn't update??
-  async updateUserPassword({
+  async updateUserProjectPassword({
     currentPassword,
     email,
     newPassword,
     projectId,
     userId,
   }: UpdateUserPasswordDto) {
-    await this.checkIfUserWithEmailExists(email);
+    await this.checkIfUserExists({ email });
     await this.checkIfPasswordsMatch(email, currentPassword, projectId);
     const password = await hashValue(newPassword);
-    const { user } = await this.userRepository.updateUserPassword(
+    const { user } = await this.userRepository.updateUserProjectPassword(
       userId,
       projectId,
       password,
@@ -180,12 +172,23 @@ export class UserService {
     password,
     projectId,
   }: UpdateUserEmailDto) {
-    await this.checkIfUserWithEmailExists(currentEmail);
+    await this.checkIfUserExists({ email: currentEmail });
     await this.checkIfPasswordsMatch(currentEmail, password, projectId);
     const user = await this.userRepository.updateUserEmail(
       currentEmail,
       newEmail,
     );
     return { success: true, user };
+  }
+
+  private async checkIfUserIsAssignedToProject(
+    email: string,
+    projectId: string,
+  ) {
+    const userProject = await this.userRepository.getUserProjectDetailsByEmail(
+      email,
+      projectId,
+    );
+    return userProject ? true : false;
   }
 }
