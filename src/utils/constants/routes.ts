@@ -81,8 +81,8 @@ export const PERMISSION_ROUTES = {
 };
 
 export const MAGIC_LINK_ROUTES = {
-  BASE: 'magic-link',
+  BASE: 'magic-links',
   SEND_MAGIC_LINK: 'send-magic-link',
   DELETE_MAGIC_LINK: 'delete',
-  VERIFY_MAGIC_LINK: 'verify',
+  VERIFY_MAGIC_LINK: 'verify-magic-link',
 };

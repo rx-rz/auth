@@ -11,7 +11,24 @@ export class OAuthRepository {
     return provider;
   }
 
-  async getOauthProviderForProject(name: OAuthProviders, projectId: string) {
+  async getOauthProvider(providerId: string) {
+    const provider = await this.prisma.oAuthProvider.findUnique({
+      where: {
+        id: providerId,
+      },
+      select: {
+        name: true,
+        id: true,
+        clientId: true,
+        redirectUri: true,
+        clientSecret: true,
+        projectId: true
+      },
+    });
+    return provider;
+  }
+
+  async getOauthProviderForSpecificProject(name: OAuthProviders, projectId: string) {
     const provider = await this.prisma.oAuthProvider.findUnique({
       where: {
         name_projectId: {
@@ -19,17 +36,11 @@ export class OAuthRepository {
           projectId,
         },
       },
-      select: {
-        name: true,
-        id: true,
-        clientId: true,
-        clientSecret: true,
-      },
     });
     return provider;
   }
 
-  async deleteOauthProviderFromProject(id: string) {
+  async deleteOauthProvider(id: string) {
     const provider = await this.prisma.oAuthProvider.delete({
       where: {
         id,
@@ -37,6 +48,7 @@ export class OAuthRepository {
     });
     return provider;
   }
+
   async createOauthState(data: Prisma.OAuthStateCreateInput) {
     const state = await this.prisma.oAuthState.create({ data });
     return state;
@@ -49,6 +61,6 @@ export class OAuthRepository {
 
   async getOauthState(id: string) {
     const state = await this.prisma.oAuthState.findUnique({ where: { id } });
-    return state; 
+    return state;
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { AuthMethod, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { AddUserToBlocklistDto } from './schema';
 
@@ -20,7 +20,10 @@ export class ProjectRepository {
     return project;
   }
 
-  async updateProjectSettings(projectId: string, data: Prisma.ProjectSettingsUpdateInput) {
+  async updateProjectSettings(
+    projectId: string,
+    data: Prisma.ProjectSettingsUpdateInput,
+  ) {
     const projectSettings = await this.prisma.projectSettings.update({
       where: { projectId },
       data,
@@ -246,7 +249,10 @@ export class ProjectRepository {
     return refreshTokens;
   }
 
-  async getAllProjectsCreatedByAdmin(adminId: string, args?: Prisma.ProjectFindManyArgs) {
+  async getAllProjectsCreatedByAdmin(
+    adminId: string,
+    args?: Prisma.ProjectFindManyArgs,
+  ) {
     const projects = await this.prisma.project.findMany({
       ...args,
       where: { adminId },
@@ -333,7 +339,11 @@ export class ProjectRepository {
     return roles;
   }
 
-  async assignUserProjectRole(userId: string, projectId: string, roleId: string) {
+  async assignUserProjectRole(
+    userId: string,
+    projectId: string,
+    roleId: string,
+  ) {
     const userAssignedARole = await this.prisma.userProject.update({
       where: {
         userId_projectId: {
@@ -348,7 +358,11 @@ export class ProjectRepository {
     return userAssignedARole;
   }
 
-  async removeUserProjectRole(userId: string, projectId: string, roleId: string) {
+  async removeUserProjectRole(
+    userId: string,
+    projectId: string,
+    roleId: string,
+  ) {
     const userRemovedFromRole = await this.prisma.userProject.update({
       where: { userId_projectId: { userId, projectId }, roleId },
       data: {

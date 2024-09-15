@@ -1,11 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { OAuthRepository } from './oauth.repository';
-import { AddOauthProviderToProjectDto, GetOAuthRegistrationLinkDto, GetTokensDto } from './schema';
+import {
+  AddOauthProviderToProjectDto,
+  GetOAuthRegistrationLinkDto,
+  GetTokensDto,
+} from './schema';
 import { EncryptionService } from 'src/infra/encryption/encryption.service';
-import { ProjectService } from 'src/project/project.service';
 import { ProjectRepository } from 'src/project/project.repository';
 import { OAuthFactory } from './oauth.factory';
-import { OAuthProviders } from '@prisma/client';
+import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 
 @Injectable()
 export class OauthService {
@@ -14,18 +21,18 @@ export class OauthService {
     private readonly oauthFactory: OAuthFactory,
     private readonly encryptionService: EncryptionService,
     private readonly projectRepository: ProjectRepository,
+    private readonly emitter: AppEventEmitter,
   ) {}
 
-  async getProvider(projectId: string, providerName: OAuthProviders) {
-    const providerData = await this.oauthProviderRepository.getOauthProviderForProject(
-      providerName,
-      projectId,
-    );
+  async getProvider(providerId: string) {
+    const providerData =
+      await this.oauthProviderRepository.getOauthProvider(providerId);
     if (!providerData) throw new NotFoundException('Provider not found');
     return this.oauthFactory.createProvider({
       ...providerData,
       clientId: this.encryptionService.decrypt(providerData.clientId),
       clientSecret: this.encryptionService.decrypt(providerData.clientSecret),
+      redirectUri: this.encryptionService.decrypt(providerData.redirectUri),
     });
   }
 
@@ -39,25 +46,46 @@ export class OauthService {
     clientSecret,
     name,
     projectId,
+    redirectUri,
   }: AddOauthProviderToProjectDto) {
     await this.checkIfProjectExists(projectId);
-    const oauthProvider = await this.oauthProviderRepository.addOauthProviderToProject({
-      clientId: this.encryptionService.encrypt(clientId),
-      clientSecret: this.encryptionService.encrypt(clientSecret),
-      project: {
-        connect: {
-          id: projectId,
+    const existingProvider =
+      await this.oauthProviderRepository.getOauthProviderForSpecificProject(
+        name,
+        projectId,
+      );
+    if (existingProvider) {
+      throw new ConflictException(
+        'Provider already exists with the provided name',
+      );
+    }
+    const oauthProvider =
+      await this.oauthProviderRepository.addOauthProviderToProject({
+        clientId: this.encryptionService.encrypt(clientId),
+        clientSecret: this.encryptionService.encrypt(clientSecret),
+        redirectUri: this.encryptionService.encrypt(redirectUri),
+        project: {
+          connect: {
+            id: projectId,
+          },
         },
-      },
-      name,
-    });
+        name,
+      });
     return { success: true, oauthProvider };
   }
 
-  async getOAuthRegistrationLink({ name, projectId }: GetOAuthRegistrationLinkDto) {
-    const provider = await this.getProvider(projectId, name);
+  async getOAuthRegistrationLink({
+    name,
+    projectId,
+  }: GetOAuthRegistrationLinkDto) {
+    const requiredProvider =
+      await this.oauthProviderRepository.getOauthProviderForSpecificProject(
+        name,
+        projectId,
+      );
+    const provider = await this.getProvider(requiredProvider?.id ?? '');
     const state = await this.oauthProviderRepository.createOauthState({
-      providerId: provider.getID(),
+      providerId: provider.getProviderId(),
       providerName: name,
     });
     const url = provider.getAuthorizationUrl(state.id);
@@ -67,8 +95,29 @@ export class OauthService {
   async getOauthCallback({ code, state: id }: GetTokensDto) {
     const state = await this.oauthProviderRepository.getOauthState(id);
     if (!state) throw new NotFoundException('Oauth State not found');
-    const provider = await this.getProvider(state.providerId, state.providerName);
-    const { accessToken } = await provider.getTokens(code);
-    const userInfo = await provider.getUserInfo(accessToken);
+    const provider = await this.getProvider(state.providerId);
+    const { access_token } = await provider.getTokens(code);
+    const userInfo = await provider.getUserInfo(access_token);
+    return { success: true, userInfo };
+  }
+
+  async saveUserToDatabase(user: GoogleOauthUserInfo, projectId: string) {
+    await this.emitter.emit('user-create.email-password', {
+      email: user.email,
+      firstName: user.given_name,
+      lastName: user.family_name,
+      projectId,
+      isVerified: user.verified_email,
+      authMethod: 'GOOGLE_OAUTH',
+    });
   }
 }
+
+type GoogleOauthUserInfo = {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+};

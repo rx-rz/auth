@@ -4,7 +4,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CreateLoginInstanceDto, CreateLoginInstanceSchema, IdDto } from './schema';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 import { IdSchema } from 'src/project/schema';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 
 @Injectable()
 export class LoginService {

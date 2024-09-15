@@ -5,6 +5,7 @@ export const AddOauthProviderToProjectSchema = z.object({
   clientId: z.string(),
   clientSecret: z.string(),
   projectId: z.string(),
+  redirectUri: z.string(),
 });
 
 export type AddOauthProviderToProjectDto = z.infer<typeof AddOauthProviderToProjectSchema>;

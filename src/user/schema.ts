@@ -20,6 +20,13 @@ export const CreateUserSchema = z.object({
     .min(6, 'Last name must be at least 6 characters')
     .max(255, 'Last name must be at most 255 characters')
     .optional(),
+  authMethod: z.enum([
+    'GOOGLE_OAUTH',
+    'GITHUB_OAUTH',
+    'FACEBOOK_OAUTH',
+    'EMAIL_AND_PASSWORD_SIGNIN',
+    'MAGICLINK',
+  ]).optional(),
 });
 
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;

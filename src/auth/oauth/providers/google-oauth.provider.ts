@@ -1,6 +1,23 @@
-import { OAuthProviders, Prisma } from '@prisma/client';
+import { OAuthProviders } from '@prisma/client';
 import { OAuthProvider, OAuthProviderData } from './oauth.provider';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+
+type GoogleOauthTokenResponse = {
+  access_token: string;
+  expires_in: number;
+  token_type: 'Bearer';
+  id_token: string;
+  scope: string;
+};
+
+type GoogleOauthUserInfo = {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+};
 
 @Injectable()
 export class GoogleOauthProvider extends OAuthProvider {
@@ -12,8 +29,16 @@ export class GoogleOauthProvider extends OAuthProvider {
     return OAuthProviders.GOOGLE;
   }
 
-  getID() {
-    return this.oauthProviderData.id;
+  getScopes(): string[] {
+    return ['profile', 'email'];
+  }
+
+  getUserInfoUrl(): string {
+    return 'https://www.googleapis.com/oauth2/v2/userinfo';
+  }
+
+  getTokenUrl(): string {
+    return 'https://oauth2.googleapis.com/token';
   }
 
   getAuthorizationUrl(state: string): string {
@@ -38,19 +63,25 @@ export class GoogleOauthProvider extends OAuthProvider {
         client_id: this.getClientId(),
         client_secret: this.getClientSecret(),
         grant_type: 'authorization_code',
+        redirect_uri: this.getRedirectUri() ?? '',
       }).toString(),
     });
-    console.log(response.json());
-    return response.json();
+    if (!response.ok) {
+      throw new InternalServerErrorException(
+        `Error response: ' ${response.status}, ${await response.text()}`,
+      );
+    }
+    const data: GoogleOauthTokenResponse = await response.json();
+    return data;
   }
 
   async getUserInfo(accessToken: string) {
-    const { json } = await fetch(this.getUserInfoUrl(), {
+    const response = await fetch(this.getUserInfoUrl(), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    console.log(json);
-    return json;
+    const data: GoogleOauthUserInfo = await response.json();
+    return data;
   }
 }
