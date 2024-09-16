@@ -107,10 +107,10 @@ export class ProjectService {
   }
 
   async createProject({ adminId, name }: CreateProjectDto) {
-    const adminProject = await this.adminRepository.getAdminProjectByName(
+    const adminProject = await this.adminRepository.getAdminProjectByName({
       adminId,
       name,
-    );
+    });
     const { hashedKey: apiKey, key: clientKey } = await this.generateKey();
     if (adminProject)
       throw new ConflictException(
@@ -196,7 +196,7 @@ export class ProjectService {
   }
 
   async getAllProjectsCreatedByAdmin({ adminId }: AdminIdDto) {
-    const admin = await this.adminRepository.getAdminByID(adminId);
+    const admin = await this.adminRepository.getAdminByID({ adminId });
     if (!admin)
       throw new NotFoundException(
         'Admin with provided details could not be found',

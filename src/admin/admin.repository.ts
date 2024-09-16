@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/db/prisma.service';
 import { Prisma } from '@prisma/client';
+import {
+  AdminEmailDto,
+  AdminIdDto,
+  GetAdminProjectDto,
+  UpdateAdminDto,
+  UpdateAdminEmailDto,
+  UpdateAdminPasswordDto,
+} from './schema';
 
 @Injectable()
 export class AdminRepository {
@@ -23,7 +31,7 @@ export class AdminRepository {
     return admin;
   }
 
-  async getAdminByEmail(email: string) {
+  async getAdminByEmail({ email }: AdminEmailDto) {
     const admin = await this.prisma.admin.findUnique({
       where: { email },
       select: this.adminReturnObject,
@@ -31,20 +39,20 @@ export class AdminRepository {
     return admin;
   }
 
-  async getAdminByID(id: string) {
+  async getAdminByID({ adminId }: AdminIdDto) {
     const admin = await this.prisma.admin.findUnique({
-      where: { id },
+      where: { id: adminId },
       select: this.adminReturnObject,
     });
     return admin;
   }
 
-  async getAdminPassword(email: string) {
+  async getAdminPassword({ email }: AdminEmailDto) {
     const admin = await this.prisma.admin.findUnique({ where: { email } });
     return admin?.password || '';
   }
 
-  async updateAdmin(email: string, data: Prisma.AdminUpdateInput) {
+  async updateAdmin({ email, ...data }: UpdateAdminDto) {
     const admin = await this.prisma.admin.update({
       where: { email },
       data,
@@ -53,7 +61,10 @@ export class AdminRepository {
     return admin;
   }
 
-  async updateAdminEmail(currentEmail: string, newEmail: string) {
+  async updateAdminEmail({
+    currentEmail,
+    newEmail,
+  }: Omit<UpdateAdminEmailDto, 'password'>) {
     const admin = await this.prisma.admin.update({
       where: { email: currentEmail },
       data: { email: newEmail },
@@ -62,7 +73,10 @@ export class AdminRepository {
     return admin;
   }
 
-  async updateAdminPassword(email: string, newPassword: string) {
+  async updateAdminPassword({
+    email,
+    newPassword,
+  }: Omit<UpdateAdminPasswordDto, 'currentPassword'>) {
     const admin = await this.prisma.admin.update({
       where: { email },
       data: { password: newPassword },
@@ -71,7 +85,7 @@ export class AdminRepository {
     return admin;
   }
 
-  async getAdminProjects(email: string) {
+  async getAdminProjects({ email }: AdminEmailDto) {
     const adminProjects = await this.prisma.project.findMany({
       where: {
         admin: {
@@ -88,7 +102,7 @@ export class AdminRepository {
     return adminProjects;
   }
 
-  async getAdminWebAuthnCredentials(email: string) {
+  async getAdminWebAuthnCredentials({ email }: AdminEmailDto) {
     const credentials = await this.prisma.webAuthnCredential.findMany({
       where: {
         admin: { email },
@@ -97,7 +111,7 @@ export class AdminRepository {
     return credentials;
   }
 
-  async getAdminProjectByName(adminId: string, name: string) {
+  async getAdminProjectByName({ adminId, name }: GetAdminProjectDto) {
     const adminProject = await this.prisma.project.findUnique({
       where: {
         project_name_admin_id_unique: {
@@ -116,7 +130,7 @@ export class AdminRepository {
     return adminProject;
   }
 
-  async deleteAdmin(email: string) {
+  async deleteAdmin({ email }: AdminEmailDto) {
     const admin = await this.prisma.admin.delete({
       where: { email },
       select: this.adminReturnObject,
@@ -124,7 +138,7 @@ export class AdminRepository {
     return admin;
   }
 
-  async getAdminRefreshTokens(adminId: string) {
+  async getAdminRefreshTokens({ adminId }: AdminIdDto) {
     const refreshTokens = await this.prisma.adminRefreshToken.findMany({
       where: { adminId },
       select: { token: true, adminId: true, expiresAt: true, createdAt: true },

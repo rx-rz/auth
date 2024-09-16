@@ -1,7 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { RefreshTokenRepository } from './refresh-token.repository';
-import { OnEvent } from '@nestjs/event-emitter';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import {
   GetRefreshTokenByTokenValueDto,
   StoreAdminRefreshTokenDto,
@@ -12,7 +10,9 @@ import { randomBytes } from 'crypto';
 
 @Injectable()
 export class RefreshTokenService {
-  constructor(private readonly refreshTokenRepository: RefreshTokenRepository) {}
+  constructor(
+    private readonly refreshTokenRepository: RefreshTokenRepository,
+  ) {}
 
   generateRefreshToken(bytes = 32) {
     const buffer = randomBytes(bytes);
@@ -24,14 +24,10 @@ export class RefreshTokenService {
     return token;
   }
 
-  @OnEvent('refresh-token.created')
-  @CatchEmitterErrors()
   async storeRefreshToken(data: StoreRefreshTokenDto) {
     await this.refreshTokenRepository.storeRefreshToken(data);
   }
 
-  @OnEvent('admin-refresh-token.created')
-  @CatchEmitterErrors()
   async storeAdminRefreshToken(data: StoreAdminRefreshTokenDto) {
     const { adminId, ...body } = data;
     await this.refreshTokenRepository.storeAdminRefreshToken({
@@ -41,12 +37,14 @@ export class RefreshTokenService {
   }
 
   async updateRefreshTokenState({ id, status }: UpdateRefreshTokenStateDto) {
-    const refreshToken = await this.refreshTokenRepository.updateRefreshTokenStatus(id, status);
+    const refreshToken =
+      await this.refreshTokenRepository.updateRefreshTokenStatus(id, status);
     return refreshToken;
   }
 
   async getRefreshTokenByTokenValue({ token }: GetRefreshTokenByTokenValueDto) {
-    const refreshToken = await this.refreshTokenRepository.getRefreshTokenByTokenValue(token);
+    const refreshToken =
+      await this.refreshTokenRepository.getRefreshTokenByTokenValue(token);
     return refreshToken;
   }
 }

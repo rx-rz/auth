@@ -6,20 +6,8 @@ import {
 } from '@nestjs/common';
 import { AdminRepository } from './admin.repository';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import {
-  RegisterAdminDto,
-  UpdateAdminDto,
-  GetAdminProjectDto,
-  LoginAdminDto,
-  UpdateAdminEmailDto,
-  UpdateAdminPasswordDto,
-  AdminEmailDto,
-  ResetAdminPasswordDto,
-} from './schema';
-import { AuthMethod } from '@prisma/client';
+import * as Dtos from './schema';
 import { compare } from 'bcryptjs';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
-import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
 import { LoginService } from 'src/login/login.service';
 
@@ -36,29 +24,36 @@ export type Admin = {
 export class AdminService {
   constructor(
     private readonly adminRepository: AdminRepository,
-    private readonly emitter: AppEventEmitter,
     private loginService: LoginService,
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   async checkIfAdminExists({ id, email }: { id?: string; email?: string }) {
     const admin = id
-      ? await this.adminRepository.getAdminByID(id)
-      : await this.adminRepository.getAdminByEmail(email ?? '');
+      ? await this.adminRepository.getAdminByID({ adminId: id })
+      : await this.adminRepository.getAdminByEmail({ email: email ?? '' });
     if (!admin) {
       throw new NotFoundException('Admin not found');
     }
     return admin;
   }
 
-  private async verifyPassword(email: string, password: string) {
-    const existingPasswordInDB =
-      await this.adminRepository.getAdminPassword(email);
+  private async verifyPassword({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) {
+    const existingPasswordInDB = await this.adminRepository.getAdminPassword({
+      email,
+    });
     const passwordsMatch = await compare(password, existingPasswordInDB);
     if (!passwordsMatch) throw new BadRequestException('Password is incorrect');
     return passwordsMatch;
   }
 
-  async registerAdmin({ email, password, ...dto }: RegisterAdminDto) {
+  async registerAdmin({ email, password, ...dto }: Dtos.RegisterAdminDto) {
     const admin = await this.checkIfAdminExists({ email });
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
@@ -69,18 +64,16 @@ export class AdminService {
     return { success: true, message: 'Admin registered successfully.' };
   }
 
-  @CatchEmitterErrors()
-  async loginAdmin({ email, password }: LoginAdminDto) {
+  async loginAdmin({ email, password }: Dtos.LoginAdminDto) {
     const admin = await this.checkIfAdminExists({ email });
-    await this.verifyPassword(email, password);
+    await this.verifyPassword({ email, password });
     const payload = this.getAdminPayload(admin);
     const accessToken = await this.loginService.generateAccessToken(payload);
     const refreshToken = this.loginService.generateRefreshToken();
-    await this.emitter.emit('refresh-token.created', {
+    await this.refreshTokenService.storeAdminRefreshToken({
       token: refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       adminId: admin.id,
-      authMethod: AuthMethod.EMAIL_AND_PASSWORD_SIGNIN,
     });
     return {
       success: true,
@@ -89,9 +82,9 @@ export class AdminService {
     };
   }
 
-  async updateAdmin({ email, ...dto }: UpdateAdminDto) {
+  async updateAdmin({ email, ...dto }: Dtos.UpdateAdminDto) {
     await this.checkIfAdminExists({ email });
-    const admin = await this.adminRepository.updateAdmin(email, dto);
+    const admin = await this.adminRepository.updateAdmin({ email, ...dto });
     const payload = this.getAdminPayload(admin);
     const accessToken = await this.loginService.generateAccessToken(payload);
     return { success: true, admin, accessToken: `Bearer ${accessToken}` };
@@ -101,7 +94,7 @@ export class AdminService {
     currentEmail,
     newEmail,
     password,
-  }: UpdateAdminEmailDto) {
+  }: Dtos.UpdateAdminEmailDto) {
     const existingAdmin = await this.checkIfAdminExists({ email: newEmail });
     if (existingAdmin)
       throw new ConflictException(
@@ -109,11 +102,11 @@ export class AdminService {
       );
 
     await this.checkIfAdminExists({ email: currentEmail });
-    await this.verifyPassword(currentEmail, password);
-    const admin = await this.adminRepository.updateAdminEmail(
+    await this.verifyPassword({ email: currentEmail, password });
+    const admin = await this.adminRepository.updateAdminEmail({
       currentEmail,
       newEmail,
-    );
+    });
     const payload = this.getAdminPayload(admin);
     const accessToken = await this.loginService.generateAccessToken(payload);
     return { success: true, admin, accessToken: `Bearer ${accessToken}` };
@@ -123,43 +116,48 @@ export class AdminService {
     currentPassword,
     email,
     newPassword,
-  }: UpdateAdminPasswordDto) {
+  }: Dtos.UpdateAdminPasswordDto) {
     const admin = await this.checkIfAdminExists({ email });
-    await this.verifyPassword(email, currentPassword);
+    await this.verifyPassword({ email, password: currentPassword });
     const hashedPassword = await hashValue(newPassword);
-    await this.adminRepository.updateAdminPassword(email, hashedPassword);
+    await this.adminRepository.updateAdminPassword({
+      email,
+      newPassword: hashedPassword,
+    });
     const payload = this.getAdminPayload(admin);
     const accessToken = await this.loginService.generateAccessToken(payload);
     return { success: true, accessToken: `Bearer ${accessToken}` };
   }
 
-  async resetAdminPassword({ email, newPassword }: ResetAdminPasswordDto) {
+  async resetAdminPassword({ email, newPassword }: Dtos.ResetAdminPasswordDto) {
     await this.checkIfAdminExists({ email });
-    const admin = await this.adminRepository.updateAdminPassword(
+    const admin = await this.adminRepository.updateAdminPassword({
       email,
       newPassword,
-    );
+    });
     return { success: true, admin };
   }
 
-  async getAdminProjects({ email }: AdminEmailDto) {
+  async getAdminProjects({ email }: Dtos.AdminEmailDto) {
     await this.checkIfAdminExists({ email });
-    const adminProjects = await this.adminRepository.getAdminProjects(email);
+    const adminProjects = await this.adminRepository.getAdminProjects({
+      email,
+    });
     return { success: true, adminProjects };
   }
 
-  async getAdminProjectByName({ adminId, name }: GetAdminProjectDto) {
+  async getAdminProjectByName({ adminId, name }: Dtos.GetAdminProjectDto) {
     await this.checkIfAdminExists({ id: adminId });
-    const adminProject = await this.adminRepository.getAdminProjectByName(
+    const adminProject = await this.adminRepository.getAdminProjectByName({
       adminId,
       name,
-    );
+    });
     return { success: true, adminProject };
   }
 
-  async deleteAdmin({ email }: AdminEmailDto) {
+  async deleteAdmin({ email }: Dtos.AdminEmailDto) {
     await this.checkIfAdminExists({ email });
-    const admin = await this.adminRepository.deleteAdmin(email);
+    const admin = await this.adminRepository.deleteAdmin({ email });
     return { success: true, admin };
   }
 

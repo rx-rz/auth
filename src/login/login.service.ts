@@ -45,6 +45,10 @@ export class LoginService {
     await this.emitter.emit('refresh-token.created', dto);
   }
 
+  async saveRefreshTokenInDB(dto: StoreRefreshTokenDto){
+    
+  }
+
   async generateAccessToken(payload: Partial<Payload>, projectId?: string) {
     if (projectId && payload.isAdmin === false) {
       const { accessTokenMinutes } =
