@@ -13,24 +13,7 @@ import {
 import { AdminService } from './admin.service';
 import { ADMIN_ROUTES } from 'src/utils/constants/routes';
 import { AdminGuard } from 'src/guard/admin.guard';
-import {
-  RegisterAdminDto,
-  UpdateAdminDto,
-  GetAdminProjectDto,
-  LoginAdminDto,
-  UpdateAdminEmailDto,
-  UpdateAdminPasswordDto,
-  RegisterAdminSchema,
-  UpdateAdminSchema,
-  UpdateAdminEmailSchema,
-  UpdateAdminPasswordSchema,
-  GetAdminProjectSchema,
-  LoginAdminSchema,
-  AdminEmailDto,
-  ResetAdminPasswordDto,
-  ResetAdminPasswordSchema,
-  AdminEmailSchema,
-} from './schema';
+import * as SchemaDtos from './schema';
 import { Response } from 'express';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 import { ApiTags } from '@nestjs/swagger';
@@ -45,6 +28,7 @@ import {
   openApiUpdateAdminPasswordOpts,
 } from './open-api';
 import { OpenApiEndpoint } from 'src/utils/decorators/openapi-endpoint.decorator';
+import * as ResponseTypes from './response-types';
 
 @ApiTags('admin')
 @Controller(ADMIN_ROUTES.BASE)
@@ -58,9 +42,11 @@ export class AdminController {
     ],
     options: openApiDeleteAdminOpts.options,
   })
-  @UsePipes(new ZodPipe(RegisterAdminSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.RegisterAdminSchema))
   @Post(ADMIN_ROUTES.REGISTER)
-  async registerAdmin(@Body() body: RegisterAdminDto) {
+  async registerAdmin(
+    @Body() body: SchemaDtos.RegisterAdminDto,
+  ): Promise<ResponseTypes.RegisterAdminResponse> {
     return this.adminService.registerAdmin(body);
   }
 
@@ -72,12 +58,25 @@ export class AdminController {
       openApiLoginAdminOpts.notFoundResponse,
     ],
   })
-  @UsePipes(new ZodPipe(LoginAdminSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.LoginAdminSchema))
   @Post(ADMIN_ROUTES.LOGIN)
-  async loginAdmin(@Body() body: LoginAdminDto, @Res({ passthrough: true }) response: Response) {
-    const { accessToken, refreshToken, success } = await this.adminService.loginAdmin(body);
+  async loginAdmin(
+    @Body() body: SchemaDtos.LoginAdminDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ResponseTypes.LoginAdminResponse> {
+    const { accessToken, refreshToken, success } =
+      await this.adminService.loginAdmin(body);
     this.setCookies(response, accessToken, refreshToken);
     return { success, message: 'Login successful', accessToken };
+  }
+
+  @Get(ADMIN_ROUTES.LOGOUT)
+  async logoutAdmin(
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ResponseTypes.LogoutAdminResponse> {
+    response.clearCookie('accessToken');
+    response.clearCookie('refreshToken');
+    return { success: true, message: 'Admin logged out successfully' };
   }
 
   @OpenApiEndpoint({
@@ -88,13 +87,17 @@ export class AdminController {
       openApiUpdateAdminOpts.notFoundResponse,
     ],
   })
-  @UsePipes(new ZodPipe(UpdateAdminSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.UpdateAdminSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_DETAILS)
   @UseGuards(AdminGuard)
-  async updateAdmin(@Body() body: UpdateAdminDto, @Res({ passthrough: true }) response: Response) {
-    const { accessToken, success } = await this.adminService.updateAdmin(body);
+  async updateAdmin(
+    @Body() body: SchemaDtos.UpdateAdminDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ResponseTypes.UpdateAdminResponse> {
+    const { accessToken, success, message } =
+      await this.adminService.updateAdmin(body);
     this.setAccessTokenCookie(response, accessToken);
-    return { success, message: 'Admin details updated successfully' };
+    return { success, message };
   }
 
   @OpenApiEndpoint({
@@ -106,14 +109,15 @@ export class AdminController {
       openApiUpdateAdminEmailOpts.notFoundResponse,
     ],
   })
-  @UsePipes(new ZodPipe(UpdateAdminEmailSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.UpdateAdminEmailSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_EMAIL)
   @UseGuards(AdminGuard)
   async updateAdminEmail(
-    @Body() body: UpdateAdminEmailDto,
+    @Body() body: SchemaDtos.UpdateAdminEmailDto,
     @Res({ passthrough: true }) response: Response,
-  ) {
-    const { accessToken, success } = await this.adminService.updateAdminEmail(body);
+  ): Promise<ResponseTypes.UpdateAdminEmailResponse> {
+    const { accessToken, success } =
+      await this.adminService.updateAdminEmail(body);
     this.setAccessTokenCookie(response, accessToken);
     return { success, message: 'Admin email updated successfully' };
   }
@@ -126,21 +130,24 @@ export class AdminController {
       openApiUpdateAdminPasswordOpts.notFoundResponse,
     ],
   })
-  @UsePipes(new ZodPipe(UpdateAdminPasswordSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.UpdateAdminPasswordSchema))
   @Put(ADMIN_ROUTES.UPDATE_ADMIN_PASSWORD)
   @UseGuards(AdminGuard)
   async updateAdminPassword(
-    @Body() body: UpdateAdminPasswordDto,
+    @Body() body: SchemaDtos.UpdateAdminPasswordDto,
     @Res({ passthrough: true }) response: Response,
-  ) {
-    const { success, accessToken } = await this.adminService.updateAdminPassword(body);
+  ): Promise<ResponseTypes.UpdateAdminPasswordResponse> {
+    const { success, accessToken } =
+      await this.adminService.updateAdminPassword(body);
     this.setAccessTokenCookie(response, accessToken);
     return { success, message: 'Admin password updated successfully' };
   }
 
-  @UsePipes(new ZodPipe(ResetAdminPasswordSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.ResetAdminPasswordSchema))
   @Put(ADMIN_ROUTES.RESET_PASSWORD)
-  async resetAdminPassword(@Body() body: ResetAdminPasswordDto) {
+  async resetAdminPassword(
+    @Body() body: SchemaDtos.ResetAdminPasswordDto,
+  ): Promise<ResponseTypes.ResetAdminPasswordResponse> {
     return this.adminService.resetAdminPassword(body);
   }
 
@@ -152,9 +159,11 @@ export class AdminController {
     ],
   })
   @Get(ADMIN_ROUTES.GET_PROJECTS)
-  @UsePipes(new ZodPipe(AdminEmailSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.AdminEmailSchema))
   @UseGuards(AdminGuard)
-  async getAdminProjects(@Query() query: AdminEmailDto) {
+  async getAdminProjects(
+    @Query() query: SchemaDtos.AdminEmailDto,
+  ): Promise<ResponseTypes.GetAdminProjectsResponse> {
     return this.adminService.getAdminProjects(query);
   }
 
@@ -165,31 +174,35 @@ export class AdminController {
       openApiGetAdminProjectByNameOpts.notFoundResponse,
     ],
   })
-  @UsePipes(new ZodPipe(GetAdminProjectSchema))
+  @UsePipes(new ZodPipe(SchemaDtos.GetAdminProjectSchema))
   @Get(ADMIN_ROUTES.GET_PROJECT_BY_NAME)
   @UseGuards(AdminGuard)
-  async getAdminProjectByName(@Body() body: GetAdminProjectDto) {
+  async getAdminProjectByName(
+    @Body() body: SchemaDtos.GetAdminProjectDto,
+  ): Promise<ResponseTypes.GetAdminProjectByNameResponse> {
     return this.adminService.getAdminProjectByName(body);
   }
 
   @OpenApiEndpoint({
     options: openApiDeleteAdminOpts.options,
-    responses: [openApiDeleteAdminOpts.successResponse, openApiDeleteAdminOpts.notFoundResponse],
+    responses: [
+      openApiDeleteAdminOpts.successResponse,
+      openApiDeleteAdminOpts.notFoundResponse,
+    ],
   })
   @Delete(ADMIN_ROUTES.DELETE_ACCOUNT)
   @UseGuards(AdminGuard)
-  async deleteAdmin(@Query() query: AdminEmailDto) {
+  async deleteAdmin(
+    @Query() query: SchemaDtos.AdminEmailDto,
+  ): Promise<ResponseTypes.DeleteAdminResponse> {
     return this.adminService.deleteAdmin(query);
   }
 
-  @Get(ADMIN_ROUTES.LOGOUT)
-  async logoutAdmin(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
-    return { success: true, message: 'Admin logged out successfully' };
-  }
-
-  private setCookies(response: Response, accessToken: string, refreshToken: string) {
+  private setCookies(
+    response: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

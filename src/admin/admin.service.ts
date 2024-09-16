@@ -87,7 +87,11 @@ export class AdminService {
     const admin = await this.adminRepository.updateAdmin({ email, ...dto });
     const payload = this.getAdminPayload(admin);
     const accessToken = await this.loginService.generateAccessToken(payload);
-    return { success: true, admin, accessToken: `Bearer ${accessToken}` };
+    return {
+      success: true,
+      message: 'Admin details updated successfully',
+      accessToken: `Bearer ${accessToken}`,
+    };
   }
 
   async updateAdminEmail({
@@ -131,11 +135,11 @@ export class AdminService {
 
   async resetAdminPassword({ email, newPassword }: Dtos.ResetAdminPasswordDto) {
     await this.checkIfAdminExists({ email });
-    const admin = await this.adminRepository.updateAdminPassword({
+    await this.adminRepository.updateAdminPassword({
       email,
       newPassword,
     });
-    return { success: true, admin };
+    return { success: true, message: 'Password reset successfully' };
   }
 
   async getAdminProjects({ email }: Dtos.AdminEmailDto) {
