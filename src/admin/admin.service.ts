@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { AdminRepository } from './admin.repository';
@@ -10,6 +11,8 @@ import * as Dtos from './schema';
 import { compare } from 'bcryptjs';
 import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
 import { LoginService } from 'src/login/login.service';
+import { Mailer } from 'src/infra/mail/mail.service';
+import { randomUUID } from 'crypto';
 
 export type Admin = {
   id: string;
@@ -26,6 +29,7 @@ export class AdminService {
     private readonly adminRepository: AdminRepository,
     private loginService: LoginService,
     private refreshTokenService: RefreshTokenService,
+    private mailer: Mailer,
   ) {}
 
   async checkIfAdminExists({ id, email }: { id?: string; email?: string }) {
@@ -54,7 +58,7 @@ export class AdminService {
   }
 
   async registerAdmin({ email, password, ...dto }: Dtos.RegisterAdminDto) {
-    const admin = await this.checkIfAdminExists({ email });
+    const admin = await this.adminRepository.getAdminByEmail({ email });
     if (admin) throw new ConflictException('Admin already created.');
     await this.adminRepository.createAdmin({
       ...dto,
@@ -99,10 +103,12 @@ export class AdminService {
     newEmail,
     password,
   }: Dtos.UpdateAdminEmailDto) {
-    const existingAdmin = await this.checkIfAdminExists({ email: newEmail });
+    const existingAdmin = await this.adminRepository.getAdminByEmail({
+      email: newEmail,
+    });
     if (existingAdmin)
       throw new ConflictException(
-        'An email with the provided new email already exists. Please choose another.',
+        'An email with the provided new email already exists. Please choose another email.',
       );
 
     await this.checkIfAdminExists({ email: currentEmail });
@@ -133,12 +139,65 @@ export class AdminService {
     return { success: true, accessToken: `Bearer ${accessToken}` };
   }
 
-  async resetAdminPassword({ email, newPassword }: Dtos.ResetAdminPasswordDto) {
+  async sendPasswordResetToken({ email, link }: Dtos.GetResetTokenDto) {
     await this.checkIfAdminExists({ email });
-    await this.adminRepository.updateAdminPassword({
+    const token = randomUUID();
+    const tokenExpiration = new Date(Date.now() + 1000 * 60 * 10);
+    await this.adminRepository.updatePasswordResetTokens({
+      token,
+      tokenExpiration,
       email,
-      newPassword,
     });
+    const resetLink = `${link}?token=${token}`;
+    const { error } = await this.mailer.sendEmail({
+      recipients: [email],
+      subject: 'Auth Magic Link',
+      from: 'adeleyetemiloluwa.work@gmail.com',
+      html: `
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetLink}">${resetLink}</a>
+      `,
+    });
+    if (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occured when sending the mail.',
+      );
+    }
+    return {
+      success: true,
+      message: 'Reset link sent to your email',
+      resetLink,
+    };
+  }
+
+  async resetAdminPassword({
+    email,
+    newPassword,
+    token,
+  }: Dtos.ResetAdminPasswordDto) {
+    await this.checkIfAdminExists({ email });
+    const tokens = await this.adminRepository.getAdminPasswordResetTokens({
+      email,
+    });
+    if (
+      tokens?.resetToken !== token &&
+      tokens?.resetTokenExpiration &&
+      new Date(tokens.resetTokenExpiration).getTime() > Date.now()
+    ) {
+      throw new BadRequestException('Password reset token is invalid');
+    }
+    await Promise.all([
+      this.adminRepository.updateAdminPassword({
+        email,
+        newPassword,
+      }),
+      this.adminRepository.updatePasswordResetTokens({
+        email,
+        token: '',
+        tokenExpiration: new Date(Date.now()),
+      }),
+    ]);
     return { success: true, message: 'Password reset successfully' };
   }
 

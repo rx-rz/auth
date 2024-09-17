@@ -8,6 +8,7 @@ export const ADMIN_ROUTES = {
   LOGIN: 'login-admin',
   LOGOUT: 'logout-admin',
   GET_PROJECTS: 'get-admin-projects',
+  SEND_RESET_TOKEN: 'send-password-reset-token',
   RESET_PASSWORD: 'reset-admin-password',
   GET_PROJECT_BY_NAME: 'get-admin-project-by-name',
 };

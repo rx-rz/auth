@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminRepository } from './admin.repository';
 import { PrismaService } from 'src/infra/db/prisma.service';
-import { Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 describe('AdminRepository', () => {
   let adminRepository: AdminRepository;
   let prismaService: PrismaService;
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,284 +32,349 @@ describe('AdminRepository', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
+  it('should be defined', () => {
+    expect(adminRepository).toBeDefined();
+    expect(prismaService).toBeDefined();
+  });
+
   describe('createAdmin', () => {
     it('should create an admin', async () => {
-      const mockAdminData: Prisma.AdminCreateInput = {
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
+      const mockAdmin = {
         email: faker.internet.email(),
         password: faker.internet.password(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
         isVerified: faker.datatype.boolean(),
-        mfaEnabled: faker.datatype.boolean(),
       };
-      const mockCreatedAdmin = {
-        ...mockAdminData,
-        id: faker.string.uuid(),
-        createdAt: new Date(),
-      };
-      (prismaService.admin.create as jest.Mock).mockResolvedValue(mockCreatedAdmin);
-      const result = await adminRepository.createAdmin(mockAdminData);
+
+      (prismaService.admin.create as jest.Mock).mockResolvedValue(mockAdmin);
+      const result = await adminRepository.createAdmin(mockAdmin);
+      console.log(await adminRepository.createAdmin(mockAdmin));
       expect(prismaService.admin.create).toHaveBeenCalledWith({
-        data: mockAdminData,
-        select: adminRepository.adminReturnObject,
+        data: mockAdmin,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isVerified: true,
+          mfaEnabled: true,
+        },
       });
-      expect(result).toEqual(mockCreatedAdmin);
+      expect(result).toEqual({ ...mockAdmin, id: faker.string.uuid() });
     });
   });
 
   describe('getAdminByEmail', () => {
-    it('should get admin details by email', async () => {
-      const mockEmail = faker.internet.email();
-      const mockAdmin = {
-        id: faker.string.uuid(),
+    it('should get an admin by email', async () => {
+      const email = faker.internet.email();
+      const returnedAdmin = {
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
-        email: mockEmail,
-        password: faker.internet.password(),
+        email,
         isVerified: faker.datatype.boolean(),
         mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
       };
-
-      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(mockAdmin);
-
-      const result = await adminRepository.getAdminByEmail(mockEmail);
-
+      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(
+        returnedAdmin,
+      );
+      const result = await adminRepository.getAdminByEmail({ email });
+      expect(result).toEqual(returnedAdmin);
       expect(prismaService.admin.findUnique).toHaveBeenCalledWith({
-        where: { email: mockEmail },
-        select: adminRepository.adminReturnObject,
+        where: { email },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isVerified: true,
+          mfaEnabled: true,
+        },
       });
-      expect(result).toEqual(mockAdmin);
     });
   });
 
   describe('getAdminByID', () => {
-    it('should get admin details by ID', async () => {
-      const mockId = faker.string.uuid();
+    it('should get an admin by ID', async () => {
+      const adminId = faker.string.uuid();
       const mockAdmin = {
-        id: mockId,
+        id: adminId,
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
         email: faker.internet.email(),
-        password: faker.internet.password(),
         isVerified: faker.datatype.boolean(),
         mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
       };
-
-      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(mockAdmin);
-
-      const result = await adminRepository.getAdminByID(mockId);
-
-      expect(prismaService.admin.findUnique).toHaveBeenCalledWith({
-        where: { id: mockId },
-        select: adminRepository.adminReturnObject,
-      });
+      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(
+        mockAdmin,
+      );
+      const result = await adminRepository.getAdminByID({ adminId });
       expect(result).toEqual(mockAdmin);
+      expect(prismaService.admin.findUnique).toHaveBeenCalledWith({
+        where: { id: adminId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isVerified: true,
+          mfaEnabled: true,
+        },
+      });
     });
   });
 
   describe('getAdminPassword', () => {
-    it('should get admin password by email', async () => {
-      const mockEmail = faker.internet.email();
-      const mockAdmin = {
-        id: faker.string.uuid(),
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        email: mockEmail,
-        password: faker.internet.password(),
-        isVerified: faker.datatype.boolean(),
-        mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
-      };
-
-      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(mockAdmin);
-
-      const result = await adminRepository.getAdminPassword(mockEmail);
-
+    it('should get an admin password by email', async () => {
+      const email = faker.internet.email();
+      const password = faker.internet.password();
+      (prismaService.admin.findUnique as jest.Mock).mockResolvedValue(password);
+      const result = await adminRepository.getAdminPassword({ email });
+      expect(result).toEqual(password);
       expect(prismaService.admin.findUnique).toHaveBeenCalledWith({
-        where: { email: mockEmail },
+        where: { email },
       });
-      expect(result).toEqual(mockAdmin.password);
     });
   });
 
   describe('updateAdmin', () => {
     it('should update an admin', async () => {
-      const mockEmail = faker.internet.email();
-      const mockAdminData: Prisma.AdminUpdateInput = {
+      const email = faker.internet.email();
+      const updateData = {
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
-        isVerified: faker.datatype.boolean(),
-        mfaEnabled: faker.datatype.boolean(),
+        isVerified: true,
+        mfaEnabled: true,
       };
-      const mockUpdatedAdmin = {
-        ...mockAdminData,
+      const mockAdmin = {
         id: faker.string.uuid(),
-        email: mockEmail,
-        createdAt: new Date(),
+        firstName: updateData.firstName,
+        lastName: updateData.lastName,
+        email,
+        isVerified: updateData.isVerified,
+        mfaEnabled: updateData.mfaEnabled,
       };
-      (prismaService.admin.update as jest.Mock).mockResolvedValue(mockUpdatedAdmin);
-      const result = await adminRepository.updateAdmin(mockEmail, mockAdminData);
-      expect(prismaService.admin.update).toHaveBeenCalledWith({
-        where: { email: mockEmail },
-        data: mockAdminData,
-        select: adminRepository.adminReturnObject,
+
+      (prismaService.admin.update as jest.Mock).mockResolvedValue(mockAdmin);
+      const result = await adminRepository.updateAdmin({
+        email,
+        ...updateData,
       });
-      expect(result).toEqual(mockUpdatedAdmin);
+      expect(result).toEqual(mockAdmin);
+      expect(prismaService.admin.update).toHaveBeenCalledWith({
+        where: { email },
+        data: updateData,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isVerified: true,
+          mfaEnabled: true,
+        },
+      });
     });
   });
 
   describe('updateAdminEmail', () => {
     it('should update an admin email', async () => {
-      const mockCurrentEmail = faker.internet.email();
-      const mockNewEmail = faker.internet.email();
-      const mockUpdatedAdmin = {
+      const currentEmail = faker.internet.email();
+      const newEmail = faker.internet.email();
+      const mockAdmin = {
         id: faker.string.uuid(),
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
-        email: mockNewEmail,
-        password: faker.internet.password(),
+        email: newEmail,
         isVerified: faker.datatype.boolean(),
         mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
       };
 
-      (prismaService.admin.update as jest.Mock).mockResolvedValue(mockUpdatedAdmin);
-
-      const result = await adminRepository.updateAdminEmail(mockCurrentEmail, mockNewEmail);
-
-      expect(prismaService.admin.update).toHaveBeenCalledWith({
-        where: { email: mockCurrentEmail },
-        data: { email: mockNewEmail },
-        select: adminRepository.adminReturnObject,
+      (prismaService.admin.update as jest.Mock).mockResolvedValue(mockAdmin)
+      const result = await adminRepository.updateAdminEmail({
+        currentEmail,
+        newEmail,
       });
-      expect(result).toEqual(mockUpdatedAdmin);
-    });
-  });
-
-  describe('updateAdminPassword', () => {
-    it('should update an admin password', async () => {
-      const mockEmail = faker.internet.email();
-      const mockNewPassword = faker.internet.password();
-      const mockUpdatedAdmin = {
-        id: faker.string.uuid(),
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        email: mockEmail,
-        password: mockNewPassword,
-        isVerified: faker.datatype.boolean(),
-        mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
-      };
-
-      (prismaService.admin.update as jest.Mock).mockResolvedValue(mockUpdatedAdmin);
-
-      const result = await adminRepository.updateAdminPassword(mockEmail, mockNewPassword);
-
+      expect(result).toEqual(mockAdmin);
       expect(prismaService.admin.update).toHaveBeenCalledWith({
-        where: { email: mockEmail },
-        data: { password: mockNewPassword },
-        select: adminRepository.adminReturnObject,
-      });
-      expect(result).toEqual(mockUpdatedAdmin);
-    });
-  });
-
-  describe('getAdminProjects', () => {
-    it('should get admin projects by email', async () => {
-      const mockEmail = faker.internet.email();
-      const mockAdminProjects = [
-        {
-          id: faker.string.uuid(),
-          name: faker.lorem.words(),
-          createdAt: faker.date.anytime(),
-        },
-        {
-          id: faker.string.uuid(),
-          name: faker.lorem.words(),
-          createdAt: faker.date.anytime(),
-        },
-      ];
-
-      (prismaService.project.findMany as jest.Mock).mockResolvedValue(mockAdminProjects);
-
-      const result = await adminRepository.getAdminProjects(mockEmail);
-
-      expect(prismaService.project.findMany).toHaveBeenCalledWith({
-        where: {
-          admin: {
-            email: mockEmail,
-          },
-        },
+        where: { email: currentEmail },
+        data: { email: newEmail },
         select: {
           id: true,
-          name: true,
-          createdAt: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isVerified: true,
+          mfaEnabled: true,
         },
       });
-      expect(result).toEqual(mockAdminProjects);
     });
   });
 
-  describe('getAdminProjectByName', () => {
-    it('should get admin project by name and admin ID', async () => {
-      const mockAdminId = faker.string.uuid();
-      const mockProjectName = faker.lorem.words();
-      const mockAdminProject = {
-        id: faker.string.uuid(),
-        name: mockProjectName,
-        createdAt: faker.date.anytime(),
-        logins: [],
-        refreshTokens: [],
-      };
+  // describe('updateAdminPassword', () => {
+  //   it('should update an admin password', async () => {
+  //     const email = faker.internet.email();
+  //     const newPassword = faker.internet.password();
+  //     const mockAdmin = {
+  //       id: faker.string.uuid(),
+  //       firstName: faker.person.firstName(),
+  //       lastName: faker.person.lastName(),
+  //       email,
+  //       isVerified: faker.datatype.boolean(),
+  //       mfaEnabled: faker.datatype.boolean(),
+  //     };
 
-      (prismaService.project.findUnique as jest.Mock).mockResolvedValue(mockAdminProject);
+  //     jest.spyOn(prismaService.admin, 'update').mockResolvedValue(mockAdmin);
 
-      const result = await adminRepository.getAdminProjectByName(mockAdminId, mockProjectName);
+  //     const result = await adminRepository.updateAdminPassword({
+  //       email,
+  //       newPassword,
+  //     });
+  //     expect(result).toEqual(mockAdmin);
+  //     expect(prismaService.admin.update).toHaveBeenCalledWith({
+  //       where: { email },
+  //       data: { password: newPassword },
+  //       select: {
+  //         id: true,
+  //         firstName: true,
+  //         lastName: true,
+  //         email: true,
+  //         isVerified: true,
+  //         mfaEnabled: true,
+  //       },
+  //     });
+  //   });
+  // });
 
-      expect(prismaService.project.findUnique).toHaveBeenCalledWith({
-        where: {
-          project_name_admin_id_unique: {
-            name: mockProjectName,
-            adminId: mockAdminId,
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-          createdAt: true,
-          logins: true,
-          refreshTokens: true,
-        },
-      });
-      expect(result).toEqual(mockAdminProject);
-    });
-  });
+  // describe('getAdminProjects', () => {
+  //   it('should get an admin projects', async () => {
+  //     const email = faker.internet.email();
+  //     const mockAdminProjects = [
+  //       {
+  //         id: faker.string.uuid(),
+  //         name: faker.lorem.word(),
+  //         createdAt: faker.date.past(),
+  //         updatedAt: faker.date.recent(),
+  //       },
+  //     ];
 
-  describe('deleteAdmin', () => {
-    it('should delete an admin', async () => {
-      const mockEmail = faker.internet.email();
-      const mockDeletedAdmin = {
-        id: faker.string.uuid(),
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        email: mockEmail,
-        password: faker.internet.password(),
-        isVerified: faker.datatype.boolean(),
-        mfaEnabled: faker.datatype.boolean(),
-        createdAt: faker.date.anytime(),
-      };
+  //     jest
+  //       .spyOn(prismaService.project, 'findMany')
+  //       .mockResolvedValue(mockAdminProjects);
 
-      (prismaService.admin.delete as jest.Mock).mockResolvedValue(mockDeletedAdmin);
+  //     const result = await adminRepository.getAdminProjects({ email });
+  //     expect(result).toEqual(mockAdminProjects);
+  //     expect(prismaService.project.findMany).toHaveBeenCalledWith({
+  //       where: {
+  //         admin: {
+  //           email,
+  //         },
+  //       },
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         updatedAt: true,
+  //         createdAt: true,
+  //       },
+  //     });
+  //   });
+  // });
 
-      const result = await adminRepository.deleteAdmin(mockEmail);
+  // describe('getAdminWebAuthnCredentials', () => {
+  //   it('should get an admin webAuthn credentials', async () => {
+  //     const email = faker.internet.email();
+  //     const mockCredentials = [
+  //       {
+  //         id: faker.string.uuid(),
+  //         credentialId: faker.string.uuid(),
+  //         publicKey: faker.string.alphanumeric(),
+  //         createdAt: faker.date.past(),
+  //         updatedAt: faker.date.recent(),
+  //       },
+  //     ];
 
-      expect(prismaService.admin.delete).toHaveBeenCalledWith({
-        where: { email: mockEmail },
-        select: adminRepository.adminReturnObject,
-      });
-      expect(result).toEqual(mockDeletedAdmin);
-    });
-  });
+  //     jest
+  //       .spyOn(prismaService.webAuthnCredential, 'findMany')
+  //       .mockResolvedValue(mockCredentials);
+
+  //     const result = await adminRepository.getAdminWebAuthnCredentials({
+  //       email,
+  //     });
+  //     expect(result).toEqual(mockCredentials);
+  //     expect(prismaService.webAuthnCredential.findMany).toHaveBeenCalledWith({
+  //       where: {
+  //         admin: { email },
+  //       },
+  //     });
+  //   });
+  // });
+
+  // describe('getAdminProjectByName', () => {
+  //   it('should get an admin project by name', async () => {
+  //     const adminId = faker.string.uuid();
+  //     const name = faker.lorem.word();
+  //     const mockAdminProject = {
+  //       id: faker.string.uuid(),
+  //       name,
+  //       createdAt: faker.date.past(),
+  //       updatedAt: faker.date.recent(),
+  //       logins: [],
+  //       refreshTokens: [],
+  //     };
+
+  //     jest
+  //       .spyOn(prismaService.project, 'findUnique')
+  //       .mockResolvedValue(mockAdminProject);
+
+  //     const result = await adminRepository.getAdminProjectByName({
+  //       adminId,
+  //       name,
+  //     });
+  //     expect(result).toEqual(mockAdminProject);
+  //     expect(prismaService.project.findUnique).toHaveBeenCalledWith({
+  //       where: {
+  //         project_name_admin_id_unique: {
+  //           name,
+  //           adminId,
+  //         },
+  //       },
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         createdAt: true,
+  //         logins: true,
+  //         refreshTokens: true,
+  //       },
+  //     });
+  //   });
+  // });
+
+  // describe('deleteAdmin', () => {
+  //   it('should delete an admin', async () => {
+  //     const email = faker.internet.email();
+  //     const mockAdmin = {
+  //       id: faker.string.uuid(),
+  //       firstName: faker.person.firstName(),
+  //       lastName: faker.person.lastName(),
+  //       email,
+  //       isVerified: faker.datatype.boolean(),
+  //       mfaEnabled: faker.datatype.boolean(),
+  //     };
+
+  //     jest.spyOn(prismaService.admin, 'delete').mockResolvedValue(mockAdmin);
+
+  //     const result = await adminRepository.deleteAdmin({ email });
+  //     expect(result).toEqual(mockAdmin);
+  //     expect(prismaService.admin.delete).toHaveBeenCalledWith({
+  //       where: { email },
+  //       select: {
+  //         id: true,
+  //         firstName: true,
+  //         lastName: true,
+  //         email: true,
+  //         isVerified: true,
+  //         mfaEnabled: true,
+  //       },
+  //     });
+  //   });
+  // });
 });

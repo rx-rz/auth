@@ -9,19 +9,21 @@ datasource db {
 
 // Admin model
 model Admin {
-  id                  String               @id @unique() @default(cuid())
-  email               String               @unique() @db.VarChar(255)
-  password            String               @db.VarChar(255)
-  firstName           String               @map("first_name") @db.VarChar(255)
-  lastName            String               @map("last_name") @db.VarChar(255)
-  isVerified          Boolean              @default(false)
-  mfaEnabled          Boolean              @default(false)
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
-  projects            Project[]
-  webAuthnCredentials WebAuthnCredential[]
-  challenge           Challenge[]
-  AdminRefreshToken   AdminRefreshToken[]
+  id                   String               @id @unique() @default(cuid())
+  email                String               @unique() @db.VarChar(255)
+  password             String               @db.VarChar(255)
+  firstName            String               @map("first_name") @db.VarChar(255)
+  lastName             String               @map("last_name") @db.VarChar(255)
+  isVerified           Boolean              @default(false)
+  mfaEnabled           Boolean              @default(false)
+  resetToken           String?              @map("reset_token")
+  resetTokenExpiration DateTime?            @map("reset_token_expiration")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+  projects             Project[]
+  webAuthnCredentials  WebAuthnCredential[]
+  challenge            Challenge[]
+  AdminRefreshToken    AdminRefreshToken[]
 
   @@map("admins")
 }

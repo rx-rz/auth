@@ -28,6 +28,13 @@ export const GetAdminProjectSchema = z.object({
   }),
 });
 
+export const GetResetTokenSchema = z.object({
+  email: z.string({}).email(),
+  link: z.string(),
+});
+
+export type GetResetTokenDto = z.infer<typeof GetResetTokenSchema>;
+
 export type GetAdminProjectDto = z.infer<typeof GetAdminProjectSchema>;
 
 // LoginAdminDto
@@ -185,6 +192,7 @@ export const ResetAdminPasswordSchema = z.object({
     })
     .min(6, 'Password must be at least 6 characters')
     .max(100, 'Password cannot exceed 100 characters'),
+    token: z.string()
 });
 
 export type ResetAdminPasswordDto = z.infer<typeof ResetAdminPasswordSchema>;

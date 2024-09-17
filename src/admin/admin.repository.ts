@@ -138,6 +138,32 @@ export class AdminRepository {
     return admin;
   }
 
+  async updatePasswordResetTokens({
+    token,
+    tokenExpiration,
+    email,
+  }: {
+    token: string;
+    tokenExpiration: Date;
+    email: string;
+  }) {
+    const admin = await this.prisma.admin.update({
+      data: {
+        resetToken: token,
+        resetTokenExpiration: tokenExpiration,
+      },
+      where: { email },
+    });
+    return admin;
+  }
+
+  async getAdminPasswordResetTokens({ email }: { email: string }) {
+    const tokens = await this.prisma.admin.findUnique({
+      where: { email },
+      select: { resetToken: true, resetTokenExpiration: true },
+    });
+    return tokens
+  }
   async getAdminRefreshTokens({ adminId }: AdminIdDto) {
     const refreshTokens = await this.prisma.adminRefreshToken.findMany({
       where: { adminId },

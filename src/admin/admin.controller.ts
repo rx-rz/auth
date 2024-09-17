@@ -143,8 +143,14 @@ export class AdminController {
     return { success, message: 'Admin password updated successfully' };
   }
 
+  @UsePipes(new ZodPipe(SchemaDtos.AdminEmailSchema))
+  @Post(ADMIN_ROUTES.SEND_RESET_TOKEN)
+  async sendPasswordResetToken(@Body() body: SchemaDtos.GetResetTokenDto) {
+    return this.adminService.sendPasswordResetToken(body);
+  }
+
   @UsePipes(new ZodPipe(SchemaDtos.ResetAdminPasswordSchema))
-  @Put(ADMIN_ROUTES.RESET_PASSWORD)
+  @Post(ADMIN_ROUTES.RESET_PASSWORD)
   async resetAdminPassword(
     @Body() body: SchemaDtos.ResetAdminPasswordDto,
   ): Promise<ResponseTypes.ResetAdminPasswordResponse> {
