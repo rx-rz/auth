@@ -23,6 +23,10 @@ export abstract class OAuthProvider {
     return this.oauthProviderData.clientId;
   }
 
+  getProjectId(): string {
+    return this.oauthProviderData.projectId;
+  }
+
   getProviderId(): string {
     return this.oauthProviderData.id;
   }

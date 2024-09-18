@@ -10,7 +10,6 @@ import {
   RegisterWithEmailAndPasswordDto,
   validatePassword,
 } from './schema';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { AuthMethod } from '@prisma/client';
 import { hashValue } from 'src/utils/helper-functions';
 import { Request } from 'express';
@@ -23,10 +22,8 @@ export class EmailAndPasswordAuthService {
     private readonly projectService: ProjectService,
     private readonly userService: UserService,
     private readonly loginService: LoginService,
-    private readonly emitter: AppEventEmitter,
   ) {}
 
-  @CatchEmitterErrors()
   async registerWithEmailAndPassword(dto: RegisterWithEmailAndPasswordDto) {
     const {
       allowNames,
@@ -51,15 +48,13 @@ export class EmailAndPasswordAuthService {
     const userToBeCreated = dto.password
       ? { ...dto, password: await hashValue(dto.password) }
       : dto;
-    await this.emitter.emit('user-create.email-password', userToBeCreated);
+    await this.userService.createAndAssignUserToProject(userToBeCreated);
     return {
       success: true,
       message: 'User registered successfully',
-      passwordMinLength,
     };
   }
 
-  @CatchEmitterErrors()
   async loginWithEmailAndPassword(
     { email, password, projectId }: LoginWithEmailAndPasswordDto,
     request: Request,
@@ -119,7 +114,7 @@ export class EmailAndPasswordAuthService {
       projectId,
     );
     const refreshToken = this.loginService.generateRefreshToken();
-    await this.loginService.emitRefreshTokenInstanceCreationEvent({
+    await this.loginService.saveRefreshTokenInDB({
       token: refreshToken,
       expiresAt: new Date(
         Date.now() + (refreshTokenDays ?? 7) * 24 * 60 * 60 * 1000,

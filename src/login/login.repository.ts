@@ -12,24 +12,30 @@ export class LoginRepository {
     return login;
   }
 
-  async getLoginInstance(id: string) {
+  async getLoginInstance({ id }: { id: string }) {
     const login = await this.prisma.login.findUnique({
       where: { id },
     });
     return login;
   }
 
-  async updateLoginInstance(id: string, data: Prisma.LoginUpdateInput) {
+  async updateLoginInstance({
+    id,
+    data,
+  }: {
+    id: string;
+    data: Prisma.LoginUpdateInput;
+  }) {
     const login = await this.prisma.login.update({ where: { id }, data });
     return login;
   }
 
-  async deleteLoginInstance(id: string) {
+  async deleteLoginInstance({ id }: { id: string }) {
     const login = await this.prisma.login.delete({ where: { id } });
     return login;
   }
 
-  async getLatestLoginInstanceForUser(userId: string) {
+  async getLatestLoginInstanceForUser({ userId }: { userId: string }) {
     const login = await this.prisma.login.findFirst({
       where: { userId },
       orderBy: { createdAt: 'desc' },

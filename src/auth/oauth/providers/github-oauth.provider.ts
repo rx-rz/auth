@@ -9,8 +9,10 @@ type GitHubOauthTokenResponse = {
 };
 
 export class GitHubOauthUserInfo {
-  id: number;
-  login: string;
+  constructor(name: string, email: string) {
+    this.name = name;
+    this.email = email;
+  }
   name: string;
   email: string;
 }
@@ -81,7 +83,8 @@ export class GithubOauthProvider extends OAuthProvider {
         `Error response: ${response.status}, ${await response.text()}`,
       );
     }
-    const data: GitHubOauthUserInfo = await response.json();
-    return data;
+    const data = await response.json();
+    const user = new GitHubOauthUserInfo(data.name, data.email);
+    return user;
   }
 }

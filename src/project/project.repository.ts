@@ -20,10 +20,13 @@ export class ProjectRepository {
     return project;
   }
 
-  async updateProjectSettings(
-    projectId: string,
-    data: Prisma.ProjectSettingsUpdateInput,
-  ) {
+  async updateProjectSettings({
+    projectId,
+    data,
+  }: {
+    projectId: string;
+    data: Prisma.ProjectSettingsUpdateInput;
+  }) {
     const projectSettings = await this.prisma.projectSettings.update({
       where: { projectId },
       data,
@@ -31,24 +34,30 @@ export class ProjectRepository {
     return projectSettings;
   }
 
-  async createProjectSettings(projectId: string) {
+  async createProjectSettings({ projectId }: { projectId: string }) {
     const projectSettings = await this.prisma.projectSettings.create({
       data: { projectId },
     });
     return projectSettings;
   }
 
-  async getProjectSettings(projectId: string) {
+  async getProjectSettings({ projectId }: { projectId: string }) {
     const projectSettings = await this.prisma.projectSettings.findUnique({
       where: { projectId },
     });
     return projectSettings;
   }
 
-  async updateProject(id: string, data: Prisma.ProjectUpdateInput) {
+  async updateProject({
+    projectId,
+    data,
+  }: {
+    projectId: string;
+    data: Prisma.ProjectUpdateInput;
+  }) {
     const updatedProject = await this.prisma.project.update({
       data,
-      where: { id },
+      where: { id: projectId },
       select: {
         adminId: true,
         name: true,
@@ -59,9 +68,9 @@ export class ProjectRepository {
     return updatedProject;
   }
 
-  async getProjectApiKeys(id: string) {
+  async getProjectApiKeys({ projectId }: { projectId: string }) {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id: projectId },
       select: {
         apiKey: true,
         clientKey: true,
@@ -73,7 +82,7 @@ export class ProjectRepository {
     };
   }
 
-  async getProjectIDByClientKey(clientKey: string) {
+  async getProjectIDByClientKey({ clientKey }: { clientKey: string }) {
     const project = await this.prisma.project.findUnique({
       where: { clientKey },
       select: {
@@ -83,7 +92,7 @@ export class ProjectRepository {
     return project?.id || null;
   }
 
-  async getProjectApiKeyByClientKey(clientKey: string) {
+  async getProjectApiKeyByClientKey({ clientKey }: { clientKey: string }) {
     const project = await this.prisma.project.findUnique({
       where: { clientKey },
       select: {
@@ -94,9 +103,9 @@ export class ProjectRepository {
     return { apiKey: project?.apiKey, projectId: project?.id };
   }
 
-  async getProject(id: string) {
+  async getProject({ projectId }: { projectId: string }) {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id: projectId },
       select: {
         id: true,
         name: true,
@@ -108,7 +117,13 @@ export class ProjectRepository {
     return project;
   }
 
-  async addUserToProjectBlocklist(userId: string, projectId: string) {
+  async addUserToProjectBlocklist({
+    userId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+  }) {
     await this.prisma.$transaction(async (tx) => {
       await tx.userProject.update({
         where: {
@@ -130,7 +145,13 @@ export class ProjectRepository {
     });
   }
 
-  async removeUserFromBlocklist(userId: string, projectId: string) {
+  async removeUserFromBlocklist({
+    userId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+  }) {
     await this.prisma.$transaction(async (tx) => {
       await tx.userProject.update({
         where: {
@@ -154,7 +175,13 @@ export class ProjectRepository {
     });
   }
 
-  async getUserFromProjectBlocklist(userId: string, projectId: string) {
+  async getUserFromProjectBlocklist({
+    userId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+  }) {
     const user = await this.prisma.blockList.findUnique({
       where: {
         userId_projectId: {
@@ -170,7 +197,7 @@ export class ProjectRepository {
     return user;
   }
 
-  async getProjectBlocklist(projectId: string) {
+  async getProjectBlocklist({ projectId }: { projectId: string }) {
     const blocklist = await this.prisma.blockList.findMany({
       where: {
         projectId,
@@ -179,9 +206,9 @@ export class ProjectRepository {
     return blocklist;
   }
 
-  async getProjectDetails(id: string) {
+  async getProjectDetails({ projectId }: { projectId: string }) {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id: projectId },
       select: {
         id: true,
         name: true,
@@ -204,9 +231,9 @@ export class ProjectRepository {
     return project;
   }
 
-  async getProjectOAuthProviders(id: string) {
+  async getProjectOAuthProviders({ projectId }: { projectId: string }) {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id: projectId },
       select: {
         id: true,
         oauthProviders: true,
@@ -215,9 +242,9 @@ export class ProjectRepository {
     return project?.oauthProviders ?? [];
   }
 
-  async getProjectUsers(id: string) {
+  async getProjectUsers({ projectId }: { projectId: string }) {
     const projectUsers = await this.prisma.userProject.findMany({
-      where: { projectId: id },
+      where: { projectId },
       select: {
         firstName: true,
         lastName: true,
@@ -234,9 +261,9 @@ export class ProjectRepository {
     return projectUsers;
   }
 
-  async getProjectRefreshTokens(id: string) {
+  async getProjectRefreshTokens({ projectId }: { projectId: string }) {
     const refreshTokens = await this.prisma.refreshToken.findMany({
-      where: { projectId: id },
+      where: { projectId },
       select: {
         authMethod: true,
         createdAt: true,
@@ -249,10 +276,13 @@ export class ProjectRepository {
     return refreshTokens;
   }
 
-  async getAllProjectsCreatedByAdmin(
-    adminId: string,
-    args?: Prisma.ProjectFindManyArgs,
-  ) {
+  async getAllProjectsCreatedByAdmin({
+    adminId,
+    args,
+  }: {
+    adminId: string;
+    args?: Prisma.ProjectFindManyArgs;
+  }) {
     const projects = await this.prisma.project.findMany({
       ...args,
       where: { adminId },
@@ -266,15 +296,21 @@ export class ProjectRepository {
     return projects;
   }
 
-  async deleteProject(id: string) {
+  async deleteProject({ projectId }: { projectId: string }) {
     const deletedProject = await this.prisma.project.delete({
-      where: { id },
+      where: { id: projectId },
       select: { id: true, name: true },
     });
     return deletedProject;
   }
 
-  async getUserFromProject(userId: string, projectId: string) {
+  async getUserFromProject({
+    userId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+  }) {
     const user = await this.prisma.userProject.findUnique({
       where: {
         userId_projectId: { userId, projectId },
@@ -299,7 +335,13 @@ export class ProjectRepository {
     return user;
   }
 
-  async deleteUserFromProject(userId: string, projectId: string) {
+  async deleteUserFromProject({
+    userId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+  }) {
     const user = await this.prisma.userProject.delete({
       where: {
         userId_projectId: {
@@ -320,7 +362,7 @@ export class ProjectRepository {
     return user;
   }
 
-  async getProjectRoles(projectId: string) {
+  async getProjectRoles({ projectId }: { projectId: string }) {
     const roles = await this.prisma.role.findMany({
       where: { projectId },
       select: {
@@ -338,11 +380,15 @@ export class ProjectRepository {
     return roles;
   }
 
-  async assignUserProjectRole(
-    userId: string,
-    projectId: string,
-    roleId: string,
-  ) {
+  async assignUserProjectRole({
+    userId,
+    projectId,
+    roleId,
+  }: {
+    userId: string;
+    projectId: string;
+    roleId: string;
+  }) {
     const userAssignedARole = await this.prisma.userProject.update({
       where: {
         userId_projectId: {
@@ -357,11 +403,15 @@ export class ProjectRepository {
     return userAssignedARole;
   }
 
-  async removeUserProjectRole(
-    userId: string,
-    projectId: string,
-    roleId: string,
-  ) {
+  async removeUserProjectRole({
+    userId,
+    roleId,
+    projectId,
+  }: {
+    userId: string;
+    projectId: string;
+    roleId: string;
+  }) {
     const userRemovedFromRole = await this.prisma.userProject.update({
       where: { userId_projectId: { userId, projectId }, roleId },
       data: {

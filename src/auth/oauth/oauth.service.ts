@@ -11,10 +11,11 @@ import {
 } from './schema';
 import { EncryptionService } from 'src/infra/encryption/encryption.service';
 import { OAuthFactory } from './oauth.factory';
-import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { GoogleOauthUserInfo } from './providers/google-oauth.provider';
 import { GitHubOauthUserInfo } from './providers/github-oauth.provider';
 import { ProjectService } from 'src/project/project.service';
+import { UserService } from 'src/user/user.service';
+import { LoginService } from 'src/login/login.service';
 
 @Injectable()
 export class OauthService {
@@ -23,7 +24,8 @@ export class OauthService {
     private readonly oauthFactory: OAuthFactory,
     private readonly projectService: ProjectService,
     private readonly encryptionService: EncryptionService,
-    private readonly emitter: AppEventEmitter,
+    private readonly userService: UserService,
+    private readonly loginService: LoginService,
   ) {}
 
   async getProvider(providerId: string) {
@@ -35,6 +37,7 @@ export class OauthService {
       clientId: this.encryptionService.decrypt(providerData.clientId),
       clientSecret: this.encryptionService.decrypt(providerData.clientSecret),
       redirectUri: this.encryptionService.decrypt(providerData.redirectUri),
+      projectId: providerData.projectId,
     });
   }
 
@@ -89,37 +92,56 @@ export class OauthService {
     return { success: true, url };
   }
 
-  async getOauthCallback({ code, state: id }: GetTokensDto) {
+  async signIn({ code, state: id }: GetTokensDto) {
     const state = await this.oauthProviderRepository.getOauthState(id);
     if (!state) throw new NotFoundException('Oauth State not found');
     const provider = await this.getProvider(state.providerId);
     const { access_token } = await provider.getTokens(code);
     const userInfo = await provider.getUserInfo(access_token);
-
-    return { success: true, userInfo };
+    const { id: userId } = await this.saveUserToDatabase(
+      userInfo,
+      provider.getProjectId(),
+    );
+    const accessToken =
+      userInfo instanceof GoogleOauthUserInfo
+        ? this.loginService.generateAccessToken({
+            email: userInfo.email,
+            id: userId,
+            firstName: userInfo.family_name,
+            lastName: userInfo.given_name,
+            isVerified: userInfo.verified_email,
+          })
+        : this.loginService.generateAccessToken({
+            email: userInfo.email,
+            firstName: userInfo.name,
+            id: userId,
+            isVerified: true,
+          });
+    return { success: true, userInfo, accessToken };
   }
 
-  async saveUserToDatabase(
-    user: GoogleOauthUserInfo | GitHubOauthUserInfo,
-    projectId: string,
-  ) {
-    if (user instanceof GoogleOauthUserInfo)
-      await this.emitter.emit('user-create.email-password', {
+  async saveUserToDatabase(user: any, projectId: string) {
+    let id: string | undefined;
+    if (user instanceof GoogleOauthUserInfo) {
+      const { userId } = await this.userService.createAndAssignUserToProject({
         email: user.email,
         firstName: user.given_name,
         lastName: user.family_name,
+        authMethod: 'GOOGLE_OAUTH',
         projectId,
         isVerified: user.verified_email,
-        authMethod: 'GOOGLE_OAUTH',
       });
-    if (user instanceof GitHubOauthUserInfo) {
-      await this.emitter.emit('user-create.email-password', {
+      id = userId;
+    } else if (user instanceof GitHubOauthUserInfo) {
+      const { userId } = await this.userService.createAndAssignUserToProject({
         email: user.email,
         firstName: user.name,
         projectId,
         isVerified: true,
         authMethod: 'GITHUB_OAUTH',
       });
+      id = userId;
     }
+    return { id };
   }
 }

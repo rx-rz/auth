@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
 import { randomBytes } from 'crypto';
-import { OnEvent } from '@nestjs/event-emitter';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
 import { compare } from 'bcryptjs';
 import {
@@ -35,7 +33,9 @@ export class ProjectService {
   ) {}
 
   async checkIfProjectExists(projectId: string) {
-    const existingProject = await this.projectRepository.getProject(projectId);
+    const existingProject = await this.projectRepository.getProject({
+      projectId,
+    });
     if (!existingProject) {
       throw new NotFoundException('Project with specified ID does not exist.');
     }
@@ -43,17 +43,18 @@ export class ProjectService {
   }
 
   async checkIfUserExistsInProject(userId: string, projectId: string) {
-    const user = await this.projectRepository.getUserFromProject(
+    const user = await this.projectRepository.getUserFromProject({
       userId,
       projectId,
-    );
+    });
     if (!user)
       throw new NotFoundException('User with provided details does not exist');
   }
 
   async getProjectSettings(projectId: string) {
-    const projectSettings =
-      await this.projectRepository.getProjectSettings(projectId);
+    const projectSettings = await this.projectRepository.getProjectSettings({
+      projectId,
+    });
     if (!projectSettings) {
       throw new NotFoundException('Project with specified ID does not exist.');
     }
@@ -70,14 +71,14 @@ export class ProjectService {
       deleteProps?: { userId: string; projectId: string };
     },
   ) {
-    let user;
     if (operation === 'add' && addProps) {
       return this.projectRepository.addUserToProject(addProps);
     } else if (operation === 'delete' && deleteProps) {
-      return this.projectRepository.deleteUserFromProject(
-        deleteProps.userId,
-        deleteProps.projectId,
-      );
+      const { projectId, userId } = deleteProps;
+      return this.projectRepository.deleteUserFromProject({
+        userId,
+        projectId,
+      });
     }
   }
 
@@ -88,20 +89,20 @@ export class ProjectService {
   ) {
     let user;
     if (action === 'add') {
-      user = await this.projectRepository.addUserToProjectBlocklist(
+      user = await this.projectRepository.addUserToProjectBlocklist({
         userId,
         projectId,
-      );
+      });
     } else if (action === 'get') {
-      user = await this.projectRepository.getUserFromProjectBlocklist(
+      user = await this.projectRepository.getUserFromProjectBlocklist({
         userId,
         projectId,
-      );
+      });
     } else {
-      user = await this.projectRepository.removeUserFromBlocklist(
+      user = await this.projectRepository.removeUserFromBlocklist({
         userId,
         projectId,
-      );
+      });
     }
     return user;
   }
@@ -124,30 +125,36 @@ export class ProjectService {
       apiKey,
       clientKey,
     });
-    await this.projectRepository.createProjectSettings(project.id);
+    await this.projectRepository.createProjectSettings({
+      projectId: project.id,
+    });
     return { success: true, project };
   }
 
   async updateProjectSettings(dto: ProjectSettingsDto) {
     const { projectId, ...data } = dto;
-    const projectSettings = await this.projectRepository.updateProjectSettings(
+    const projectSettings = await this.projectRepository.updateProjectSettings({
       projectId,
       data,
-    );
+    });
     return projectSettings;
   }
 
   async updateProjectName({ projectId, name }: UpdateProjectNameDto) {
-    await this.checkIfProjectExists(projectId);
-    const project = await this.projectRepository.updateProject(projectId, {
-      name,
+    const existingProject = await this.checkIfProjectExists(projectId);
+    if (existingProject.name === name) {
+      throw new ConflictException('Project name has not been changed.');
+    }
+    const project = await this.projectRepository.updateProject({
+      projectId,
+      data: { name },
     });
     return { success: true, project };
   }
 
   async verifyProjectApiKeys({ apiKey, clientKey }: VerifyProjectApiKeysDto) {
     const { apiKey: existingApiKeyInDB, projectId } =
-      await this.projectRepository.getProjectApiKeyByClientKey(clientKey);
+      await this.projectRepository.getProjectApiKeyByClientKey({ clientKey });
     if (!existingApiKeyInDB)
       throw new NotFoundException(
         'Project with the provided client key does not exist in the DB',
@@ -162,36 +169,43 @@ export class ProjectService {
     await this.checkIfProjectExists(projectId);
     const { key: apiKey, hashedKey } = await this.generateKey();
     const { key: clientKey } = await this.generateKey();
-    await this.projectRepository.updateProject(projectId, {
-      apiKey: hashedKey,
-      clientKey,
+    await this.projectRepository.updateProject({
+      data: {
+        apiKey: hashedKey,
+        clientKey,
+      },
+      projectId,
     });
     return { success: true, clientKey, apiKey };
   }
 
   async getProjectIDByClientKey(clientKey: string) {
-    const projectId =
-      await this.projectRepository.getProjectIDByClientKey(clientKey);
+    const projectId = await this.projectRepository.getProjectIDByClientKey({
+      clientKey,
+    });
     if (!projectId)
       throw new NotFoundException('Project with provided details not found');
     return { success: true, projectId };
   }
 
   async getProjectDetails({ projectId }: ProjectIdDto) {
-    const project = await this.projectRepository.getProjectDetails(projectId);
+    const project = await this.projectRepository.getProjectDetails({
+      projectId,
+    });
     return { success: true, project };
   }
 
   async getProjectRoles({ projectId }: ProjectIdDto) {
     await this.checkIfProjectExists(projectId);
-    const roles = await this.projectRepository.getProjectRoles(projectId);
+    const roles = await this.projectRepository.getProjectRoles({ projectId });
     return { success: true, roles };
   }
 
   async getProjectRefreshTokens({ projectId }: ProjectIdDto) {
     await this.checkIfProjectExists(projectId);
-    const refreshTokens =
-      await this.projectRepository.getProjectRefreshTokens(projectId);
+    const refreshTokens = await this.projectRepository.getProjectRefreshTokens({
+      projectId,
+    });
     return { success: true, refreshTokens };
   }
 
@@ -201,19 +215,20 @@ export class ProjectService {
       throw new NotFoundException(
         'Admin with provided details could not be found',
       );
-    const projects =
-      await this.projectRepository.getAllProjectsCreatedByAdmin(adminId);
+    const projects = await this.projectRepository.getAllProjectsCreatedByAdmin({
+      adminId,
+    });
     return { success: true, projects };
   }
 
   async deleteProject({ projectId }: ProjectIdDto) {
     await this.checkIfProjectExists(projectId);
-    const project = await this.projectRepository.deleteProject(projectId);
+    const project = await this.projectRepository.deleteProject({
+      projectId,
+    });
     return { success: true, project };
   }
 
-  @OnEvent('user.add-to-project')
-  @CatchEmitterErrors()
   async addUserToProject({
     projectId,
     userId,
@@ -244,10 +259,10 @@ export class ProjectService {
   async removeUserFromProject({ projectId, userId }: RemoveUserFromProjectDto) {
     await this.checkIfUserExistsInProject(userId, projectId);
     await this.checkIfProjectExists(projectId);
-    const user = await this.projectRepository.deleteUserFromProject(
+    const user = await this.projectRepository.deleteUserFromProject({
       userId,
       projectId,
-    );
+    });
     return { success: true, user };
   }
 
@@ -259,11 +274,11 @@ export class ProjectService {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExistsInProject(userId, projectId);
     const userAssignedARole =
-      await this.projectRepository.assignUserProjectRole(
+      await this.projectRepository.assignUserProjectRole({
         userId,
         projectId,
         roleId,
-      );
+      });
     return { success: true, userAssignedARole };
   }
 
@@ -286,8 +301,9 @@ export class ProjectService {
 
   async getProjectBlocklist({ projectId }: ProjectIdDto) {
     await this.checkIfProjectExists(projectId);
-    const blocklist =
-      await this.projectRepository.getProjectBlocklist(projectId);
+    const blocklist = await this.projectRepository.getProjectBlocklist({
+      projectId,
+    });
     return blocklist;
   }
 
@@ -299,11 +315,11 @@ export class ProjectService {
     await this.checkIfProjectExists(projectId);
     await this.checkIfUserExistsInProject(userId, projectId);
     const userRemovedFromRole =
-      await this.projectRepository.removeUserProjectRole(
+      await this.projectRepository.removeUserProjectRole({
         userId,
         projectId,
         roleId,
-      );
+      });
     return { success: true, userRemovedFromRole };
   }
 

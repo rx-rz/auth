@@ -57,7 +57,7 @@ describe('UserRepository', () => {
         createdAt: new Date(),
       };
       (prismaService.user.create as jest.Mock).mockResolvedValue(mockCreatedUser);
-      await userRepository.createUser(mockUserData);
+      await userRepository.createAndAssignUserToProject(mockUserData);
       expect(prismaService.$transaction).toHaveBeenCalledWith(expect.any(Function));
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: { email: mockUserData.email },

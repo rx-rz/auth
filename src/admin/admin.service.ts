@@ -190,7 +190,7 @@ export class AdminService {
     await Promise.all([
       this.adminRepository.updateAdminPassword({
         email,
-        newPassword,
+        newPassword: await hashValue(newPassword),
       }),
       this.adminRepository.updatePasswordResetTokens({
         email,

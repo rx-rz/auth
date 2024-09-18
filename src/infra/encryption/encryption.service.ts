@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 
 export class EncryptionService {

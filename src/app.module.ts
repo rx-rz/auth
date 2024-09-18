@@ -19,6 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ProjectVerificationInterceptorModule } from './utils/interceptors/project-verification.module';
 import { MfaModule } from './mfa/mfa.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   controllers: [AppController],
@@ -52,6 +53,7 @@ import { MfaModule } from './mfa/mfa.module';
       envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     LoginModule,
     MfaModule,
   ],

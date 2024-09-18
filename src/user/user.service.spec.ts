@@ -103,7 +103,7 @@ describe('UserService', () => {
         updatedAt: faker.date.anytime(),
       });
       userRepository.createUser;
-      const result = await service.createUser(dto);
+      const result = await service.createAndAssignUserToProject(dto);
       expect(userRepository.getUserByEmail).toHaveBeenCalledWith(dto.email);
       expect(projectRepository.getProject).toHaveBeenCalledWith(dto.projectId);
       expect(userRepository.createUser).toHaveBeenCalledWith(

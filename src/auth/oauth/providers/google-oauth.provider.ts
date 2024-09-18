@@ -11,14 +11,22 @@ type GoogleOauthTokenResponse = {
 };
 
 export class GoogleOauthUserInfo {
-  id: string;
+  constructor(
+    email: string,
+    given_name: string,
+    family_name: string,
+    verified_email: boolean,
+  ) {
+    this.email = email;
+    this.given_name = given_name;
+    this.family_name = family_name;
+    this.verified_email = verified_email;
+  }
   email: string;
-  verified_email: boolean;
-  name: string;
   given_name: string;
   family_name: string;
+  verified_email: boolean;
 }
-
 @Injectable()
 export class GoogleOauthProvider extends OAuthProvider {
   constructor(oauthProviderData: OAuthProviderData) {
@@ -81,7 +89,13 @@ export class GoogleOauthProvider extends OAuthProvider {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    const data: GoogleOauthUserInfo = await response.json();
-    return data;
+    const data = await response.json();
+    const user = new GoogleOauthUserInfo(
+      data.email,
+      data.given_name,
+      data.family_name,
+      data.verified_email,
+    );
+    return user;
   }
 }

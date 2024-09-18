@@ -58,8 +58,8 @@ export const USER_ROUTES = {
   GET_DETAILS: 'get-details',
   GET_USER_PROJECT_DETAILS: 'get-user-project-details',
   DELETE: 'delete',
-  REGISTER_WITH_EMAIL_AND_PASSWORD: 'register',
-  SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin',
+  REGISTER_WITH_EMAIL_AND_PASSWORD: 'register-with-email-and-password',
+  SIGNIN_WITH_EMAIL_AND_PASSWORD: 'signin-with-email-and-password',
 };
 
 export const ROLE_ROUTES = {
@@ -87,3 +87,10 @@ export const MAGIC_LINK_ROUTES = {
   DELETE_MAGIC_LINK: 'delete',
   VERIFY_MAGIC_LINK: 'verify-magic-link',
 };
+
+export const OAUTH_ROUTES = {
+  BASE: 'oauth',
+  ADD_PROVIDER_TO_PROJECT: 'add-provider-to-project',
+  GET_AUTHORIZATION_URL: 'get-authorization-url',
+  SIGN_IN: 'sign-in'
+}

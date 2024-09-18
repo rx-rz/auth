@@ -57,6 +57,7 @@ export class MagicLinkAuthService {
   async verifyMagicLink({ token }: TokenDto, request: Request) {
     const { projectId, userEmail } =
       await this.loginService.decodeAccessToken<DecodedMagicLink>(token);
+    console.log({ projectId, userEmail });
     const { lockoutDurationMinutes, maxLoginAttempts, refreshTokenDays } =
       await this.projectService.getProjectSettings(projectId);
     const { user } = await this.userService.getUserProjectDetails({

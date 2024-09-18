@@ -7,11 +7,14 @@ import {
   UpdateRefreshTokenStateDto,
 } from './schema';
 import { randomBytes } from 'crypto';
+import { ProjectService } from 'src/project/project.service';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
 export class RefreshTokenService {
   constructor(
     private readonly refreshTokenRepository: RefreshTokenRepository,
+
   ) {}
 
   generateRefreshToken(bytes = 32) {

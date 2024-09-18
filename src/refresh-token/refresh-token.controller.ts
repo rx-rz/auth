@@ -1,13 +1,17 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Query } from '@nestjs/common';
 import { RefreshTokenService } from './refresh-token.service';
-import { GetRefreshTokenByTokenValueDto } from './schema';
+import { UpdateRefreshTokenStateDto } from './schema';
 
 @Controller('refresh-token')
 export class RefreshTokenController {
   constructor(private readonly refreshTokenService: RefreshTokenService) {}
 
-  // @Get('/token')
-  // async getRefreshToken(@Query() query: GetRefreshTokenByTokenValueDto) {
-  //   return this.refreshTokenService.getRefreshToken(query);
-  // }
+  async updateRefreshTokenStatus(@Body() body: UpdateRefreshTokenStateDto) {
+    return this.refreshTokenService.updateRefreshTokenState(body);
+  }
+
+  async deleteRefreshTokensCron(@Query() query: { projectId: string }) {
+    
+  }
+
 }

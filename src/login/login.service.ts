@@ -9,11 +9,11 @@ import {
 } from './schema';
 import { ZodPipe } from 'src/utils/schema-validation/validation.pipe';
 import { ProjectService } from 'src/project/project.service';
-import { AppEventEmitter } from 'src/infra/emitter/app-event-emitter';
 import { StoreRefreshTokenDto } from 'src/refresh-token/schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
+import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
 
 type Payload = {
   email: string;
@@ -31,22 +31,18 @@ export class LoginService {
   constructor(
     private readonly loginRepository: LoginRepository,
     private readonly projectService: ProjectService,
-    private readonly emitter: AppEventEmitter,
+    private readonly refreshTokenService: RefreshTokenService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
   private async checkIfLoginInstanceExists(id: string) {
-    const login = await this.loginRepository.getLoginInstance(id);
+    const login = await this.loginRepository.getLoginInstance({ id });
     if (!login) throw new NotFoundException('Login instance not found');
   }
 
-  async emitRefreshTokenInstanceCreationEvent(dto: StoreRefreshTokenDto) {
-    await this.emitter.emit('refresh-token.created', dto);
-  }
-
-  async saveRefreshTokenInDB(dto: StoreRefreshTokenDto){
-    
+  async saveRefreshTokenInDB(data: StoreRefreshTokenDto) {
+    await this.refreshTokenService.storeRefreshToken(data);
   }
 
   async generateAccessToken(payload: Partial<Payload>, projectId?: string) {
@@ -119,7 +115,9 @@ export class LoginService {
   ) {
     if (dto.status === 'FAILURE') {
       const previousLogin =
-        await this.loginRepository.getLatestLoginInstanceForUser(dto.userId);
+        await this.loginRepository.getLatestLoginInstanceForUser({
+          userId: dto.userId,
+        });
       const login = await this.loginRepository.createLoginInstance({
         ...dto,
         //adding an extra attempt to the already existing attempt
@@ -150,7 +148,7 @@ export class LoginService {
   @UsePipes(new ZodPipe(LoginIdSchema))
   async deleteLoginInstance({ loginId }: LoginIdDto) {
     await this.checkIfLoginInstanceExists(loginId);
-    const login = this.loginRepository.deleteLoginInstance(loginId);
+    const login = this.loginRepository.deleteLoginInstance({ id: loginId });
     return { success: true, login };
   }
 }

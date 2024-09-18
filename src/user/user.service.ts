@@ -7,8 +7,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { hashValue } from 'src/utils/helper-functions/hash-value';
-import { OnEvent } from '@nestjs/event-emitter';
-import { CatchEmitterErrors } from 'src/utils/decorators/catch-emitter-errors.decorator';
 import {
   CreateUserDto,
   EmailDto,
@@ -52,9 +50,13 @@ export class UserService {
     return true;
   }
 
-  @OnEvent('user-create.email-password')
-  @CatchEmitterErrors()
-  async createUser({ email, projectId, authMethod, ...body }: CreateUserDto) {
+  async createAndAssignUserToProject({
+    email,
+    projectId,
+    authMethod,
+    ...body
+  }: CreateUserDto) {
+    let userId: string | undefined;
     const existingUser = await this.userRepository.getUserByEmail(email);
     const project = await this.projectService.checkIfProjectExists(projectId);
     if (!project)
@@ -65,13 +67,15 @@ export class UserService {
       projectId,
     );
     if (existingUser && userIsAssignedToProject) {
-      if (authMethod !== 'GOOGLE_OAUTH') {
+      userId = existingUser.id;
+      if (authMethod !== 'GOOGLE_OAUTH' && authMethod !== 'GITHUB_OAUTH') {
         throw new ConflictException(
           'User is already assigned to this project.',
         );
       }
     }
     if (existingUser && !userIsAssignedToProject) {
+      userId = existingUser.id;
       await this.projectService.manageUserProjectMembership('add', {
         addProps: {
           project: {
@@ -89,7 +93,7 @@ export class UserService {
       });
     }
     if (!existingUser) {
-      await Promise.all([
+      const [user] = await Promise.all([
         this.userRepository.createUser(email),
         this.projectService.manageUserProjectMembership('add', {
           addProps: {
@@ -107,7 +111,9 @@ export class UserService {
           },
         }),
       ]);
+      userId = user.id;
     }
+    return { userId };
   }
 
   async updateUserProjectDetails(updateUserDto: UpdateUserProjectDetailsDto) {
